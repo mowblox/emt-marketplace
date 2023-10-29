@@ -9,12 +9,12 @@ describe("MentorToken", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployMentorTokenFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, defaultAdmin, minter] = await ethers.getSigners();
+    const [owner, minter] = await ethers.getSigners();
 
     const MentorToken = await ethers.getContractFactory("MentorToken");
-    const mentorToken = await MentorToken.deploy(defaultAdmin.address, minter.address);
+    const mentorToken = await MentorToken.deploy(owner.address, minter.address);
 
-    return { mentorToken, owner, defaultAdmin, minter };
+    return { mentorToken, owner, minter };
   }
 
   // Test Goes Below
