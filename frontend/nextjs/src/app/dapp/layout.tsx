@@ -22,6 +22,7 @@ export default function DappLayout({
         <header>
             <ConnectButton/>
         </header>
+        {children}
         </RainbowKitProvider>
     </WagmiConfig>
   
