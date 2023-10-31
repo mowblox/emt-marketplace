@@ -12,15 +12,15 @@ async function main() {
   console.log("EMT Marketplace deployed at: ", emtMarketplace.target);
 
   const mentorToken = await ethers.deployContract("MentorToken", [
-    process.env.MENTOR_TOKEN_DEFAULT_ADMIN || owner.address,
-    process.env.MENTOR_TOKEN_MINTER || emtMarketplace.target,
+    process.env.TOKEN_DEFAULT_ADMIN || owner.address,
+    process.env.TOKEN_MINTER || emtMarketplace.target,
   ]);
   await mentorToken.waitForDeployment();
   console.log("Mentor Token deployed at: ", mentorToken.target);
 
   const expertToken = await ethers.deployContract("ExpertToken", [
-    process.env.MENTOR_TOKEN_DEFAULT_ADMIN || owner.address,
-    process.env.MENTOR_TOKEN_MINTER || emtMarketplace.target,
+    process.env.TOKEN_DEFAULT_ADMIN || owner.address,
+    process.env.TOKEN_MINTER || emtMarketplace.target,
   ]);
   await expertToken.waitForDeployment();
   console.log("Expert Token deployed at: ", expertToken.target);
