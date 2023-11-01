@@ -9,12 +9,12 @@ describe("MentorToken", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployMentorTokenFixture() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, minter] = await ethers.getSigners();
+    const [owner, minter, user] = await ethers.getSigners();
 
     const MentorToken = await ethers.getContractFactory("MentorToken");
     const mentorToken = await MentorToken.deploy(owner.address, minter.address);
 
-    return { mentorToken, owner, minter };
+    return { mentorToken, owner, minter, user };
   }
 
   // Test Goes Below
@@ -26,6 +26,32 @@ describe("MentorToken", function () {
       console.log("Name: ", await mentorToken.name());
       console.log("Symbol: ", await mentorToken.symbol());
       console.log("Decimals: ", await mentorToken.decimals());
+    })
+  });
+  describe("Minting", function () {
+    it("Should mint correctly", async function () {
+      const { mentorToken, minter, user } = await loadFixture(deployMentorTokenFixture);
+
+      const amountToMint = 1n
+      const initialBalance = await mentorToken.balanceOf(user.address);
+      const initialTotalSupply = await mentorToken.totalSupply();
+      await mentorToken.connect(minter).mint(user.address, amountToMint);
+      const finalBalance = await mentorToken.balanceOf(user.address);
+      const finalTotalSupply = await mentorToken.totalSupply();
+      expect(finalBalance).to.equal(initialBalance + amountToMint);
+      expect(finalTotalSupply).to.equal(initialTotalSupply + amountToMint);
+    })
+    it("Should not mint if not minter", async function () {
+      const { mentorToken, user } = await loadFixture(deployMentorTokenFixture);
+
+      const amountToMint = 1n
+      const initialBalance = await mentorToken.balanceOf(user.address);
+      const initialTotalSupply = await mentorToken.totalSupply();
+      await expect(mentorToken.connect(user).mint(user.address, 1)).to.be.revertedWithCustomError(mentorToken, 'AccessControlUnauthorizedAccount')
+      const finalBalance = await mentorToken.balanceOf(user.address);
+      const finalTotalSupply = await mentorToken.totalSupply();
+      expect(finalBalance).to.equal(initialBalance);
+      expect(finalTotalSupply).to.equal(initialTotalSupply);
     })
   });
 });
