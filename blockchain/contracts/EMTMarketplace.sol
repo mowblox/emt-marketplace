@@ -11,7 +11,9 @@ contract EMTMarketplace is AccessControl {
     event ContentDownVoted(uint256 indexed, uint256);
 
     // Data Definitions
-    address _mentToken;
+    address _MENT_TOKEN_ADDRESS;
+    uint256 _UPVOTE_WEIGHT = 10;
+    uint256 _DOWNVOTE_WEIGHT = 5;
     mapping(uint256 => uint256) _contentVotes;
     mapping(address => mapping(uint256 => bool)) _memberUpVotes;
     mapping(address => mapping(uint256 => bool)) _memberDownVotes;
@@ -23,9 +25,21 @@ contract EMTMarketplace is AccessControl {
 
     // Function Definitions
     function setMentToken(
-        address _MENT_TOKEN_ADDRESS
+        address _mentTokenAddress
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _mentToken = _MENT_TOKEN_ADDRESS;
+        _MENT_TOKEN_ADDRESS = _mentTokenAddress;
+    }
+
+    function setUpVoteWeight(
+        uint256 _upVoteWeight
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _UPVOTE_WEIGHT = _upVoteWeight;
+    }
+
+    function setDownVoteWeight(
+        uint256 _downVoteWeight
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _DOWNVOTE_WEIGHT = _downVoteWeight;
     }
 
     function contentVotes(uint256 _id) public view returns (uint256) {
@@ -42,7 +56,10 @@ contract EMTMarketplace is AccessControl {
 
     function upVoteContent(uint256 _id, address _mentor) public {
         // Check if MENT Token is not address zero
-        require(_mentToken != address(0), "Ment Token is Address Zero!");
+        require(
+            _MENT_TOKEN_ADDRESS != address(0),
+            "Ment Token is Address Zero!"
+        );
         // Check if msg.sender has not upvoted
         require(
             !_memberUpVotes[msg.sender][_id],
@@ -54,14 +71,17 @@ contract EMTMarketplace is AccessControl {
         _memberUpVotes[msg.sender][_id] = true;
         _memberDownVotes[msg.sender][_id] = false;
         // Mint MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
-        MentorToken(_mentToken).mint(_mentor, 1);
+        MentorToken(_MENT_TOKEN_ADDRESS).mint(_mentor, _UPVOTE_WEIGHT);
         // Emit Event
         emit ContentUpVoted(_id, _contentVotes[_id]);
     }
 
     function downVoteContent(uint256 _id, address _mentor) public {
         // Check if MENT Token is not address zero
-        require(_mentToken != address(0), "Ment Token is Address Zero!");
+        require(
+            _MENT_TOKEN_ADDRESS != address(0),
+            "Ment Token is Address Zero!"
+        );
         // Check if msg.sender has already up voted the content
         require(_memberUpVotes[msg.sender][_id], "Member has not up voted!");
         // Check if msg.sender has not downvoted the content
@@ -75,7 +95,10 @@ contract EMTMarketplace is AccessControl {
         _memberDownVotes[msg.sender][_id] = true;
         _memberUpVotes[msg.sender][_id] = false;
         // Burn MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
-        MentorToken(_mentToken).burnAsMinter(_mentor, 1);
+        MentorToken(_MENT_TOKEN_ADDRESS).burnAsMinter(
+            _mentor,
+            _DOWNVOTE_WEIGHT
+        );
         // Emit Event
         emit ContentDownVoted(_id, _contentVotes[_id]);
     }
