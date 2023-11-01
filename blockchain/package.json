@@ -2,9 +2,10 @@
   "name": "blockchain",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage",
+    "clean": "npx hardhat clean"
   },
   "keywords": [],
   "author": "",
