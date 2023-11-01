@@ -19,6 +19,7 @@ contract ExpertToken is ERC1155, AccessControl {
     {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, minter);
+        _grantRole(URI_SETTER_ROLE, defaultAdmin);
     }
 
     function setURI(string memory newuri) public onlyRole(URI_SETTER_ROLE) {
