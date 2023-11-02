@@ -21,6 +21,16 @@ contract MentorToken is ERC20, ERC20Burnable, AccessControl {
         _mint(to, amount);
     }
 
+    function burnAsMinter(
+        address account,
+        uint256 value
+    ) public onlyRole(MINTER_ROLE) {
+        // @Jovells suggest that we check back in the Marketplace Contract to see if downvote has actually happened.
+        // @mickeymond thinks that since we are not doing it for minting, why do that for burning?
+        // We can put any extra validation checks here if we want to before burning happens.
+        _burn(account, value);
+    }
+
     function decimals() public view virtual override returns (uint8) {
         return 0;
     }
