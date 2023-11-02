@@ -12,10 +12,13 @@ describe("EMTMarketplace", function () {
         const [owner, mentor, member] = await ethers.getSigners();
 
         const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
-        const emtMarketplace = await EMTMarketplace.deploy();
+        const emtMarketplace = await EMTMarketplace.deploy(owner.address);
 
         const MentorToken = await ethers.getContractFactory("MentorToken");
         const mentorToken = await MentorToken.deploy(owner.address, emtMarketplace.target);
+        
+        await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+
 
         // Mentor Approve MarketPlace Token
         await mentorToken.connect(mentor).approve(emtMarketplace.target, 1);
@@ -24,11 +27,75 @@ describe("EMTMarketplace", function () {
     }
 
     // Test Goes Below
-    describe("Deployment", function () {
-        it("deploys mentor token with all expected defaults", async function () {
-            const { emtMarketplace, mentorToken, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+    describe("Deployment and Configuration", function () {
+        it("should deploy EMTMarketplace with the correct owner", async function () {
+          const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
+          expect(await emtMarketplace.hasRole(await emtMarketplace.DEFAULT_ADMIN_ROLE(), owner.address)).to.equal(true);
+        });
+    
+        it("should set the MENT Token address", async function () {
+          const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
+          const randomAddress = "0x976EA74026E726554dB657fA54763abd0C3a0aa9";
+          await emtMarketplace.connect(owner).setMentToken(randomAddress);
+          expect(await emtMarketplace._MENT_TOKEN_ADDRESS()).to.equal(randomAddress);
+        });
+    
+        it("should set the upvote weight", async function () {
+          const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
+          const newUpvoteWeight = 20;
+          await emtMarketplace.connect(owner).setUpVoteWeight(newUpvoteWeight);
+          expect(await emtMarketplace._UPVOTE_WEIGHT()).to.equal(newUpvoteWeight);
+        });
+    
+        it("should set the downvote weight", async function () {
+          const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
+          const newDownvoteWeight = 7;
+          await emtMarketplace.connect(owner).setDownVoteWeight(newDownvoteWeight);
+          expect(await emtMarketplace._DOWNVOTE_WEIGHT()).to.equal(newDownvoteWeight);
+        });
+      });
+    
+      describe("Content Voting", function () {
+        it("should allow a member to upvote content", async function () {
+          const { emtMarketplace, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+          await emtMarketplace.connect(member).upVoteContent(1, mentor.address);
+          expect(await emtMarketplace.connect(member).contentVotes(1)).to.equal(1);
+          expect(await emtMarketplace.connect(member).memberUpVotes(1)).to.equal(true);
+          expect(await emtMarketplace.connect(member).memberDownVotes(1)).to.equal(false);
+        });
+    
+        it("should allow a member to downvote content", async function () {
+          const { emtMarketplace, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+          await emtMarketplace.connect(member).upVoteContent(1, mentor.address);
+          await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
+          expect(await emtMarketplace.connect(member).contentVotes(1)).to.equal(0);
+          expect(await emtMarketplace.connect(member).memberUpVotes(1)).to.equal(false);
+          expect(await emtMarketplace.connect(member).memberDownVotes(1)).to.equal(true);
+        });
+      });
 
-            console.log("Market Place Allowance: ", await mentorToken.allowance(mentor.address, emtMarketplace.target));
-        })
-    });
+      describe("Additional Test Cases for require Statements", function () {
+        it("should fail to upvote content with MENT Token address set to address(0)", async function () {
+            const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+            await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
+          await expect(emtMarketplace.connect(member).upVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
+        });
+        it("should fail to downvote content with MENT Token address set to address(0)", async function () {
+            const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+            await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
+          await expect(emtMarketplace.connect(member).downVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
+        });
+    
+        it("should fail to upvote content when the member has already upvoted", async function () {
+          const { emtMarketplace, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+          await emtMarketplace.connect(member).upVoteContent(1, mentor.address);
+          await expect(emtMarketplace.connect(member).upVoteContent(1, mentor.address)).to.be.revertedWith("Member has already up voted!");
+        });
+    
+        it("should fail to downvote content when the member has already downvoted", async function () {
+          const { emtMarketplace, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+          await emtMarketplace.connect(member).upVoteContent(1, mentor.address);          await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
+          await expect(emtMarketplace.connect(member).downVoteContent(1, mentor.address)).to.be.revertedWith("Member has already down voted!");
+        });
+      });
 });

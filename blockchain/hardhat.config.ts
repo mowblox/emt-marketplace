@@ -8,6 +8,7 @@ dotenv.config();
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
   networks: {
+    
     topos: {
       url: 'https://rpc.topos-subnet.testnet-1.topos.technology',
       accounts: [process.env.PRIVATE_KEY as string || crypto.randomBytes(32).toString('hex')]
@@ -15,13 +16,7 @@ const config: HardhatUserConfig = {
     incal: {
       url: 'https://rpc.incal.testnet-1.topos.technology',
       accounts: [process.env.PRIVATE_KEY as string || crypto.randomBytes(32).toString('hex')]
-    },
-    hardhat:{
-      forking:{
-        url: 'https://rpc.topos-subnet.testnet-1.topos.technology',
-        blockNumber: 610_535
-      }
-    },
+    },   
 
   },
   gasReporter: {

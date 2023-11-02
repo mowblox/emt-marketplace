@@ -6,7 +6,8 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
-    "clean": "npx hardhat clean"
+    "clean": "npx hardhat clean",
+    "chain": "npx hardhat node --fork https://rpc.topos-subnet.testnet-1.topos.technology --fork-block-number 610535"
   },
   "keywords": [],
   "author": "",
