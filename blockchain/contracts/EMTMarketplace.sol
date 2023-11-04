@@ -11,12 +11,12 @@ contract EMTMarketplace is AccessControl {
     event ContentDownVoted(uint256 indexed, uint256);
 
     // Data Definitions
-    address _MENT_TOKEN_ADDRESS;
-    uint256 _UPVOTE_WEIGHT = 10;
-    uint256 _DOWNVOTE_WEIGHT = 5;
+    address public _MENT_TOKEN_ADDRESS;
+    uint256 public  _UPVOTE_WEIGHT = 10;
+    uint256 public _DOWNVOTE_WEIGHT = 5;
     mapping(uint256 => uint256) _contentVotes;
-    mapping(address => mapping(uint256 => bool)) _memberUpVotes;
-    mapping(address => mapping(uint256 => bool)) _memberDownVotes;
+    mapping(address => mapping(uint256 => bool))  _memberUpVotes;
+    mapping(address => mapping(uint256 => bool))  _memberDownVotes;
 
     // Constructor
     constructor(address defaultAdmin) {
