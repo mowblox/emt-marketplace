@@ -1,7 +1,7 @@
 const { getDefaultWallets } = require("@rainbow-me/rainbowkit");
   import { configureChains, createConfig } from 'wagmi';
   import {
-  hardhat, mainnet
+  hardhat, mainnet, polygonMumbai
   } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
@@ -11,7 +11,7 @@ https://wagmi.sh/react/chains#build-your-own
  */
 
  const { chains, publicClient } = configureChains(
-    [hardhat,
+    [ hardhat,
     mainnet
     // @todo: add topos chain
     ],
@@ -34,3 +34,5 @@ https://wagmi.sh/react/chains#build-your-own
 
   export const emtChains = chains
   export const emtWagmiConfig = wagmiConfig
+
+  export const chain = hardhat
