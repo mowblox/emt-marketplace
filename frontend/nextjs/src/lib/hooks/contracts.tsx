@@ -57,9 +57,9 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
 
       const EMTMarketPlace_ = require(`@/deployments/${chain.id}/EMTMarketplace.js`).default;
 
-      const ExpertToken_ = require(`../../deployments/${chain.id}/ExpertToken.js`).default;
+      const ExpertToken_ = require(`@/deployments/${chain.id}/ExpertToken.js`).default;
 
-      const MentorToken_ = require(`../../deployments/${chain.id}/MentorToken.js`).default;
+      const MentorToken_ = require(`@/deployments/${chain.id}/MentorToken.js`).default;
 
 
       ethers.ContractFactory

@@ -10,11 +10,12 @@ https://wagmi.sh/react/chains#build-your-own
  const topos...
  */
 
+ const productionChain = polygonMumbai /*todo: use topos */
+
+ const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, /*todo: add topos */]
+
  const { chains, publicClient } = configureChains(
-    [ hardhat,
-    mainnet
-    // @todo: add topos chain
-    ],
+  envChains,
     [
       publicProvider()
     ]
@@ -35,4 +36,4 @@ https://wagmi.sh/react/chains#build-your-own
   export const emtChains = chains
   export const emtWagmiConfig = wagmiConfig
 
-  export const chain = hardhat
+  export const chain = process.env.NODE_ENV === "production" ? productionChain : hardhat
