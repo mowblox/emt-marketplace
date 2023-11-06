@@ -40,4 +40,4 @@ package-lock.json
 yarn.lock
 
 # contract deployment files
-/src/deployments
+/src/deployments/31337
