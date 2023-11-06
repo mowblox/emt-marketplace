@@ -1,15 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('cwd', process.cwd(), 'dirname', __dirname)
-
 const contractsDirectory = path.join(__dirname, '../artifacts/contracts');
-console.log('contractsDirectory', contractsDirectory)
 
-const generateAbis = (networkName, contractAddresses = {
-    EMTMarketplace: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-}) => {
-    const outputDirectory = path.join(__dirname, '../../frontend/nextjs/src/deployments/'+networkName);
+const generateAbis = (chainId, contractAddresses) => {
+    
+    const outputDirectory = path.join(__dirname, '../../frontend/nextjs/src/deployments/'+chainId);
     fs.readdirSync(contractsDirectory).forEach((contractFolderName) => {
         const contractFilePath = path.join(contractsDirectory, contractFolderName);
         const contractName = contractFolderName.replace(".sol", "");

@@ -16,8 +16,11 @@ const config: HardhatUserConfig = {
     incal: {
       url: 'https://rpc.incal.testnet-1.topos.technology',
       accounts: [process.env.PRIVATE_KEY as string || crypto.randomBytes(32).toString('hex')]
-    },   
-
+    }, 
+    mumbai:{
+      url: 'https://rpc-mumbai.maticvigil.com',
+      accounts: [process.env.PRIVATE_KEY as string || crypto.randomBytes(32).toString('hex')]
+    }  
   },
   gasReporter: {
     enabled: true

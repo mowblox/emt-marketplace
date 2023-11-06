@@ -8,6 +8,8 @@ import {
 
 import {emtChains, emtWagmiConfig} from "./../../../emt.config"
 import { WagmiConfig } from 'wagmi';
+import { ContractProvider } from '@/lib/hooks/contracts';
+
 
 
 
@@ -19,10 +21,12 @@ export default function DappLayout({
     return (
         <WagmiConfig config={emtWagmiConfig}>
         <RainbowKitProvider chains={emtChains}>
+          <ContractProvider>
         <header>
             <ConnectButton/>
         </header>
         {children}
+        </ContractProvider>
         </RainbowKitProvider>
     </WagmiConfig>
   
