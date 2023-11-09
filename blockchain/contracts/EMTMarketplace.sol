@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./MentorToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
@@ -63,6 +64,8 @@ contract EMTMarketplace is AccessControl {
     }
 
     function upVoteContent(uint256 _id, address _mentor) public {
+        // Check if MENT Token is not address zero
+        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
         // Check if msg.sender has not upvoted
         require(
             !_memberUpVotes[msg.sender][_id],
@@ -79,13 +82,15 @@ contract EMTMarketplace is AccessControl {
         _contentUpVotes[_id]++;
         // Update Member Up Votes Status
         _memberUpVotes[msg.sender][_id] = true;
-        // Mint MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
+        // Mint MENT Token for Content Creator
         MentorToken(mentTokenAddress).mint(_mentor, upVoteWeight);
         // Emit Event
         emit ContentUpVoted(_id, _contentUpVotes[_id]);
     }
 
     function downVoteContent(uint256 _id, address _mentor) public {
+        // Check if MENT Token is not address zero
+        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
         // Check if msg.sender has not downvoted the content
         require(
             !_memberDownVotes[msg.sender][_id],
@@ -97,13 +102,19 @@ contract EMTMarketplace is AccessControl {
             _contentUpVotes[_id]--;
             // Update Member Up Votes Status
             _memberUpVotes[msg.sender][_id] = false;
+            // Burn MENT Token for Content Creator
+            uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
+                _mentor
+            );
+            MentorToken(mentTokenAddress).burnAsMinter(
+                _mentor,
+                Math.min(downVoteWeight, _mentBalance)
+            );
         }
         // Increment Content Down Vote
         _contentDownVotes[_id]++;
         // Update Member Down Votes Status
         _memberDownVotes[msg.sender][_id] = true;
-        // Burn MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
-        MentorToken(mentTokenAddress).burnAsMinter(_mentor, downVoteWeight);
         // Emit Event
         emit ContentDownVoted(_id, _contentDownVotes[_id]);
     }

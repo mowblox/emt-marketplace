@@ -19,10 +19,6 @@ describe("EMTMarketplace", function () {
 
     await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
 
-
-    // Mentor Approve MarketPlace Token
-    await mentorToken.connect(mentor).approve(emtMarketplace.target, 1);
-
     return { emtMarketplace, mentorToken, owner, mentor, member };
   }
 
@@ -75,17 +71,17 @@ describe("EMTMarketplace", function () {
   });
 
   describe("Additional Test Cases for require Statements", function () {
-    // it("should fail to upvote content with MENT Token address set to address(0)", async function () {
-    //   const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
-    //   await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
-    //   await expect(emtMarketplace.connect(member).upVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
-    // });
+    it("should fail to upvote content with MENT Token address set to address(0)", async function () {
+      const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
+      await expect(emtMarketplace.connect(member).upVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
+    });
 
-    // it("should fail to downvote content with MENT Token address set to address(0)", async function () {
-    //   const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
-    //   await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
-    //   await expect(emtMarketplace.connect(member).downVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
-    // });
+    it("should fail to downvote content with MENT Token address set to address(0)", async function () {
+      const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
+      await expect(emtMarketplace.connect(member).downVoteContent(1, mentor.address)).to.be.revertedWith("Ment Token is Address Zero!");
+    });
 
     it("should fail to upvote content when the member has already upvoted", async function () {
       const { emtMarketplace, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
