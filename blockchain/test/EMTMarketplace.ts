@@ -60,7 +60,24 @@ describe("EMTMarketplace", function () {
       expect(await emtMarketplace.connect(member).memberDownVotes(1)).to.equal(false);
     });
 
+    it("should allow a member to upvote downvoted content", async function () {
+      const { emtMarketplace, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
+      await emtMarketplace.connect(member).upVoteContent(1, mentor.address);
+      expect((await emtMarketplace.connect(member).contentVotes(1))[2]).to.equal(1);
+      expect(await emtMarketplace.connect(member).memberUpVotes(1)).to.equal(true);
+      expect(await emtMarketplace.connect(member).memberDownVotes(1)).to.equal(false);
+    });
+
     it("should allow a member to downvote content", async function () {
+      const { emtMarketplace, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
+      expect((await emtMarketplace.connect(member).contentVotes(1))[2]).to.equal(-1);
+      expect(await emtMarketplace.connect(member).memberUpVotes(1)).to.equal(false);
+      expect(await emtMarketplace.connect(member).memberDownVotes(1)).to.equal(true);
+    });
+
+    it("should allow a member to downvote upvoted content", async function () {
       const { emtMarketplace, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(member).upVoteContent(1, mentor.address);
       await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
@@ -71,6 +88,24 @@ describe("EMTMarketplace", function () {
   });
 
   describe("Additional Test Cases for require Statements", function () {
+    it("should fail to set the MENT Token address if caller not admin", async function () {
+      const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
+      const randomAddress = "0x976EA74026E726554dB657fA54763abd0C3a0aa9";
+      await expect(emtMarketplace.connect(member).setMentToken(randomAddress)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+    });
+
+    it("should fail to set the upvote weight if caller not admin", async function () {
+      const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
+      const newUpvoteWeight = 20;
+      await expect(emtMarketplace.connect(member).setUpVoteWeight(newUpvoteWeight)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+    });
+
+    it("should fail to set the downvote weight if caller not admin", async function () {
+      const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
+      const newDownvoteWeight = 7;
+      await expect(emtMarketplace.connect(member).setDownVoteWeight(newDownvoteWeight)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+    });
+
     it("should fail to upvote content with MENT Token address set to address(0)", async function () {
       const { emtMarketplace, member, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(owner).setMentToken(ethers.ZeroAddress);
@@ -91,7 +126,7 @@ describe("EMTMarketplace", function () {
 
     it("should fail to downvote content when the member has already downvoted", async function () {
       const { emtMarketplace, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
-      await emtMarketplace.connect(member).upVoteContent(1, mentor.address); await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
+      await emtMarketplace.connect(member).downVoteContent(1, mentor.address);
       await expect(emtMarketplace.connect(member).downVoteContent(1, mentor.address)).to.be.revertedWith("Member has already down voted!");
     });
   });
