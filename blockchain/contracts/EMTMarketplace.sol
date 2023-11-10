@@ -102,19 +102,19 @@ contract EMTMarketplace is AccessControl {
             _contentUpVotes[_id]--;
             // Update Member Up Votes Status
             _memberUpVotes[msg.sender][_id] = false;
-            // Burn MENT Token for Content Creator
-            uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
-                _mentor
-            );
-            MentorToken(mentTokenAddress).burnAsMinter(
-                _mentor,
-                Math.min(downVoteWeight, _mentBalance)
-            );
         }
         // Increment Content Down Vote
         _contentDownVotes[_id]++;
         // Update Member Down Votes Status
         _memberDownVotes[msg.sender][_id] = true;
+        // Burn MENT Token for Content Creator if Balance is greater than zero
+        uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(_mentor);
+        if (_mentBalance > 0) {
+            MentorToken(mentTokenAddress).burnAsMinter(
+                _mentor,
+                Math.min(downVoteWeight, _mentBalance)
+            );
+        }
         // Emit Event
         emit ContentDownVoted(_id, _contentDownVotes[_id]);
     }
