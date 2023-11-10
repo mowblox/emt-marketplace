@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./MentorToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
@@ -10,13 +11,15 @@ contract EMTMarketplace is AccessControl {
     event ContentUpVoted(uint256 indexed, uint256);
     event ContentDownVoted(uint256 indexed, uint256);
 
-    // Data Definitions
-    address public _MENT_TOKEN_ADDRESS;
-    uint256 public  _UPVOTE_WEIGHT = 10;
-    uint256 public _DOWNVOTE_WEIGHT = 5;
-    mapping(uint256 => uint256) _contentVotes;
-    mapping(address => mapping(uint256 => bool))  _memberUpVotes;
-    mapping(address => mapping(uint256 => bool))  _memberDownVotes;
+    // Public Data Definitions
+    address public mentTokenAddress;
+    uint256 public upVoteWeight = 10;
+    uint256 public downVoteWeight = 5;
+    // Private Data Definitions
+    mapping(uint256 => uint256) _contentUpVotes;
+    mapping(uint256 => uint256) _contentDownVotes;
+    mapping(address => mapping(uint256 => bool)) _memberUpVotes;
+    mapping(address => mapping(uint256 => bool)) _memberDownVotes;
 
     // Constructor
     constructor(address defaultAdmin) {
@@ -27,23 +30,29 @@ contract EMTMarketplace is AccessControl {
     function setMentToken(
         address _mentTokenAddress
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _MENT_TOKEN_ADDRESS = _mentTokenAddress;
+        mentTokenAddress = _mentTokenAddress;
     }
 
     function setUpVoteWeight(
         uint256 _upVoteWeight
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _UPVOTE_WEIGHT = _upVoteWeight;
+        upVoteWeight = _upVoteWeight;
     }
 
     function setDownVoteWeight(
         uint256 _downVoteWeight
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _DOWNVOTE_WEIGHT = _downVoteWeight;
+        downVoteWeight = _downVoteWeight;
     }
 
-    function contentVotes(uint256 _id) public view returns (uint256) {
-        return _contentVotes[_id];
+    function contentVotes(
+        uint256 _id
+    ) public view returns (uint256, uint256, int256) {
+        return (
+            _contentUpVotes[_id],
+            _contentDownVotes[_id],
+            int256(_contentUpVotes[_id]) - int256(_contentDownVotes[_id])
+        );
     }
 
     function memberUpVotes(uint256 _id) public view returns (bool) {
@@ -56,50 +65,57 @@ contract EMTMarketplace is AccessControl {
 
     function upVoteContent(uint256 _id, address _mentor) public {
         // Check if MENT Token is not address zero
-        require(
-            _MENT_TOKEN_ADDRESS != address(0),
-            "Ment Token is Address Zero!"
-        );
+        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
         // Check if msg.sender has not upvoted
         require(
             !_memberUpVotes[msg.sender][_id],
             "Member has already up voted!"
         );
-        // Increment Content Vote
-        _contentVotes[_id]++;
-        // Update Member Votes Status
+        // Reverse if member has already downvoted
+        if (_memberDownVotes[msg.sender][_id]) {
+            // Decrement Content Down Vote
+            _contentDownVotes[_id]--;
+            // Update Member Down Votes Status
+            _memberDownVotes[msg.sender][_id] = false;
+        }
+        // Increment Content Up Vote Vote
+        _contentUpVotes[_id]++;
+        // Update Member Up Votes Status
         _memberUpVotes[msg.sender][_id] = true;
-        _memberDownVotes[msg.sender][_id] = false;
-        // Mint MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
-        MentorToken(_MENT_TOKEN_ADDRESS).mint(_mentor, _UPVOTE_WEIGHT);
+        // Mint MENT Token for Content Creator
+        MentorToken(mentTokenAddress).mint(_mentor, upVoteWeight);
         // Emit Event
-        emit ContentUpVoted(_id, _contentVotes[_id]);
+        emit ContentUpVoted(_id, _contentUpVotes[_id]);
     }
 
     function downVoteContent(uint256 _id, address _mentor) public {
         // Check if MENT Token is not address zero
-        require(
-            _MENT_TOKEN_ADDRESS != address(0),
-            "Ment Token is Address Zero!"
-        );
-        // Check if msg.sender has already up voted the content
-        require(_memberUpVotes[msg.sender][_id], "Member has not up voted!");
+        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
         // Check if msg.sender has not downvoted the content
         require(
             !_memberDownVotes[msg.sender][_id],
             "Member has already down voted!"
         );
-        // Decrement Content Vote
-        _contentVotes[_id]--;
-        // Update Member Votes Status
+        // Reverse if member has already upvoted
+        if (_memberUpVotes[msg.sender][_id]) {
+            // Decrement Content Up Vote
+            _contentUpVotes[_id]--;
+            // Update Member Up Votes Status
+            _memberUpVotes[msg.sender][_id] = false;
+            // Burn MENT Token for Content Creator
+            uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
+                _mentor
+            );
+            MentorToken(mentTokenAddress).burnAsMinter(
+                _mentor,
+                Math.min(downVoteWeight, _mentBalance)
+            );
+        }
+        // Increment Content Down Vote
+        _contentDownVotes[_id]++;
+        // Update Member Down Votes Status
         _memberDownVotes[msg.sender][_id] = true;
-        _memberUpVotes[msg.sender][_id] = false;
-        // Burn MENT Token for Content Creator (should the mentor address to passed in as an argument or stored on the blockchain?)
-        MentorToken(_MENT_TOKEN_ADDRESS).burnAsMinter(
-            _mentor,
-            _DOWNVOTE_WEIGHT
-        );
         // Emit Event
-        emit ContentDownVoted(_id, _contentVotes[_id]);
+        emit ContentDownVoted(_id, _contentDownVotes[_id]);
     }
 }
