@@ -2,10 +2,13 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./MentorToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract EMTMarketplace is AccessControl {
+contract EMTMarketplace is Pausable, AccessControl {
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     // Event Definitions
     event ContentUpVoted(uint256 indexed, uint256);
     event ContentDownVoted(uint256 indexed, uint256);
@@ -23,8 +26,8 @@ contract EMTMarketplace is AccessControl {
         uint256 lastVotedAt;
     }
     struct ContentVote {
-        uint256 upVotes;
         address creator;
+        uint256 upVotes;
         uint256 downVotes;
         uint256 lastClaimedUpVotes;
         uint256 lastClaimedDownVotes;
@@ -36,9 +39,18 @@ contract EMTMarketplace is AccessControl {
     // Constructor
     constructor(address defaultAdmin) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        _grantRole(PAUSER_ROLE, defaultAdmin);
     }
 
     // Function Definitions
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
     function setMentToken(
         address _mentTokenAddress
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -91,7 +103,7 @@ contract EMTMarketplace is AccessControl {
         emit ContentAdded(msg.sender, _id);
     }
 
-    function upVoteContent(uint256 _id) public {
+    function upVoteContent(uint256 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -124,12 +136,12 @@ contract EMTMarketplace is AccessControl {
         // Update Member Up Voted
         _contentVote.memberVotes[msg.sender].upVoted = true;
         // Update Member Last Voted
-        _contentVote.memberVotes[msg.sender].lastVotedAt = block.timestamp;
+        _contentVote.memberVotes[msg.sender].lastVotedAt = block.number;
         // Emit Event
         emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
-    function downVoteContent(uint256 _id) public {
+    function downVoteContent(uint256 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -162,12 +174,12 @@ contract EMTMarketplace is AccessControl {
         // Update Member Down Voted
         _contentVote.memberVotes[msg.sender].downVoted = true;
         // Update Member Last Voted
-        _contentVote.memberVotes[msg.sender].lastVotedAt = block.timestamp;
+        _contentVote.memberVotes[msg.sender].lastVotedAt = block.number;
         // Emit Event
         emit ContentDownVoted(_id, _contentVote.downVotes);
     }
 
-    function claimMent(uint256 _id) public {
+    function claimMent(uint256 _id) public whenPaused {
         // Ensure mentTokenAddress is not the zero address
         require(mentTokenAddress != address(0), "Claiming is disabled!");
         // Retrieve Content Vote
@@ -185,8 +197,10 @@ contract EMTMarketplace is AccessControl {
             _contentVote.creator,
             uint256(_claimableMent)
         );
-        // Update Content Last Claimed
-        _contentVote.lastClaimedAt = block.timestamp;
+        // Update Content Last Claimed, UpVotes & DownVotes
+        _contentVote.lastClaimedAt = block.number;
+        _contentVote.lastClaimedUpVotes = _contentVote.upVotes;
+        _contentVote.lastClaimedDownVotes = _contentVote.downVotes;
         // Emit Event
         emit MentClaimed(_contentVote.creator, uint256(_claimableMent));
     }

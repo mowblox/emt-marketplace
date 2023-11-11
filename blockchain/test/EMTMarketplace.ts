@@ -1,4 +1,4 @@
-import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+import { loadFixture, mine } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers } from "hardhat";
@@ -97,6 +97,34 @@ describe("EMTMarketplace", function () {
     });
   });
 
+  describe("Ment Claiming", function () {
+    it("should successfully claim ment", async function () {
+      const { emtMarketplace, mentorToken, owner, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+
+      await emtMarketplace.connect(mentor).addContent(1);
+      await emtMarketplace.connect(member).upVoteContent(1);
+
+      await emtMarketplace.connect(owner).pause();
+      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.emit(emtMarketplace, "MentClaimed");
+    });
+
+    it("should not claim ment if ment token address is zero", async function () {
+      const { emtMarketplace, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+
+      await emtMarketplace.connect(owner).pause();
+      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.rejectedWith("Claiming is disabled!");
+    });
+
+    it("should not claim ment if claimable ment is zero", async function () {
+      const { emtMarketplace, mentorToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+
+      await emtMarketplace.connect(owner).pause();
+      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.rejectedWith("No MENT to claim!");
+    });
+  });
+
   describe("Additional Test Cases for require Statements", function () {
     it("should fail to set the MENT Token address if caller not admin", async function () {
       const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
@@ -141,6 +169,38 @@ describe("EMTMarketplace", function () {
 
       await emtMarketplace.connect(mentor).addContent(1);
       await emtMarketplace.connect(member).downVoteContent(1);
+      await expect(emtMarketplace.connect(member).downVoteContent(1)).to.be.revertedWith("Member has already down voted!");
+    });
+
+    it("should fail to upvote content when claim rules are not met", async function () {
+      const { emtMarketplace, mentorToken, owner, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+
+      await emtMarketplace.connect(mentor).addContent(1);
+      await emtMarketplace.connect(mentor).upVoteContent(1);
+      await emtMarketplace.connect(member).upVoteContent(1);
+      await emtMarketplace.connect(owner).upVoteContent(1);
+
+      await emtMarketplace.connect(owner).pause();
+      await emtMarketplace.connect(mentor).claimMent(1);
+      await emtMarketplace.connect(owner).unpause();
+
+      await expect(emtMarketplace.connect(member).upVoteContent(1)).to.be.revertedWith("Member has already up voted!");
+    });
+
+    it("should fail to downvote content when claim rules are not met", async function () {
+      const { emtMarketplace, mentorToken, owner, member, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+
+      await emtMarketplace.connect(mentor).addContent(1);
+      await emtMarketplace.connect(member).downVoteContent(1);
+      await emtMarketplace.connect(owner).upVoteContent(1);
+      await emtMarketplace.connect(mentor).upVoteContent(1);
+
+      await emtMarketplace.connect(owner).pause();
+      await emtMarketplace.connect(mentor).claimMent(1);
+      await emtMarketplace.connect(owner).unpause();
+
       await expect(emtMarketplace.connect(member).downVoteContent(1)).to.be.revertedWith("Member has already down voted!");
     });
   });

@@ -41,6 +41,7 @@ contract MentorToken is ERC20, ERC20Burnable, AccessControl {
         uint256 amount
     ) internal virtual override {
         // Check If msg.sender has MINTER role
+        // This makes MENT token non-transferrable
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender) ||
                 hasRole(MINTER_ROLE, msg.sender),
