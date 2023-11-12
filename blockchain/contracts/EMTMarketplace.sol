@@ -2,31 +2,55 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./MentorToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract EMTMarketplace is AccessControl {
+contract EMTMarketplace is Pausable, AccessControl {
+    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+
     // Event Definitions
     event ContentUpVoted(uint256 indexed, uint256);
     event ContentDownVoted(uint256 indexed, uint256);
+    event MentClaimed(address indexed, uint256);
+    event ContentAdded(address indexed, uint256);
 
     // Public Data Definitions
     address public mentTokenAddress;
     uint256 public upVoteWeight = 10;
     uint256 public downVoteWeight = 5;
     // Private Data Definitions
-    mapping(uint256 => uint256) _contentUpVotes;
-    mapping(uint256 => uint256) _contentDownVotes;
-    mapping(address => mapping(uint256 => bool)) _memberUpVotes;
-    mapping(address => mapping(uint256 => bool)) _memberDownVotes;
+    struct MemberVote {
+        bool upVoted;
+        bool downVoted;
+        uint256 lastVotedAt;
+    }
+    struct ContentVote {
+        address creator;
+        uint256 upVotes;
+        uint256 downVotes;
+        uint256 lastClaimedUpVotes;
+        uint256 lastClaimedDownVotes;
+        uint256 lastClaimedAt;
+        mapping(address => MemberVote) memberVotes;
+    }
+    mapping(uint256 => ContentVote) _contentVotes;
 
     // Constructor
     constructor(address defaultAdmin) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
+        _grantRole(PAUSER_ROLE, defaultAdmin);
     }
 
     // Function Definitions
+    function pause() public onlyRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
     function setMentToken(
         address _mentTokenAddress
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -45,77 +69,139 @@ contract EMTMarketplace is AccessControl {
         downVoteWeight = _downVoteWeight;
     }
 
+    // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
     function contentVotes(
         uint256 _id
     ) public view returns (uint256, uint256, int256) {
         return (
-            _contentUpVotes[_id],
-            _contentDownVotes[_id],
-            int256(_contentUpVotes[_id]) - int256(_contentDownVotes[_id])
+            _contentVotes[_id].upVotes,
+            _contentVotes[_id].downVotes,
+            int256(_contentVotes[_id].upVotes) -
+                int256(_contentVotes[_id].downVotes)
         );
     }
 
-    function memberUpVotes(uint256 _id) public view returns (bool) {
-        return _memberUpVotes[msg.sender][_id];
+    // For a particular content with _id it returns bool for both if _member has upvoted or downvoted the content
+    function memberVotes(
+        uint256 _id,
+        address _member
+    ) public view returns (bool, bool) {
+        return (
+            _contentVotes[_id].memberVotes[_member].upVoted,
+            _contentVotes[_id].memberVotes[_member].downVoted
+        );
     }
 
-    function memberDownVotes(uint256 _id) public view returns (bool) {
-        return _memberDownVotes[msg.sender][_id];
+    function addContent(uint256 _id) public {
+        // Retrieve Content Vote
+        ContentVote storage _contentVote = _contentVotes[_id];
+        // Check if no creator has been set already
+        require(_contentVote.creator == address(0), "Creator already exists!");
+        // Set msg.sender as creater
+        _contentVote.creator = msg.sender;
+        // Emit Event
+        emit ContentAdded(msg.sender, _id);
     }
 
-    function upVoteContent(uint256 _id, address _mentor) public {
-        // Check if MENT Token is not address zero
-        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
+    function upVoteContent(uint256 _id) public whenNotPaused {
+        // Retrieve Content Vote
+        ContentVote storage _contentVote = _contentVotes[_id];
+        // Ensure Content has creator
+        require(
+            _contentVote.creator != address(0),
+            "Voting not allowed for content without creator!"
+        );
         // Check if msg.sender has not upvoted
         require(
-            !_memberUpVotes[msg.sender][_id],
+            !_contentVote.memberVotes[msg.sender].upVoted,
             "Member has already up voted!"
         );
+        // Check If Claim Prevents Member from voting
+        require(
+            _contentVote.memberVotes[msg.sender].lastVotedAt == 0 ||
+                _contentVote.lastClaimedAt == 0 ||
+                (_contentVote.lastClaimedAt <
+                    _contentVote.memberVotes[msg.sender].lastVotedAt),
+            "Cannot Vote Again Due to Claim Rules!"
+        );
         // Reverse if member has already downvoted
-        if (_memberDownVotes[msg.sender][_id]) {
-            // Decrement Content Down Vote
-            _contentDownVotes[_id]--;
-            // Update Member Down Votes Status
-            _memberDownVotes[msg.sender][_id] = false;
+        if (_contentVote.memberVotes[msg.sender].downVoted) {
+            // Decrement Content Down Votes
+            _contentVote.downVotes--;
+            // Update Member Down Voted
+            _contentVote.memberVotes[msg.sender].downVoted = false;
         }
-        // Increment Content Up Vote Vote
-        _contentUpVotes[_id]++;
-        // Update Member Up Votes Status
-        _memberUpVotes[msg.sender][_id] = true;
-        // Mint MENT Token for Content Creator
-        MentorToken(mentTokenAddress).mint(_mentor, upVoteWeight);
+        // Increment Content Up Votes
+        _contentVote.upVotes++;
+        // Update Member Up Voted
+        _contentVote.memberVotes[msg.sender].upVoted = true;
+        // Update Member Last Voted
+        _contentVote.memberVotes[msg.sender].lastVotedAt = block.number;
         // Emit Event
-        emit ContentUpVoted(_id, _contentUpVotes[_id]);
+        emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
-    function downVoteContent(uint256 _id, address _mentor) public {
-        // Check if MENT Token is not address zero
-        require(mentTokenAddress != address(0), "Ment Token is Address Zero!");
+    function downVoteContent(uint256 _id) public whenNotPaused {
+        // Retrieve Content Vote
+        ContentVote storage _contentVote = _contentVotes[_id];
+        // Ensure Content has creator
+        require(
+            _contentVote.creator != address(0),
+            "Voting not allowed for content without creator!"
+        );
         // Check if msg.sender has not downvoted the content
         require(
-            !_memberDownVotes[msg.sender][_id],
+            !_contentVote.memberVotes[msg.sender].downVoted,
             "Member has already down voted!"
         );
+        // Check If Claim Prevents Member from voting
+        require(
+            _contentVote.memberVotes[msg.sender].lastVotedAt == 0 ||
+                _contentVote.lastClaimedAt == 0 ||
+                (_contentVote.lastClaimedAt <
+                    _contentVote.memberVotes[msg.sender].lastVotedAt),
+            "Cannot Vote Again Due to Claim Rules!"
+        );
         // Reverse if member has already upvoted
-        if (_memberUpVotes[msg.sender][_id]) {
-            // Decrement Content Up Vote
-            _contentUpVotes[_id]--;
-            // Update Member Up Votes Status
-            _memberUpVotes[msg.sender][_id] = false;
-            // Burn MENT Token for Content Creator
-            uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
-                _mentor
-            );
-            MentorToken(mentTokenAddress).burnAsMinter(
-                _mentor,
-                Math.min(downVoteWeight, _mentBalance)
-            );
+        if (_contentVote.memberVotes[msg.sender].upVoted) {
+            // Decrement Content Up Votes
+            _contentVote.upVotes--;
+            // Update Member Up Voted
+            _contentVote.memberVotes[msg.sender].upVoted = false;
         }
-        // Increment Content Down Vote
-        _contentDownVotes[_id]++;
-        // Update Member Down Votes Status
-        _memberDownVotes[msg.sender][_id] = true;
+        // Increment Content Down Votes
+        _contentVote.downVotes++;
+        // Update Member Down Voted
+        _contentVote.memberVotes[msg.sender].downVoted = true;
+        // Update Member Last Voted
+        _contentVote.memberVotes[msg.sender].lastVotedAt = block.number;
         // Emit Event
-        emit ContentDownVoted(_id, _contentDownVotes[_id]);
+        emit ContentDownVoted(_id, _contentVote.downVotes);
+    }
+
+    function claimMent(uint256 _id) public whenPaused {
+        // Ensure mentTokenAddress is not the zero address
+        require(mentTokenAddress != address(0), "Claiming is disabled!");
+        // Retrieve Content Vote
+        ContentVote storage _contentVote = _contentVotes[_id];
+        // Compute claimable MENT
+        int256 _claimableMent = ((int256(_contentVote.upVotes) -
+            int256(_contentVote.lastClaimedUpVotes)) * int256(upVoteWeight)) -
+            ((int256(_contentVote.downVotes) -
+                int256(_contentVote.lastClaimedDownVotes)) *
+                int256(downVoteWeight));
+        // Check if Content Vote has votes to claim
+        require(_claimableMent > 0, "No MENT to claim!");
+        // Mint MENT Tokens for Creator
+        MentorToken(mentTokenAddress).mint(
+            _contentVote.creator,
+            uint256(_claimableMent)
+        );
+        // Update Content Last Claimed, UpVotes & DownVotes
+        _contentVote.lastClaimedAt = block.number;
+        _contentVote.lastClaimedUpVotes = _contentVote.upVotes;
+        _contentVote.lastClaimedDownVotes = _contentVote.downVotes;
+        // Emit Event
+        emit MentClaimed(_contentVote.creator, uint256(_claimableMent));
     }
 }

@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import crypto from "crypto";
 import "@nomicfoundation/hardhat-toolbox";
 import dotenv from "dotenv";
+import "hardhat-log-remover";
 
 dotenv.config();
 
