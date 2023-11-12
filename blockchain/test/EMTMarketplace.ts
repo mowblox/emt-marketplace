@@ -117,7 +117,7 @@ describe("EMTMarketplace", function () {
       await emtMarketplace.connect(owner).upVoteContent(1);
 
       await emtMarketplace.connect(owner).pause();
-      await emtMarketplace.connect(mentor).claimMent(1);
+      await emtMarketplace.connect(mentor).claimMent();
       await emtMarketplace.connect(owner).unpause();
 
       await expect(emtMarketplace.connect(member).upVoteContent(1)).to.be.revertedWith("Cannot Vote Again Due to Claim Rules!");
@@ -178,7 +178,7 @@ describe("EMTMarketplace", function () {
       await emtMarketplace.connect(owner).upVoteContent(1);
 
       await emtMarketplace.connect(owner).pause();
-      await emtMarketplace.connect(mentor).claimMent(1);
+      await emtMarketplace.connect(mentor).claimMent();
       await emtMarketplace.connect(owner).unpause();
 
       await expect(emtMarketplace.connect(member).downVoteContent(1)).to.be.revertedWith("Cannot Vote Again Due to Claim Rules!");
@@ -202,14 +202,14 @@ describe("EMTMarketplace", function () {
       await emtMarketplace.connect(member).upVoteContent(1);
 
       await emtMarketplace.connect(owner).pause();
-      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.emit(emtMarketplace, "MentClaimed");
+      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.emit(emtMarketplace, "MentClaimed");
     });
 
     it("should not claim ment if ment token address is zero", async function () {
       const { emtMarketplace, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
 
       await emtMarketplace.connect(owner).pause();
-      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.revertedWith("Claiming is disabled!");
+      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWith("Claiming is disabled!");
     });
 
     it("should not claim ment if claimable ment is zero", async function () {
@@ -217,13 +217,13 @@ describe("EMTMarketplace", function () {
       await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
 
       await emtMarketplace.connect(owner).pause();
-      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.revertedWith("No MENT to claim!");
+      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWith("No MENT to claim!");
     });
 
     it("should not claim ment if contract is not paused", async function () {
       const { emtMarketplace, mentor } = await loadFixture(deployEMTMarketplaceFixture);
 
-      await expect(emtMarketplace.connect(mentor).claimMent(1)).to.be.revertedWithCustomError(emtMarketplace, "ExpectedPause");
+      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWithCustomError(emtMarketplace, "ExpectedPause");
     });
   });
 
