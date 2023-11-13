@@ -10,10 +10,10 @@ contract EMTMarketplace is Pausable, AccessControl {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     // Event Definitions
-    event ContentUpVoted(uint256 indexed, uint256);
-    event ContentDownVoted(uint256 indexed, uint256);
+    event ContentUpVoted(bytes32 indexed, uint256);
+    event ContentDownVoted(bytes32 indexed, uint256);
     event MentClaimed(address indexed, uint256);
-    event ContentAdded(address indexed, uint256);
+    event ContentAdded(address indexed, bytes32);
 
     // Public Data Definitions
     address public mentTokenAddress;
@@ -38,7 +38,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         uint256 downVotes;
         mapping(address => MemberVote) memberVotes;
     }
-    mapping(uint256 => ContentVote) _contentVotes;
+    mapping(bytes32 => ContentVote) _contentVotes;
     mapping(address => CreatorVote) _creatorVotes;
 
     // Constructor
@@ -76,7 +76,7 @@ contract EMTMarketplace is Pausable, AccessControl {
 
     // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
     function contentVotes(
-        uint256 _id
+        bytes32 _id
     ) public view returns (uint256, uint256, int256) {
         return (
             _contentVotes[_id].upVotes,
@@ -88,7 +88,7 @@ contract EMTMarketplace is Pausable, AccessControl {
 
     // For a particular content with _id it returns bool for both if _member has upvoted or downvoted the content
     function memberVotes(
-        uint256 _id,
+        bytes32 _id,
         address _member
     ) public view returns (bool, bool) {
         return (
@@ -97,7 +97,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
     }
 
-    function addContent(uint256 _id) public {
+    function addContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Check if no creator has been set already
@@ -108,7 +108,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentAdded(msg.sender, _id);
     }
 
-    function upVoteContent(uint256 _id) public whenNotPaused {
+    function upVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -150,7 +150,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
-    function downVoteContent(uint256 _id) public whenNotPaused {
+    function downVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
