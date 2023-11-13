@@ -6,7 +6,7 @@ import React from "react";
 export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
   async function handleEMTMarketPlace() {
-      const val = await EMTMarketPlace._DOWNVOTE_WEIGHT();
+      const val = await EMTMarketPlace.downVoteWeight();
       alert(val);
   }
 
