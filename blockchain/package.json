@@ -2,9 +2,14 @@
   "name": "blockchain",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "npx hardhat test"
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "coverage": "npx hardhat coverage",
+    "clean": "npx hardhat clean",
+    "chain": "npx hardhat node",
+    "toposchain": "npx hardhat node --fork https://rpc.topos-subnet.testnet-1.topos.technology --fork-block-number 610535",
+    "deployTesting": "npx hardhat run scripts/deploy.ts --network localhost"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +18,7 @@
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
     "@openzeppelin/contracts": "^5.0.0",
     "dotenv": "^16.3.1",
-    "hardhat": "^2.18.3"
+    "hardhat": "^2.18.3",
+    "hardhat-log-remover": "^2.0.2"
   }
 }

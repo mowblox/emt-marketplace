@@ -38,3 +38,6 @@ next-env.d.ts
 # Miscellaneous
 package-lock.json
 yarn.lock
+
+# contract deployment files
+/src/deployments/31337
