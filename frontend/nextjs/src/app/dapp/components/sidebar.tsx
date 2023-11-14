@@ -2,10 +2,32 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {HiOutlineHome, HiOutlineUser, HiOutlineEnvelope} from 'react-icons/hi2'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     playlists?: any[]
 }
+
+const primaryNavigationLinks = [
+    {
+        title: "Home",
+        icon: HiOutlineHome,
+        isActive: false,
+        href: "/dapp"
+    },
+    {
+        title: "My Profile",
+        icon: HiOutlineUser,
+        isActive: false,
+        href: "/my-profile"
+    },
+    {
+        title: "Notifications",
+        icon: HiOutlineEnvelope,
+        isActive: false,
+        href: "/notifications"
+    }
+]
 
 export function Sidebar({ className, playlists }: SidebarProps) {
     return (
@@ -13,87 +35,40 @@ export function Sidebar({ className, playlists }: SidebarProps) {
             <div className="space-y-4 py-4">
                 <div className="px-3 py-2">
                     <div className="space-y-1">
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link href="/dapp"><svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
-                            >
-                                <circle cx="8" cy="18" r="4" />
-                                <path d="M12 18V2l7 4" />
-                            </svg> Home</Link>
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link href="/my-profile"><svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
-                            >
-                                <circle cx="8" cy="18" r="4" />
-                                <path d="M12 18V2l7 4" />
-                            </svg> My Profile </Link>
-                        </Button>
-                        <Button variant="ghost" className="w-full justify-start" asChild>
-                            <Link href="/notifications"><svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
-                            >
-                                <circle cx="8" cy="18" r="4" />
-                                <path d="M12 18V2l7 4" />
-                            </svg> Notifications </Link>
-                        </Button>
+                        {primaryNavigationLinks.map(link => (
+                            <Button variant="ghost" className="w-full justify-start" asChild>
+                                <Link href={link.href}>
+                                    <link.icon className="mr-2 h-4 w-4 text-accent-2" />
+                                    {link.title}
+                                </Link>
+                            </Button>
+                        ))}
                     </div>
-                        <Button variant="secondary" className="w-full justify-start mt-4">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="mr-2 h-4 w-4"
-                            >
-                                <circle cx="12" cy="12" r="10" />
-                                <polygon points="10 8 16 12 10 16 10 8" />
-                            </svg>
-                            Create Post
-                        </Button>
+                    <Button variant="gradient" className="w-full mt-4">
+                        Create a Post
+                    </Button>
                 </div>
                 <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-md font-semibold tracking-tight">
-            Resources
-          </h2>
-                    <div className="space-y-1">
-                        <Button variant="ghost" className="w-full justify-start" asChild>
+                    <div className="bg-accent-shade rounded-md py-4 px-2">
+                    <h2 className="mb-3 px-4 text-md font-semibold tracking-tight">
+                        Resources
+                    </h2>
+                    <div className="space-y-0">
+                        <Button variant="link" className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
                             <Link href="/notifications"> Welcome </Link>
                         </Button>
-                        <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Button variant="link" className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
                             <Link href="/faq"> FAQ </Link>
                         </Button>
-                        <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Button variant="link" className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
                             <Link href="/help"> Help </Link>
                         </Button>
-                        <Button variant="ghost" className="w-full justify-start" asChild>
+                        <Button variant="link" className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
                             <Link href="/privacy-policy"> Privacy Policy </Link>
                         </Button>
                     </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>

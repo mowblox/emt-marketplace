@@ -22,13 +22,22 @@ const config: Config = {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'pink-gradient': 'linear-gradient(96deg, hsl(var(--accent-3)) 0%, hsl(var(--accent-4)) 137%)',
+        'reverse-pink-gradient': 'linear-gradient(96deg, hsl(var(--accent-4)) 0%, hsl(var(--accent-3)) 137%)',
       },
       colors: {
-        border: "hsla(var(--stroke))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "hsl(var(--stroke) / 0.1)",
+        input: "hsl(var(--accent-shade))",
+        ring: "hsl(var(--stroke) / 0.1)",
+        background: "hsl(var(--accent-1))",
+        foreground: "hsl(var(--text))",
+        'alt': "hsl(var(--text-alt))",
+        'muted': "hsl(var(--text-muted))",
+        'accent-shade': 'hsl(var(--accent-shade))',
+        'accent-1': 'hsl(var(--accent-1))',
+        'accent-2': 'hsl(var(--accent-2))',
+        'accent-3': 'hsl(var(--accent-3))',
+        'accent-4': 'hsl(var(--accent-4))',
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -40,10 +49,6 @@ const config: Config = {
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
           DEFAULT: "hsl(var(--accent))",
