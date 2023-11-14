@@ -51,7 +51,7 @@ const PostCard = ({data}: any) => {
                     <Image 
                         fill
                         src={post.image}
-                        className='rounded-md'
+                        className='rounded-md object-cover'
                         loading="lazy"
                         alt={`${post.title} cover photo`}
                     />

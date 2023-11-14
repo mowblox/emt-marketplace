@@ -118,16 +118,23 @@ export default function RootLayout() {
         </TabsList>
         <TabsContent value="following">
           <div className="flex flex-col gap-y-4 items-center">
-          {dummyPosts.map((post, key) => {
-            return <>
-              <PostCard key={`post-${key}`} data={post} />
-              <Separator className="bg-border w-[94%]"/>
-            </>
-          })}
+            {dummyPosts.map((post, key) => {
+              return <>
+                <PostCard key={`post-${key}`} data={post} />
+                <Separator className="bg-border w-[94%]" />
+              </>
+            })}
           </div>
         </TabsContent>
         <TabsContent value="design">
-        {/* <PostCard /> */}
+        <div className="flex flex-col gap-y-4 items-center">
+            {dummyPosts.map((post, key) => {
+              return <>
+                <PostCard key={`post-${key}`} data={post} />
+                <Separator className="bg-border w-[94%]" />
+              </>
+            })}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
