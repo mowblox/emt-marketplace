@@ -3,6 +3,8 @@
 @tailwind utilities;
  
 @layer base {
+  
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -28,14 +30,14 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
+    --stroke: 0, 0%, 98%, 0.1;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
  
     --radius: 0.5rem;
   }
  
-  .dark {
+  /* .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
  
@@ -63,6 +65,34 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+  } */
+
+  .dark {
+    --accent-2: hsl(241, 77%, 63%);
+    --primary-black: hsl(0, 0%, 0%);
+    --accent-4: hsl(0, 91%, 71%);
+    --white: hsl(0, 0%, 100%);
+    --accent-1: hsl(222, 47%, 11%);
+    --accent-3: hsl(330, 81%, 60%);
+    --text-alt: hsl(230, 39%, 68%);
+    --text-muted: hsl(226, 22%, 73%);
+    --text: hsl(226, 100%, 94%);
+    --stroke: 0, 0%, 98%, 0.1;
+    --alt-stroke: hsla(0, 0%, 98%, 0.05);
+    --accent-shade: hsl(222, 46%, 17%);
+    --gray-200: hsl(216, 11%, 91%);
+    --gray-50: hsl(0, 0%, 98%);
+    --gray-100: hsl(220, 20%, 97%);
+    --gray-300: hsl(210, 9%, 82%);
+    --gray-400: hsl(212, 8%, 65%);
+    --gray-700: hsl(208, 9%, 30%);
+    --gray-600: hsl(208, 7%, 37%);
+    --gray-500: hsl(212, 7%, 43%);
+    --gray-800: hsl(208, 10%, 25%);
+    --gray-900: hsl(210, 12%, 16%);
+    --primary-white: hsl(0, 0%, 100%);
+    --gray-1000: hsl(210, 12%, 16%);
+    --white: hsl(0, 0%, 100%);
   }
 }
  
