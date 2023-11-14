@@ -3,6 +3,7 @@ import React from 'react';
 import '@rainbow-me/rainbowkit/styles.css';
 import {
   RainbowKitProvider,
+  darkTheme
 } from '@rainbow-me/rainbowkit';
 
 import { emtChains, emtWagmiConfig } from "../../../../emt.config"
@@ -17,7 +18,11 @@ export default function DappProviders({
 }) {
   return (
     <WagmiConfig config={emtWagmiConfig}>
-      <RainbowKitProvider chains={emtChains}>
+      <RainbowKitProvider chains={emtChains} theme={darkTheme({
+        accentColorForeground: 'white',
+        
+        accentColor: '#5957e9',
+      })} >
         <ContractProvider>
           {children}
         </ContractProvider>

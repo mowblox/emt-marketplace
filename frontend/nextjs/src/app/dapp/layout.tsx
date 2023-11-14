@@ -26,13 +26,21 @@ export default function DappLayout({
             <header>
               <div className=" flex-col md:flex">
                 <div className="container flex flex-col items-start justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-                  <h2 className="text-lg font-semibold">MEMM!</h2>
+                  <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
                   <div className="ml-auto flex w-full space-x-2 sm:justify-end">
                     <Search />
                     <Button variant="ghost" aria-label='create a post' size="icon">
                       <HiOutlinePencilAlt className="h-4 w-4" />
                     </Button>
-                    <ConnectButton />
+                    <ConnectButton 
+                      label="Sign in"
+                      accountStatus={{
+                        smallScreen: "avatar",
+                        largeScreen: "address"
+                      }}
+                      chainStatus="none"
+                      showBalance={false}
+                    />
                   </div>
                 </div>
               </div>

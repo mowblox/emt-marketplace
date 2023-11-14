@@ -27,6 +27,7 @@ const config: Config = {
       },
       colors: {
         border: "hsl(var(--stroke) / 0.1)",
+        'alt-stroke': "hsl(var(--stroke) / 0.05)",
         input: "hsl(var(--accent-shade))",
         ring: "hsl(var(--stroke) / 0.1)",
         background: "hsl(var(--accent-1))",

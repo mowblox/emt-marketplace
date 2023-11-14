@@ -5,7 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import {HiOutlineHome, HiOutlineUser, HiOutlineEnvelope} from 'react-icons/hi2'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
-    playlists?: any[]
+    
 }
 
 const primaryNavigationLinks = [
@@ -29,14 +29,14 @@ const primaryNavigationLinks = [
     }
 ]
 
-export function Sidebar({ className, playlists }: SidebarProps) {
+export function Sidebar({ className }: SidebarProps) {
     return (
         <div className={cn("pb-12", className)}>
             <div className="space-y-4 py-4">
                 <div className="px-3 py-2">
                     <div className="space-y-1">
-                        {primaryNavigationLinks.map(link => (
-                            <Button variant="ghost" className="w-full justify-start" asChild>
+                        {primaryNavigationLinks.map((link, key)=> (
+                            <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start" asChild>
                                 <Link href={link.href}>
                                     <link.icon className="mr-2 h-4 w-4 text-accent-2" />
                                     {link.title}
