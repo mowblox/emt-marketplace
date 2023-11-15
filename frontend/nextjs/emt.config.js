@@ -1,4 +1,5 @@
-const { getDefaultWallets } = require("@rainbow-me/rainbowkit");
+import {getDefaultWallets} from "@rainbow-me/rainbowkit";
+import { LucideImport } from "lucide-react";
   import { configureChains, createConfig } from 'wagmi';
   import {
   hardhat, mainnet, polygonMumbai

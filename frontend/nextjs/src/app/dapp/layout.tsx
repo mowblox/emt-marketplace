@@ -11,19 +11,21 @@ import { Search } from '@/components/ui/forms/search';
 import { Button } from '@/components/ui/button';
 import { HiOutlinePencilAlt } from "react-icons/hi"
 import DappProviders from './components/providers';
-import { ScrollArea } from "@/components/ui/scroll-area"
-
+import SessionProvider from "@/lib/hooks/sessionProvider";
+import { getServerSession } from "next-auth";
 export const metadata: Metadata = {
   title: 'MEMM! Homepage',
 }
 
-export default function DappLayout({
+export default async function DappLayout({
   children
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession();
   return (
     <>
+    <SessionProvider refetchInterval={0} session={session}>
       <DappProviders>
         <header>
           <div className=" flex-col md:flex">
@@ -62,6 +64,7 @@ export default function DappLayout({
           </div>
         </div>
       </DappProviders>
+      </SessionProvider>
     </>
   )
 }

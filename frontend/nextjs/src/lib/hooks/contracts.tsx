@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { ethers } from "ethers";
+import { ethers } from "ethers6";
 import { chain } from "../../../emt.config";
 import {EMTMarketplace} from "../../../../../blockchain/typechain-types/contracts/EMTMarketplace";
 import {ExpertToken} from "../../../../../blockchain/typechain-types/contracts/ExpertToken";
