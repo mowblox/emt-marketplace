@@ -3,7 +3,9 @@
 @tailwind utilities;
  
 @layer base {
-  :root {
+  
+
+  /* :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -28,14 +30,14 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
+    --stroke: 0, 0%, 98%, 0.1;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
  
     --radius: 0.5rem;
-  }
+  } */
  
-  .dark {
+  /* .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
  
@@ -63,6 +65,68 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+  } */
+
+  :root {
+    --primary-black: 0deg 0% 0%;
+    --white: 0deg 0% 100%;
+    --primary-white: 0deg 0% 100%;
+
+    --accent-shade: 222deg 46% 17%;
+    --accent-1: 222deg 47% 11%;
+    --accent-2: 241deg 77% 63%;
+    --accent-3: 330deg 81% 60%;
+    --accent-4: 0deg 91% 71%;
+
+    --white: 0deg 0% 100%;
+    --text: 226deg 100% 94%;
+    --text-alt: 230deg 39% 68%;
+    --text-muted: 226deg 22% 73%;
+
+    --stroke: 0deg 0% 98%;
+
+    --gray-50: 0deg 0% 98%;
+    --gray-100: 220deg 20% 97%;
+    --gray-200: 216deg 11% 91%;
+    --gray-300: 210deg 9% 82%;
+    --gray-400: 212deg 8% 65%;
+    --gray-700: 208deg 9% 30%;
+    --gray-600: 208deg 7% 37%;
+    --gray-500: 212deg 7% 43%;
+    --gray-800: 208deg 10% 25%;
+    --gray-900: 210deg 12% 16%;
+    --gray-1000: 210deg 12% 16%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --primary-black: 0deg 0% 0%;
+    --primary-white: 0deg 0% 100%;
+
+    --accent-shade: 222deg 46% 17%;
+    --accent-1: 222deg 47% 11%;
+    --accent-2: 241deg 77% 63%;
+    --accent-3: 330deg 81% 60%;
+    --accent-4: 0deg 91% 71%;
+    
+    --text: 226deg 100% 94%;
+    --text-alt: 230deg 39% 68%;
+    --text-muted: 226deg 22% 73%;
+
+    --stroke: 0deg 0% 98%;
+
+    --gray-50: 0deg 0% 98%;
+    --gray-100: 220deg 20% 97%;
+    --gray-200: 216deg 11% 91%;
+    --gray-300: 210deg 9% 82%;
+    --gray-400: 212deg 8% 65%;
+    --gray-700: 208deg 9% 30%;
+    --gray-600: 208deg 7% 37%;
+    --gray-500: 212deg 7% 43%;
+    --gray-800: 208deg 10% 25%;
+    --gray-900: 210deg 12% 16%;
+    --gray-1000: 210deg 12% 16%;
   }
 }
  
