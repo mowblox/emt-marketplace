@@ -3,20 +3,22 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'MEMM!',
   description: 'Mentorship from the best',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  return (
 
+
+
+  return (
     <html lang="en">
       <body className={`${inter.className}`}>
         <ThemeProvider
@@ -29,6 +31,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-
-  )
+  );
 }

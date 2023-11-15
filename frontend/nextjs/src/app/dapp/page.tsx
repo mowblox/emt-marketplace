@@ -11,6 +11,7 @@ import Image from "next/image";
 import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2"
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useUser } from "@/lib/hooks/user";
 
 const dummyPosts = [
   {
@@ -125,20 +126,8 @@ const topCreatorList = [
 
 export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
-  async function handleEMTMarketPlace() {
-    const val = await EMTMarketPlace.downVoteWeight();
-    alert(val);
-  }
-
-  async function handleExpertToken() {
-    const val = await ExpertToken.MINTER_ROLE();
-    alert(val);
-  }
-
-  async function handleMentorToken() {
-    const val = await MentorToken.decimals();
-    alert(val);
-  }
+  const {user, updateUser, isLoading} = useUser();
+  console.log('u', user)
 
   // return (
   //   <div className="flex flex-col">
