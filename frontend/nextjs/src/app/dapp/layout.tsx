@@ -55,7 +55,7 @@ export default function DappLayout({
             <div className="bg-background">
               <div className="grid lg:grid-cols-5">
                 <Sidebar className="hidden lg:block min-h-[94vh]" />
-                <div className="col-span-3 lg:col-span-4 lg:border-x">
+                <div className="col-span-3 lg:col-span-4">
                   {children}
                 </div>
 

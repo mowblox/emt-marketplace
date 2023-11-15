@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RightSidebar } from "./components/right-sidebar";
 import Image from "next/image";
-import {HiCheckBadge, HiOutlineFire} from "react-icons/hi2"
+import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2"
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
@@ -150,7 +150,7 @@ export default function RootLayout() {
 
   return (
     <div className="grid grid-cols-6 col-span-4">
-      <div className="h-full px-4 py-6 lg:px-6 col-span-3 lg:col-span-4 lg:border-x">
+      <div className="h-full px-4 py-6 lg:px-6 col-span-4 lg:col-span-4 md:border-x">
         <ScrollArea className="h-[90vh] w-full">
           <div className="flex flex-col">
             <Tabs defaultValue="following" className="w-full">
@@ -182,9 +182,9 @@ export default function RootLayout() {
           </div>
         </ScrollArea>
       </div>
-      <RightSidebar className="hidden lg:block min-h-[94vh] col-span-1 lg:col-span-2" >
+      <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" >
         <>
-        
+
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
