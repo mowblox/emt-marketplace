@@ -18,11 +18,9 @@ export const metadata: Metadata = {
 }
 
 export default function DappLayout({
-  children,
-  rightSidebarContent
+  children
 }: {
   children: React.ReactNode
-  rightSidebarContent: React.ReactNode
 }) {
   return (
     <>
