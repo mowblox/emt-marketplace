@@ -22,11 +22,8 @@ const PostCard = ({data}: any) => {
                 <CardHeader className='px-0 pt-0'>
                     <div className='flex items-center'>
                         <div className="w-10 h-10 relative">
-                            <Image 
-                                // width={24}
-                                // height={24}
+                            <Image
                                 fill
-                                // placeholder="blur"
                                 className='rounded-full object-cover'
                                 loading="eager"
                                 src={author.avatar}

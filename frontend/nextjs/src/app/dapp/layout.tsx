@@ -6,6 +6,7 @@ import {
   ConnectButton
 } from '@rainbow-me/rainbowkit';
 import { Sidebar } from './components/sidebar';
+import { RightSidebar } from './components/right-sidebar';
 import { Search } from '@/components/ui/forms/search';
 import { Button } from '@/components/ui/button';
 import { HiOutlinePencilAlt } from "react-icons/hi"
@@ -18,8 +19,10 @@ export const metadata: Metadata = {
 
 export default function DappLayout({
   children,
+  rightSidebarContent
 }: {
   children: React.ReactNode
+  rightSidebarContent: React.ReactNode
 }) {
   return (
     <>
@@ -52,16 +55,10 @@ export default function DappLayout({
             <div className="bg-background">
               <div className="grid lg:grid-cols-5">
                 <Sidebar className="hidden lg:block min-h-[94vh]" />
-                <div className="col-span-3 lg:col-span-3 lg:border-x">
-
-                  <div className="h-full px-4 py-6 lg:px-6">
-                    <ScrollArea className="h-[90vh] w-full">
-                      {children}
-                    </ScrollArea>
-
-                  </div>
+                <div className="col-span-3 lg:col-span-4 lg:border-x">
+                  {children}
                 </div>
-                <Sidebar className="hidden lg:block min-h-[94vh]" />
+
               </div>
             </div>
           </div>
