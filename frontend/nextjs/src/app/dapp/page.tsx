@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useUser } from "@/lib/hooks/user";
 
-const dummyPosts = [
+export const dummyPosts = [
   {
     author: {
       name: "Naval",

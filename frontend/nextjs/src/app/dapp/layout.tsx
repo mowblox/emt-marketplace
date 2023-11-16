@@ -17,11 +17,13 @@ export const metadata: Metadata = {
   title: 'MEMM! Homepage',
 }
 
+type Props = {
+  children: React.ReactNode
+}
+
 export default async function DappLayout({
   children
-}: {
-  children: React.ReactNode
-}) {
+}: Props) {
   const session = await getServerSession();
   return (
     <>
