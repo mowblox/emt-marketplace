@@ -5,12 +5,12 @@ import '@rainbow-me/rainbowkit/styles.css';
 import {
   ConnectButton
 } from '@rainbow-me/rainbowkit';
-import { Sidebar } from './components/sidebar';
-import { RightSidebar } from './components/right-sidebar';
+import { Sidebar } from './_components/sidebar';
+import { RightSidebar } from './_components/right-sidebar';
 import { Search } from '@/components/ui/forms/search';
 import { Button } from '@/components/ui/button';
 import { HiOutlinePencilAlt } from "react-icons/hi"
-import DappProviders from './components/providers';
+import DappProviders from './_components/providers';
 import SessionProvider from "@/lib/hooks/sessionProvider";
 import { getServerSession } from "next-auth";
 export const metadata: Metadata = {

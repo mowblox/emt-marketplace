@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PostCard from "@/components/ui/post-card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RightSidebar } from "./components/right-sidebar";
+import { RightSidebar } from "./_components/right-sidebar";
 import Image from "next/image";
 import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2"
 import { Badge } from "@/components/ui/badge";
