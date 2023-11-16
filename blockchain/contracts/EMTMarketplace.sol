@@ -10,10 +10,10 @@ contract EMTMarketplace is Pausable, AccessControl {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     // Event Definitions
-    event ContentUpVoted(uint256 indexed, uint256);
-    event ContentDownVoted(uint256 indexed, uint256);
+    event ContentUpVoted(bytes32 indexed, uint256);
+    event ContentDownVoted(bytes32 indexed, uint256);
     event MentClaimed(address indexed, uint256);
-    event ContentAdded(address indexed, uint256);
+    event ContentAdded(address indexed, bytes32);
 
     // Public Data Definitions
     address public mentTokenAddress;
@@ -25,16 +25,21 @@ contract EMTMarketplace is Pausable, AccessControl {
         bool downVoted;
         uint256 lastVotedAt;
     }
-    struct ContentVote {
-        address creator;
+    struct CreatorVote {
         uint256 upVotes;
         uint256 downVotes;
         uint256 lastClaimedUpVotes;
         uint256 lastClaimedDownVotes;
         uint256 lastClaimedAt;
+    }
+    struct ContentVote {
+        address creator;
+        uint256 upVotes;
+        uint256 downVotes;
         mapping(address => MemberVote) memberVotes;
     }
-    mapping(uint256 => ContentVote) _contentVotes;
+    mapping(bytes32 => ContentVote) _contentVotes;
+    mapping(address => CreatorVote) _creatorVotes;
 
     // Constructor
     constructor(address defaultAdmin) {
@@ -71,7 +76,7 @@ contract EMTMarketplace is Pausable, AccessControl {
 
     // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
     function contentVotes(
-        uint256 _id
+        bytes32 _id
     ) public view returns (uint256, uint256, int256) {
         return (
             _contentVotes[_id].upVotes,
@@ -83,7 +88,7 @@ contract EMTMarketplace is Pausable, AccessControl {
 
     // For a particular content with _id it returns bool for both if _member has upvoted or downvoted the content
     function memberVotes(
-        uint256 _id,
+        bytes32 _id,
         address _member
     ) public view returns (bool, bool) {
         return (
@@ -92,7 +97,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
     }
 
-    function addContent(uint256 _id) public {
+    function addContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Check if no creator has been set already
@@ -103,7 +108,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentAdded(msg.sender, _id);
     }
 
-    function upVoteContent(uint256 _id) public whenNotPaused {
+    function upVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -116,22 +121,26 @@ contract EMTMarketplace is Pausable, AccessControl {
             !_contentVote.memberVotes[msg.sender].upVoted,
             "Member has already up voted!"
         );
-        // Check If Claim Prevents Member from voting
+        // Retrieve Creator Vote
+        CreatorVote storage _creatorVote = _creatorVotes[_contentVote.creator];
+        // Check If Claim Rules Prevents Member from voting
         require(
             _contentVote.memberVotes[msg.sender].lastVotedAt == 0 ||
-                _contentVote.lastClaimedAt == 0 ||
-                (_contentVote.lastClaimedAt <
+                _creatorVote.lastClaimedAt == 0 ||
+                (_creatorVote.lastClaimedAt <
                     _contentVote.memberVotes[msg.sender].lastVotedAt),
             "Cannot Vote Again Due to Claim Rules!"
         );
         // Reverse if member has already downvoted
         if (_contentVote.memberVotes[msg.sender].downVoted) {
-            // Decrement Content Down Votes
+            // Decrement Creator & Content Down Votes
+            _creatorVote.downVotes--;
             _contentVote.downVotes--;
             // Update Member Down Voted
             _contentVote.memberVotes[msg.sender].downVoted = false;
         }
-        // Increment Content Up Votes
+        // Increment Creator & Content Up Votes
+        _creatorVote.upVotes++;
         _contentVote.upVotes++;
         // Update Member Up Voted
         _contentVote.memberVotes[msg.sender].upVoted = true;
@@ -141,7 +150,7 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
-    function downVoteContent(uint256 _id) public whenNotPaused {
+    function downVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -154,22 +163,26 @@ contract EMTMarketplace is Pausable, AccessControl {
             !_contentVote.memberVotes[msg.sender].downVoted,
             "Member has already down voted!"
         );
-        // Check If Claim Prevents Member from voting
+        // Retrieve Creator Vote
+        CreatorVote storage _creatorVote = _creatorVotes[_contentVote.creator];
+        // Check If Claim Rules Prevents Member from voting
         require(
             _contentVote.memberVotes[msg.sender].lastVotedAt == 0 ||
-                _contentVote.lastClaimedAt == 0 ||
-                (_contentVote.lastClaimedAt <
+                _creatorVote.lastClaimedAt == 0 ||
+                (_creatorVote.lastClaimedAt <
                     _contentVote.memberVotes[msg.sender].lastVotedAt),
             "Cannot Vote Again Due to Claim Rules!"
         );
         // Reverse if member has already upvoted
         if (_contentVote.memberVotes[msg.sender].upVoted) {
-            // Decrement Content Up Votes
+            // Decrement Creator & Content Up Votes
+            _creatorVote.upVotes--;
             _contentVote.upVotes--;
             // Update Member Up Voted
             _contentVote.memberVotes[msg.sender].upVoted = false;
         }
-        // Increment Content Down Votes
+        // Increment Creator & Content Down Votes
+        _creatorVote.downVotes++;
         _contentVote.downVotes++;
         // Update Member Down Voted
         _contentVote.memberVotes[msg.sender].downVoted = true;
@@ -179,29 +192,26 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentDownVoted(_id, _contentVote.downVotes);
     }
 
-    function claimMent(uint256 _id) public whenPaused {
+    function claimMent() public whenPaused {
         // Ensure mentTokenAddress is not the zero address
         require(mentTokenAddress != address(0), "Claiming is disabled!");
-        // Retrieve Content Vote
-        ContentVote storage _contentVote = _contentVotes[_id];
+        // Retrieve Creator Vote
+        CreatorVote storage _creatorVote = _creatorVotes[msg.sender];
         // Compute claimable MENT
-        int256 _claimableMent = ((int256(_contentVote.upVotes) -
-            int256(_contentVote.lastClaimedUpVotes)) * int256(upVoteWeight)) -
-            ((int256(_contentVote.downVotes) -
-                int256(_contentVote.lastClaimedDownVotes)) *
+        int256 _claimableMent = ((int256(_creatorVote.upVotes) -
+            int256(_creatorVote.lastClaimedUpVotes)) * int256(upVoteWeight)) -
+            ((int256(_creatorVote.downVotes) -
+                int256(_creatorVote.lastClaimedDownVotes)) *
                 int256(downVoteWeight));
         // Check if Content Vote has votes to claim
         require(_claimableMent > 0, "No MENT to claim!");
         // Mint MENT Tokens for Creator
-        MentorToken(mentTokenAddress).mint(
-            _contentVote.creator,
-            uint256(_claimableMent)
-        );
+        MentorToken(mentTokenAddress).mint(msg.sender, uint256(_claimableMent));
         // Update Content Last Claimed, UpVotes & DownVotes
-        _contentVote.lastClaimedAt = block.number;
-        _contentVote.lastClaimedUpVotes = _contentVote.upVotes;
-        _contentVote.lastClaimedDownVotes = _contentVote.downVotes;
+        _creatorVote.lastClaimedAt = block.number;
+        _creatorVote.lastClaimedUpVotes = _creatorVote.upVotes;
+        _creatorVote.lastClaimedDownVotes = _creatorVote.downVotes;
         // Emit Event
-        emit MentClaimed(_contentVote.creator, uint256(_claimableMent));
+        emit MentClaimed(msg.sender, uint256(_claimableMent));
     }
 }
