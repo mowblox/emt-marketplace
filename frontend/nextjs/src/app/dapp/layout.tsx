@@ -13,6 +13,7 @@ import { HiOutlinePencilAlt } from "react-icons/hi"
 import DappProviders from './_components/providers';
 import SessionProvider from "@/lib/hooks/sessionProvider";
 import { getServerSession } from "next-auth";
+
 export const metadata: Metadata = {
   title: 'MEMM! Homepage',
 }

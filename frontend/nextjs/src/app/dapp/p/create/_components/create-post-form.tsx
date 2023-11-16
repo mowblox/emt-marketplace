@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -16,7 +15,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
-import { Textarea } from "@/components/ui/textarea"
 import RichTextEditor from '@/components/ui/rich-text-editor'
 
 const formSchema = z.object({
@@ -39,7 +37,8 @@ const CreatePostForm = () => {
     function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values)
         toast({
-            description: "Your post has been created",
+            title: "Post published!",
+            variant: "success",
             
         })
     }

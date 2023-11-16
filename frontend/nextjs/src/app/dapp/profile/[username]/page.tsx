@@ -1,9 +1,8 @@
 "use client"
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import React from 'react'
-import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare, HiOutlineCog6Tooth, HiOutlineFire } from 'react-icons/hi2'
+import { HiCheckBadge, HiOutlineCog6Tooth, HiOutlineFire } from 'react-icons/hi2'
 import Image from "next/image"
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
