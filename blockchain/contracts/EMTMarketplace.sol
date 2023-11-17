@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./MentorToken.sol";
+import "./ExpertToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
 contract EMTMarketplace is Pausable, AccessControl {
@@ -13,10 +14,12 @@ contract EMTMarketplace is Pausable, AccessControl {
     event ContentUpVoted(bytes32 indexed, uint256);
     event ContentDownVoted(bytes32 indexed, uint256);
     event MentClaimed(address indexed, uint256);
+    event ExptClaimed(address indexed, uint256);
     event ContentAdded(address indexed, bytes32);
 
     // Public Data Definitions
     address public mentTokenAddress;
+    address public exptTokenAddress;
     uint256 public upVoteWeight = 10;
     uint256 public downVoteWeight = 5;
     // Private Data Definitions
@@ -40,6 +43,7 @@ contract EMTMarketplace is Pausable, AccessControl {
     }
     mapping(bytes32 => ContentVote) _contentVotes;
     mapping(address => CreatorVote) _creatorVotes;
+    mapping(address => uint256) _creatorTickets;
 
     // Constructor
     constructor(address defaultAdmin) {
@@ -56,10 +60,12 @@ contract EMTMarketplace is Pausable, AccessControl {
         _unpause();
     }
 
-    function setMentToken(
-        address _mentTokenAddress
+    function setTokenAddresses(
+        address _mentTokenAddress,
+        address _exptTokenAddress
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         mentTokenAddress = _mentTokenAddress;
+        exptTokenAddress = _exptTokenAddress;
     }
 
     function setUpVoteWeight(
@@ -194,7 +200,7 @@ contract EMTMarketplace is Pausable, AccessControl {
 
     function claimMent() public whenPaused {
         // Ensure mentTokenAddress is not the zero address
-        require(mentTokenAddress != address(0), "Claiming is disabled!");
+        require(mentTokenAddress != address(0), "MENT claiming is disabled!");
         // Retrieve Creator Vote
         CreatorVote storage _creatorVote = _creatorVotes[msg.sender];
         // Compute claimable MENT
@@ -213,5 +219,27 @@ contract EMTMarketplace is Pausable, AccessControl {
         _creatorVote.lastClaimedDownVotes = _creatorVote.downVotes;
         // Emit Event
         emit MentClaimed(msg.sender, uint256(_claimableMent));
+    }
+
+    function claimExpt(uint256 _quantity) public {
+        // Check If exptTokenAddress is not address(0)
+        require(exptTokenAddress != address(0), "EXPT claiming is disabled!");
+        // Check if _quantity is greater than 0
+        require(_quantity > 0, "Cannot claim zero EXPT!");
+        // Get msg.sender MENT balance
+        uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
+            msg.sender
+        );
+        // Check if claimed ticket plus _quantity is less or equal to threshold
+        require(
+            (_creatorTickets[msg.sender] + _quantity) <= (_mentBalance / 20),
+            "Quantity will exceed EXPT threshold!"
+        );
+        // Mint EXPT for msg.sender
+        ExpertToken(exptTokenAddress).mint(msg.sender, _quantity);
+        // Increase _creatorTickets
+        _creatorTickets[msg.sender] += _quantity;
+        // Emit Event
+        emit ExptClaimed(msg.sender, _quantity);
     }
 }

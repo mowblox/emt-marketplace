@@ -18,7 +18,10 @@ describe("EMTMarketplace", function () {
     const MentorToken = await ethers.getContractFactory("MentorToken");
     const mentorToken = await MentorToken.deploy(owner.address, emtMarketplace.target);
 
-    return { emtMarketplace, mentorToken, owner, mentor, member, contentId };
+    const ExpertToken = await ethers.getContractFactory("ExpertToken");
+    const expertToken = await ExpertToken.deploy(owner.address, emtMarketplace.target);
+
+    return { emtMarketplace, mentorToken, expertToken, owner, mentor, member, contentId };
   }
 
   // Test Goes Below
@@ -33,11 +36,11 @@ describe("EMTMarketplace", function () {
       expect(await emtMarketplace.hasRole(await emtMarketplace.PAUSER_ROLE(), owner.address)).to.equal(true);
     });
 
-    it("should set the MENT Token address", async function () {
-      const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
-      const randomAddress = "0x976EA74026E726554dB657fA54763abd0C3a0aa9";
-      await emtMarketplace.connect(owner).setMentToken(randomAddress);
-      expect(await emtMarketplace.mentTokenAddress()).to.equal(randomAddress);
+    it("should set the token addresses", async function () {
+      const { emtMarketplace, mentorToken, expertToken, owner } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+      expect(await emtMarketplace.mentTokenAddress()).to.equal(mentorToken.target);
+      expect(await emtMarketplace.exptTokenAddress()).to.equal(expertToken.target);
     });
 
     it("should set the upvote weight", async function () {
@@ -109,8 +112,8 @@ describe("EMTMarketplace", function () {
     });
 
     it("should fail to upvote content when claim rules are not met", async function () {
-      const { emtMarketplace, mentorToken, owner, member, mentor, contentId } = await loadFixture(deployEMTMarketplaceFixture);
-      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+      const { emtMarketplace, mentorToken, expertToken, owner, member, mentor, contentId } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
       await emtMarketplace.connect(mentor).addContent(contentId);
 
       await emtMarketplace.connect(member).downVoteContent(contentId);
@@ -170,8 +173,8 @@ describe("EMTMarketplace", function () {
     });
 
     it("should fail to downvote content when claim rules are not met", async function () {
-      const { emtMarketplace, mentorToken, owner, member, mentor, contentId } = await loadFixture(deployEMTMarketplaceFixture);
-      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+      const { emtMarketplace, mentorToken, expertToken, owner, member, mentor, contentId } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
       await emtMarketplace.connect(mentor).addContent(contentId);
 
       await emtMarketplace.connect(member).upVoteContent(contentId);
@@ -196,8 +199,8 @@ describe("EMTMarketplace", function () {
 
   describe("Ment Claiming", function () {
     it("should successfully claim ment", async function () {
-      const { emtMarketplace, mentorToken, owner, mentor, member, contentId } = await loadFixture(deployEMTMarketplaceFixture);
-      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+      const { emtMarketplace, mentorToken, expertToken, owner, mentor, member, contentId } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await emtMarketplace.connect(mentor).addContent(contentId);
       await emtMarketplace.connect(member).upVoteContent(contentId);
@@ -210,12 +213,12 @@ describe("EMTMarketplace", function () {
       const { emtMarketplace, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
 
       await emtMarketplace.connect(owner).pause();
-      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWith("Claiming is disabled!");
+      await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWith("MENT claiming is disabled!");
     });
 
     it("should not claim ment if claimable ment is zero", async function () {
-      const { emtMarketplace, mentorToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
-      await emtMarketplace.connect(owner).setMentToken(mentorToken.target);
+      const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await emtMarketplace.connect(owner).pause();
       await expect(emtMarketplace.connect(mentor).claimMent()).to.be.revertedWith("No MENT to claim!");
@@ -228,11 +231,48 @@ describe("EMTMarketplace", function () {
     });
   });
 
+  describe("Expt Claiming", function () {
+    it("should successfully claim expt", async function () {
+      const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
+      await mentorToken.connect(owner).mint(mentor.address, 1000);
+      await expect(emtMarketplace.connect(mentor).claimExpt(50)).to.be.emit(emtMarketplace, "ExptClaimed");
+    });
+
+    it("should not claim expt if expt token address is zero", async function () {
+      const { emtMarketplace, mentorToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+
+      await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
+      await mentorToken.connect(owner).mint(mentor.address, 1000);
+      await expect(emtMarketplace.connect(mentor).claimExpt(50)).to.be.revertedWith("EXPT claiming is disabled!");
+    });
+
+    it("should not claim expt if claimable expt is zero", async function () {
+      const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
+      await mentorToken.connect(owner).mint(mentor.address, 1000);
+      await expect(emtMarketplace.connect(mentor).claimExpt(0)).to.be.revertedWith("Cannot claim zero EXPT!");
+    });
+
+    it("should not be able to over claim expt", async function () {
+      const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
+      await mentorToken.connect(owner).mint(mentor.address, 1000);
+      await emtMarketplace.connect(mentor).claimExpt(25);
+      await expect(emtMarketplace.connect(mentor).claimExpt(30)).to.be.revertedWith("Quantity will exceed EXPT threshold!");
+    });
+  });
+
   describe("Additional Test Cases for require Statements", function () {
-    it("should fail to set the MENT Token address if caller not admin", async function () {
-      const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
-      const randomAddress = "0x976EA74026E726554dB657fA54763abd0C3a0aa9";
-      await expect(emtMarketplace.connect(member).setMentToken(randomAddress)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+    it("should fail to set the token addresses if caller not admin", async function () {
+      const { emtMarketplace, mentorToken, expertToken, member } = await loadFixture(deployEMTMarketplaceFixture);
+      await expect(emtMarketplace.connect(member).setTokenAddresses(mentorToken.target, expertToken.target)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
     });
 
     it("should fail to set the upvote weight if caller not admin", async function () {
