@@ -18,6 +18,9 @@ const config: Config = {
       },
     },
     extend: {
+      boxShadow: {
+        'shadow-custom': '0 4.4px 11.8px 0 hsla(245, 100%, 61%, 0.19)',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':
