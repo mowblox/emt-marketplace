@@ -1,6 +1,11 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RightSidebar } from '../_components/right-sidebar'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+    title: 'MEMM! | Notifications',
+  }
 
 type Props = {
     children: React.ReactNode
