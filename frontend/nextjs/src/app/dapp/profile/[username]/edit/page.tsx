@@ -1,8 +1,12 @@
 import React from 'react'
+import EditProfileForm from './_components/edit-profile-form'
 
 const EditProfile = () => {
   return (
-    <div>EditProfile</div>
+    <div>
+      <h4 className='text-xl text-foreground font-bold mb-5'>Edit Profile</h4>
+      <EditProfileForm />
+    </div>
   )
 }
 
