@@ -35,6 +35,7 @@ const PostCard = ({data}: any) => {
                             <div className="flex items-center">
                                 <p className='text-md text-foreground'>{author.name}</p>
                                 {author.mentor === "true" && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
+                                <div className='ml-2 text-[11px] text-muted'>20 secs. ago</div>
                             </div>
                             <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>
                         </div>
@@ -77,7 +78,6 @@ const PostCard = ({data}: any) => {
                     </Button>
                 </CardFooter>
             </Card>
-
         </Link>
     )
 }

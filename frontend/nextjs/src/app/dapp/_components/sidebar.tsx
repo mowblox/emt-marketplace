@@ -2,11 +2,13 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {HiOutlineHome, HiOutlineUser, HiOutlineEnvelope} from 'react-icons/hi2'
+import {HiOutlineHome, HiOutlineUser, HiOutlineUsers, HiOutlineCalendarDays, HiOutlineEnvelope} from 'react-icons/hi2'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     
 }
+
+const CREATE_A_POST_LINK = "/dapp/p/create"
 
 const primaryNavigationLinks = [
     {
@@ -16,18 +18,31 @@ const primaryNavigationLinks = [
         href: "/dapp"
     },
     {
+        title: "Marketplace",
+        icon: HiOutlineUsers,
+        isActive: false,
+        href: "/dapp/marketplace"
+    },
+    {
+        title: "Bookings",
+        icon: HiOutlineCalendarDays,
+        isActive: false,
+        href: "/dapp/bookings"
+    },
+    {
         title: "My Profile",
         icon: HiOutlineUser,
         isActive: false,
-        href: "/my-profile"
+        href: `/dapp/profile/naval`
     },
     {
         title: "Notifications",
         icon: HiOutlineEnvelope,
         isActive: false,
-        href: "/notifications"
+        href: "/dapp/notifications"
     }
 ]
+
 
 export function Sidebar({ className }: SidebarProps) {
     return (
@@ -44,8 +59,8 @@ export function Sidebar({ className }: SidebarProps) {
                             </Button>
                         ))}
                     </div>
-                    <Button variant="gradient" className="w-full mt-4">
-                        Create a Post
+                    <Button variant="gradient" className="w-full mt-4" asChild>
+                        <Link href={CREATE_A_POST_LINK}>Create a Post</Link>
                     </Button>
                 </div>
                 <div className="px-3 py-2">

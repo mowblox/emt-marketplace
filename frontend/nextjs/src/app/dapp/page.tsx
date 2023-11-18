@@ -6,11 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PostCard from "@/components/ui/post-card";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { RightSidebar } from "./components/right-sidebar";
+import { RightSidebar } from "./_components/right-sidebar";
 import Image from "next/image";
 import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2"
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useUser } from "@/lib/hooks/user";
 
 const dummyPosts = [
   {
@@ -93,7 +94,7 @@ const topCreatorList = [
     avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     mentor: "false",
     skill: "UI Design",
-    href: "/profile/naval",
+    username: "naval",
     ment: 134
   },
   {
@@ -101,7 +102,7 @@ const topCreatorList = [
     avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     mentor: "true",
     skill: "Java",
-    href: "/profile/naval",
+    username: "naval",
     ment: 693
   },
   {
@@ -109,7 +110,7 @@ const topCreatorList = [
     avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     mentor: "true",
     skill: "Ruby",
-    href: "/profile/naval",
+    username: "naval",
     ment: 953
   },
   {
@@ -117,7 +118,7 @@ const topCreatorList = [
     avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     mentor: "true",
     skill: "AI",
-    href: "/profile/naval",
+    username: "naval",
     ment: 422
   },
 ]
@@ -125,20 +126,8 @@ const topCreatorList = [
 
 export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
-  async function handleEMTMarketPlace() {
-    const val = await EMTMarketPlace.downVoteWeight();
-    alert(val);
-  }
-
-  async function handleExpertToken() {
-    const val = await ExpertToken.MINTER_ROLE();
-    alert(val);
-  }
-
-  async function handleMentorToken() {
-    const val = await MentorToken.decimals();
-    alert(val);
-  }
+  const {user, updateUser, isLoading} = useUser();
+  console.log('u', user)
 
   // return (
   //   <div className="flex flex-col">
@@ -191,7 +180,7 @@ export default function RootLayout() {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={`/dapp/profile/${profile.username}`} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
@@ -230,7 +219,7 @@ export default function RootLayout() {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={`/dapp/profile/${profile.username}`} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
