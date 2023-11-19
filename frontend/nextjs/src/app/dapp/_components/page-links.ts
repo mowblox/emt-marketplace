@@ -1,4 +1,5 @@
 export const CREATE_A_POST_PAGE = "/dapp/p/create"
+export const POST_PAGE = (permalink:string) => `/dapp/p/${permalink}`
 export const PROFILE_EDIT_PAGE = "/dapp/profile/edit"
 export const HOME_PAGE = "/dapp"
 export const MARKETPLACE_PAGE = "/dapp/marketplace"

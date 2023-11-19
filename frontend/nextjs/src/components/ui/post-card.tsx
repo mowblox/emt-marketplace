@@ -11,14 +11,14 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
-
+import { POST_PAGE } from '@/app/dapp/_components/page-links';
 
 const PostCard = ({data}: any) => {
     const {post, author, metadata} = data
     
     return (
-        <Link href={metadata.permalink}>
-            <Card className='border-none p-5 hover:bg-accent-shade'>
+        <Link href={POST_PAGE(metadata.permalink)}>
+            <Card className='border-none p-4 hover:bg-accent-shade'>
                 <CardHeader className='px-0 pt-0'>
                     <div className='flex items-center'>
                         <div className="w-10 h-10 relative">
