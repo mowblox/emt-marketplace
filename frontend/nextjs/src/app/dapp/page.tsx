@@ -127,7 +127,6 @@ const topCreatorList = [
 export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
   const {user, updateUser, isLoading} = useUser();
-  console.log('u', user)
 
   // return (
   //   <div className="flex flex-col">

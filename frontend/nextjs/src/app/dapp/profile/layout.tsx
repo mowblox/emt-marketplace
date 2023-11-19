@@ -1,7 +1,7 @@
 import React from 'react'
 import { Metadata } from 'next'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { RightSidebar } from '../../_components/right-sidebar'
+import { RightSidebar } from '../_components/right-sidebar'
 
 export const metadata: Metadata = {
     title: 'View profile',
