@@ -11,6 +11,7 @@ import {
     useChainModal,
   } from '@rainbow-me/rainbowkit';
 import {useAccount} from "wagmi"
+import PageLoading from "@/components/ui/page-loading";
 
 interface ContractContext {
   EMTMarketPlace: EMTMarketplace;
@@ -79,7 +80,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!contracts) {
-    return <div>Loading...</div>;
+    return <div><PageLoading /></div>;
   }
 
   return (
