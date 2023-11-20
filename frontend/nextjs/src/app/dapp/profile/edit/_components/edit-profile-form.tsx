@@ -169,7 +169,7 @@ const EditProfileForm = () => {
                                 <FormControl>
                                     <div className='flex gap-3 flex-wrap w-full'>
                                         {['blockchain', 'UX design','blockchain', 'UX design','blockchain', 'UX design'].map((tag, key) => (
-                                            <Button className='rounded-full text-sm ' size="sm" variant="outline">
+                                            <Button key={`skills-tags-${key}`} className='rounded-full text-sm ' size="sm" variant="outline">
                                                 {tag}
                                                 <Plus className='w-4 h-4 text-muted ml-2' />
                                             </Button>)
