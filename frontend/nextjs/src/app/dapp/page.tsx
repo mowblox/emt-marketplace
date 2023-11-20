@@ -127,7 +127,6 @@ const topCreatorList = [
 export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
   const {user, updateUser, isLoading} = useUser();
-  console.log('u', user)
 
   // return (
   //   <div className="flex flex-col">
@@ -138,12 +137,12 @@ export default function RootLayout() {
   // );
 
   return (
-    <div className="grid grid-cols-6 col-span-4">
-      <div className="h-full px-4 py-6 lg:px-6 col-span-4 lg:col-span-4 md:border-x">
-        <ScrollArea className="h-[90vh] w-full">
+    <div className="grid grid-cols-1 md:grid-cols-6 col-span-1 md:col-span-4">
+      <div className="h-full px-0 md:px-2 py-6 col-span-4 lg:col-span-4 md:border-x">
+        <ScrollArea className="h-[90vh] w-full px-4 md:px-0">
           <div className="flex flex-col">
-            <Tabs defaultValue="following" className="w-full">
-              <TabsList>
+            <Tabs defaultValue="following" className="w-full px-2">
+              <TabsList className="">
                 <TabsTrigger value="following">Following</TabsTrigger>
                 <TabsTrigger value="design">Design</TabsTrigger>
               </TabsList>
@@ -173,7 +172,6 @@ export default function RootLayout() {
       </div>
       <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" >
         <>
-
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
