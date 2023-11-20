@@ -4,71 +4,13 @@ import Link from "next/link"
 import { usePathname } from 'next/navigation'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {HiOutlineHome, HiOutlineUser, HiOutlineUsers, HiOutlineCalendarDays, HiOutlineEnvelope, HiChevronLeft} from 'react-icons/hi2'
-import { HOME_PAGE, MARKETPLACE_PAGE, BOOKINGS_PAGE, PROFILE_PAGE, NOTIFICATIONS_PAGE, PROFILE_EDIT_PAGE, CREATE_A_POST_PAGE, WELCOME_PAGE, FAQ_PAGE, HELP_PAGE, PRIVACY_POLICY_PAGE } from "./page-links"
+import { HiChevronLeft} from 'react-icons/hi2'
+import { HOME_PAGE, CREATE_A_POST_PAGE, primaryNavigationLinks, resourcesLinks, hasBackButtonList,  } from "./page-links"
 
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     
 }
-
-const primaryNavigationLinks = [
-    {
-        title: "Home",
-        icon: HiOutlineHome,
-        isActive: false,
-        href: HOME_PAGE
-    },
-    {
-        title: "Marketplace",
-        icon: HiOutlineUsers,
-        isActive: false,
-        href: MARKETPLACE_PAGE
-    },
-    {
-        title: "Bookings",
-        icon: HiOutlineCalendarDays,
-        isActive: false,
-        href: BOOKINGS_PAGE
-    },
-    {
-        title: "My Profile",
-        icon: HiOutlineUser,
-        isActive: false,
-        href: PROFILE_PAGE
-    },
-    {
-        title: "Notifications",
-        icon: HiOutlineEnvelope,
-        isActive: false,
-        href: NOTIFICATIONS_PAGE
-    }
-]
-
-const resourcesLinks = [
-    {
-        title: "Welcome",
-        href: WELCOME_PAGE
-    },
-    {
-        title: "FAQ",
-        href: FAQ_PAGE
-    },
-    {
-        title: "Help",
-        href: HELP_PAGE
-    },
-    {
-        title: "Privacy Policy",
-        href: PRIVACY_POLICY_PAGE
-    },
-]
-
-const hasBackButtonList = [
-    PROFILE_EDIT_PAGE,
-    CREATE_A_POST_PAGE
-]
-
 
 export function Sidebar({ className }: SidebarProps) {
     const [hasBackButton, setHasBackButton] = useState(false)
@@ -109,10 +51,10 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
                 <div className="px-3 py-2">
                     <div className="bg-accent-shade rounded-md py-4 px-2">
-                    <h2 className="mb-3 px-4 text-md font-semibold tracking-tight">
-                        Resources
-                    </h2>
-                    <div className="space-y-0">
+                        <h2 className="mb-3 px-4 text-md font-semibold tracking-tight">
+                            Resources
+                        </h2>
+                        <div className="space-y-0">
                             {resourcesLinks.map((link, key) => (
                                 <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
                                     <Link href={link.href}>
@@ -120,7 +62,7 @@ export function Sidebar({ className }: SidebarProps) {
                                     </Link>
                                 </Button>
                             ))}
-                    </div>
+                        </div>
                     </div>
                     
                 </div>
