@@ -43,7 +43,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
   async function updateUser(data: {username?: string, photoUrl?: string, displayName?: string, email?: string}) {
-    const userDocRef = doc(firestore, 'users', session?.address); // Replace 'users' with your collection name
+    const userDocRef = doc(firestore, 'users', session?.address); 
     await updateDoc(userDocRef, data);
   }
 
@@ -54,13 +54,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       
           try {
             setIsLoading(true);
-            const baseUrl = `${window.location.protocol}//${window.location.host}`;
-            const res = await axios.post(baseUrl + '/api/getToken', {
-              address: session?.address })
-            const token = res.data.token;
+
+            // const token = session.firebaseToken
+            const token = session.firebaseToken;
+            console.log("sess", session)
             const userData = await signInWithCustomToken(auth, token);
             //get user data from fireStore
-            const userDocRef = doc(firestore, 'users', session.address); // Replace 'users' with your collection name
+            const userDocRef = doc(firestore, 'users', userData.user.uid); 
             const userDocSnap = await getDoc(userDocRef);
       
             if (userDocSnap.exists()) {

@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import RichTextEditor from '@/components/ui/rich-text-editor'
+import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
 
 
@@ -31,6 +32,7 @@ const formSchema = z.object({
 })
 
 const CreatePostForm = () => {
+    const { createPost } = useBackend()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -40,18 +42,18 @@ const CreatePostForm = () => {
     })
     const { toast } = useToast()
 
-    const handleFileUpload = (file: File) => {
-        // Handle the uploaded file here
-        // You can perform validation, processing, etc.
-        console.log('Uploaded cover photo:', file);
-    };
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values)
+        
+        //@ts-ignore
+        //@todo: add image to form
+        const {contentId, imageUrl} = await createPost({title: values.postTitle, body: values.postBody, image: values.image})
+
+
         toast({
             title: "Post published!",
             variant: "success",
-            
         })
     }
 

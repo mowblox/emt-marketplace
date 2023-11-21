@@ -128,14 +128,6 @@ export default function RootLayout() {
   const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
   const {user, updateUser, isLoading} = useUser();
 
-  // return (
-  //   <div className="flex flex-col">
-  //     <Button onClick={handleEMTMarketPlace}>test EMTMarketPlace</Button>
-  //     <Button onClick={handleExpertToken}>test ExpertToken</Button>
-  //     <Button onClick={handleMentorToken}>test MentorToken</Button>
-  //   </div>
-  // );
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 col-span-1 md:col-span-4">
       <div className="h-full px-0 md:px-2 py-6 col-span-4 lg:col-span-4 md:border-x">

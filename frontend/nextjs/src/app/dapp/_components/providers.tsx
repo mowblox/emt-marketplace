@@ -19,7 +19,7 @@ export default function DappProviders({
 }) {
   return (
     <WagmiConfig config={emtWagmiConfig}>
-      <RainbowKitSiweNextAuthProvider>
+      <RainbowKitSiweNextAuthProvider >
       <RainbowKitProvider chains={emtChains} theme={darkTheme({
         accentColorForeground: 'white',
         
