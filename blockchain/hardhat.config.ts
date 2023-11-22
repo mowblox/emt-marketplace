@@ -3,6 +3,7 @@ import crypto from "crypto";
 import "@nomicfoundation/hardhat-toolbox";
 import dotenv from "dotenv";
 import "hardhat-log-remover";
+import "solidity-docgen";
 
 dotenv.config();
 
