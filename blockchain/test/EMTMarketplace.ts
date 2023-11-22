@@ -1,5 +1,4 @@
-import { loadFixture, mine } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -12,6 +11,10 @@ describe("EMTMarketplace", function () {
     const [owner, mentor, member] = await ethers.getSigners();
     const contentId = ethers.encodeBytes32String("LoOb7y8KHesW98X6MVJ5");
 
+    const StableCoin = await ethers.getContractFactory("StableCoin");
+    const stableCoin = await StableCoin.deploy("StableCoin", "SBC", owner.address);
+    await stableCoin.mint(member.address, ethers.parseEther("1000000"));
+
     const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
     const emtMarketplace = await EMTMarketplace.deploy(owner.address);
 
@@ -21,7 +24,7 @@ describe("EMTMarketplace", function () {
     const ExpertToken = await ethers.getContractFactory("ExpertToken");
     const expertToken = await ExpertToken.deploy(owner.address, emtMarketplace.target);
 
-    return { emtMarketplace, mentorToken, expertToken, owner, mentor, member, contentId };
+    return { emtMarketplace, mentorToken, expertToken, stableCoin, owner, mentor, member, contentId };
   }
 
   // Test Goes Below
@@ -45,16 +48,16 @@ describe("EMTMarketplace", function () {
 
     it("should set the upvote weight", async function () {
       const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
-      const newUpvoteWeight = 20;
-      await emtMarketplace.connect(owner).setUpVoteWeight(newUpvoteWeight);
-      expect(await emtMarketplace.upVoteWeight()).to.equal(newUpvoteWeight);
+      const newUpvoteMultiplier = 20;
+      await emtMarketplace.connect(owner).setUpVoteMultiplier(newUpvoteMultiplier);
+      expect(await emtMarketplace.upVoteMultiplier()).to.equal(newUpvoteMultiplier);
     });
 
     it("should set the downvote weight", async function () {
       const { emtMarketplace, owner } = await loadFixture(deployEMTMarketplaceFixture);
-      const newDownvoteWeight = 7;
-      await emtMarketplace.connect(owner).setDownVoteWeight(newDownvoteWeight);
-      expect(await emtMarketplace.downVoteWeight()).to.equal(newDownvoteWeight);
+      const newDownvoteMultiplier = 7;
+      await emtMarketplace.connect(owner).setDownVoteMultiplier(newDownvoteMultiplier);
+      expect(await emtMarketplace.downVoteMultiplier()).to.equal(newDownvoteMultiplier);
     });
   });
 
@@ -269,6 +272,57 @@ describe("EMTMarketplace", function () {
     });
   });
 
+  describe("EXPT Deposit & Withdrawal", function () {
+    it("mentor should be able to deposit EXPT to marketplace", async function () {
+      const { emtMarketplace, expertToken, mentorToken, stableCoin, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
+      await expertToken.connect(owner).mint(mentor.address, 10);
+      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
+        ['address', 'uint256'],
+        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
+      );
+      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+    });
+
+    it("member should be able to buy EXPT from marketplace", async function () {
+      const { emtMarketplace, mentorToken, expertToken, stableCoin, owner, mentor, member } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      // Deposit
+      await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
+      await expertToken.connect(owner).mint(mentor.address, 10);
+      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
+        ['address', 'uint256'],
+        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
+      );
+      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+
+      // Buy
+      const exptOffer = await emtMarketplace.exptOffers(0);
+      await stableCoin.connect(member).approve(emtMarketplace.target, exptOffer.amount);
+      await expect(emtMarketplace.connect(member).buyExpt(0)).to.be.emit(emtMarketplace, "ExptBought");
+    });
+
+    it("mentor should be able to withdraw EXPT from marketplace", async function () {
+      const { emtMarketplace, mentorToken, expertToken, stableCoin, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
+      await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
+
+      // Deposit
+      await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
+      await expertToken.connect(owner).mint(mentor.address, 10);
+      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
+        ['address', 'uint256'],
+        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
+      );
+      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+
+      // Withdrawal
+      await expect(emtMarketplace.connect(mentor).withdrawExpt(0)).to.be.emit(emtMarketplace, "ExptWithdrawn");
+    });
+  });
+
   describe("Additional Test Cases for require Statements", function () {
     it("should fail to set the token addresses if caller not admin", async function () {
       const { emtMarketplace, mentorToken, expertToken, member } = await loadFixture(deployEMTMarketplaceFixture);
@@ -277,14 +331,14 @@ describe("EMTMarketplace", function () {
 
     it("should fail to set the upvote weight if caller not admin", async function () {
       const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
-      const newUpvoteWeight = 20;
-      await expect(emtMarketplace.connect(member).setUpVoteWeight(newUpvoteWeight)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+      const newUpvoteMultiplier = 20;
+      await expect(emtMarketplace.connect(member).setUpVoteMultiplier(newUpvoteMultiplier)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
     });
 
     it("should fail to set the downvote weight if caller not admin", async function () {
       const { emtMarketplace, member } = await loadFixture(deployEMTMarketplaceFixture);
-      const newDownvoteWeight = 7;
-      await expect(emtMarketplace.connect(member).setDownVoteWeight(newDownvoteWeight)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
+      const newDownvoteMultiplier = 7;
+      await expect(emtMarketplace.connect(member).setDownVoteMultiplier(newDownvoteMultiplier)).to.be.revertedWithCustomError(emtMarketplace, "AccessControlUnauthorizedAccount");
     });
 
     it("should fail to pause contract if caller has no pauser role", async function () {

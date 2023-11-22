@@ -8,60 +8,6 @@
 bytes32 PAUSER_ROLE
 ```
 
-### ContentUpVoted
-
-```solidity
-event ContentUpVoted(bytes32, uint256)
-```
-
-### ContentDownVoted
-
-```solidity
-event ContentDownVoted(bytes32, uint256)
-```
-
-### MentClaimed
-
-```solidity
-event MentClaimed(address, uint256)
-```
-
-### ExptClaimed
-
-```solidity
-event ExptClaimed(address, uint256)
-```
-
-### ContentAdded
-
-```solidity
-event ContentAdded(address, bytes32)
-```
-
-### mentTokenAddress
-
-```solidity
-address mentTokenAddress
-```
-
-### exptTokenAddress
-
-```solidity
-address exptTokenAddress
-```
-
-### upVoteWeight
-
-```solidity
-uint256 upVoteWeight
-```
-
-### downVoteWeight
-
-```solidity
-uint256 downVoteWeight
-```
-
 ### MemberVote
 
 ```solidity
@@ -93,6 +39,108 @@ struct ContentVote {
   uint256 downVotes;
   mapping(address => struct EMTMarketplace.MemberVote) memberVotes;
 }
+```
+
+### ExptOffer
+
+```solidity
+struct ExptOffer {
+  address seller;
+  address owner;
+  uint256 tokenId;
+  address paymentToken;
+  uint256 amount;
+}
+```
+
+### ContentAdded
+
+```solidity
+event ContentAdded(address, bytes32)
+```
+
+### ContentUpVoted
+
+```solidity
+event ContentUpVoted(bytes32, uint256)
+```
+
+### ContentDownVoted
+
+```solidity
+event ContentDownVoted(bytes32, uint256)
+```
+
+### MentClaimed
+
+```solidity
+event MentClaimed(address, uint256)
+```
+
+### ExptClaimed
+
+```solidity
+event ExptClaimed(address, uint256)
+```
+
+### ExptDeposited
+
+```solidity
+event ExptDeposited(address, uint256)
+```
+
+### ExptBought
+
+```solidity
+event ExptBought(address, uint256)
+```
+
+### ExptWithdrawn
+
+```solidity
+event ExptWithdrawn(address, uint256)
+```
+
+### mentTokenAddress
+
+```solidity
+address mentTokenAddress
+```
+
+### exptTokenAddress
+
+```solidity
+address exptTokenAddress
+```
+
+### upVoteMultiplier
+
+```solidity
+uint256 upVoteMultiplier
+```
+
+### downVoteMultiplier
+
+```solidity
+uint256 downVoteMultiplier
+```
+
+### exptTokenDivisor
+
+```solidity
+uint256 exptTokenDivisor
+```
+
+### exptBuyFeePercent
+
+```solidity
+uint256 exptBuyFeePercent
+```
+
+### exptOffers
+
+```solidity
+mapping(uint256 => struct EMTMarketplace.ExptOffer) exptOffers
 ```
 
 ### _contentVotes
@@ -137,16 +185,16 @@ function unpause() public
 function setTokenAddresses(address _mentTokenAddress, address _exptTokenAddress) public
 ```
 
-### setUpVoteWeight
+### setUpVoteMultiplier
 
 ```solidity
-function setUpVoteWeight(uint256 _upVoteWeight) public
+function setUpVoteMultiplier(uint256 _upVoteMultiplier) public
 ```
 
-### setDownVoteWeight
+### setDownVoteMultiplier
 
 ```solidity
-function setDownVoteWeight(uint256 _downVoteWeight) public
+function setDownVoteMultiplier(uint256 _downVoteMultiplier) public
 ```
 
 ### contentVotes
@@ -190,6 +238,33 @@ function claimMent() public
 ```solidity
 function claimExpt(uint256 _quantity) public
 ```
+
+### buyExpt
+
+```solidity
+function buyExpt(uint256 _tokenId) public
+```
+
+### withdrawExpt
+
+```solidity
+function withdrawExpt(uint256 _tokenId) public
+```
+
+### onERC721Received
+
+```solidity
+function onERC721Received(address operator, address from, uint256 tokenId, bytes data) external returns (bytes4)
+```
+
+_Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
+by `operator` from `from`, this function is called.
+
+It must return its Solidity selector to confirm the token transfer.
+If any other value is returned or the interface is not implemented by the recipient, the transfer will be
+reverted.
+
+The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`._
 
 ## ExpertToken
 
@@ -281,5 +356,19 @@ no way affects any of the arithmetic of the contract, including
 
 ```solidity
 function _update(address from, address to, uint256 amount) internal virtual
+```
+
+## StableCoin
+
+### constructor
+
+```solidity
+constructor(string name, string symbol, address initialOwner) public
+```
+
+### mint
+
+```solidity
+function mint(address to, uint256 amount) public
 ```
 

@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.20;
 
+import "erc721a/contracts/ERC721A.sol";
 import "erc721a/contracts/extensions/ERC721ABurnable.sol";
+import "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract ExpertToken is ERC721ABurnable, AccessControl {
+contract ExpertToken is
+    ERC721A,
+    ERC721ABurnable,
+    ERC721AQueryable,
+    AccessControl
+{
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
@@ -30,7 +37,7 @@ contract ExpertToken is ERC721ABurnable, AccessControl {
 
     function supportsInterface(
         bytes4 interfaceId
-    ) public view override(IERC721A, ERC721A, AccessControl) returns (bool) {
+    ) public view override(AccessControl, ERC721A, IERC721A) returns (bool) {
         return ERC721A.supportsInterface(interfaceId);
     }
 }

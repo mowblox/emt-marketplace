@@ -3,26 +3,14 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./MentorToken.sol";
 import "./ExpertToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract EMTMarketplace is Pausable, AccessControl {
+contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
-    // Event Definitions
-    event ContentUpVoted(bytes32 indexed, uint256);
-    event ContentDownVoted(bytes32 indexed, uint256);
-    event MentClaimed(address indexed, uint256);
-    event ExptClaimed(address indexed, uint256);
-    event ContentAdded(address indexed, bytes32);
-
-    // Public Data Definitions
-    address public mentTokenAddress;
-    address public exptTokenAddress;
-    uint256 public upVoteWeight = 10;
-    uint256 public downVoteWeight = 5;
-    // Private Data Definitions
     struct MemberVote {
         bool upVoted;
         bool downVoted;
@@ -41,6 +29,33 @@ contract EMTMarketplace is Pausable, AccessControl {
         uint256 downVotes;
         mapping(address => MemberVote) memberVotes;
     }
+    struct ExptOffer {
+        address seller;
+        address owner;
+        uint256 tokenId;
+        address paymentToken;
+        uint256 amount;
+    }
+
+    // Event Definitions
+    event ContentAdded(address indexed, bytes32);
+    event ContentUpVoted(bytes32 indexed, uint256);
+    event ContentDownVoted(bytes32 indexed, uint256);
+    event MentClaimed(address indexed, uint256);
+    event ExptClaimed(address indexed, uint256);
+    event ExptDeposited(address indexed, uint256);
+    event ExptBought(address indexed, uint256);
+    event ExptWithdrawn(address indexed, uint256);
+
+    // Public Data Definitions
+    address public mentTokenAddress;
+    address public exptTokenAddress;
+    uint256 public upVoteMultiplier = 10;
+    uint256 public downVoteMultiplier = 5;
+    uint256 public exptTokenDivisor = 20;
+    uint256 public exptBuyFeePercent = 2;
+    mapping(uint256 => ExptOffer) public exptOffers;
+    // Private Data Definitions
     mapping(bytes32 => ContentVote) _contentVotes;
     mapping(address => CreatorVote) _creatorVotes;
     mapping(address => uint256) _creatorTickets;
@@ -68,16 +83,16 @@ contract EMTMarketplace is Pausable, AccessControl {
         exptTokenAddress = _exptTokenAddress;
     }
 
-    function setUpVoteWeight(
-        uint256 _upVoteWeight
+    function setUpVoteMultiplier(
+        uint256 _upVoteMultiplier
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        upVoteWeight = _upVoteWeight;
+        upVoteMultiplier = _upVoteMultiplier;
     }
 
-    function setDownVoteWeight(
-        uint256 _downVoteWeight
+    function setDownVoteMultiplier(
+        uint256 _downVoteMultiplier
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        downVoteWeight = _downVoteWeight;
+        downVoteMultiplier = _downVoteMultiplier;
     }
 
     // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
@@ -205,10 +220,11 @@ contract EMTMarketplace is Pausable, AccessControl {
         CreatorVote storage _creatorVote = _creatorVotes[msg.sender];
         // Compute claimable MENT
         int256 _claimableMent = ((int256(_creatorVote.upVotes) -
-            int256(_creatorVote.lastClaimedUpVotes)) * int256(upVoteWeight)) -
+            int256(_creatorVote.lastClaimedUpVotes)) *
+            int256(upVoteMultiplier)) -
             ((int256(_creatorVote.downVotes) -
                 int256(_creatorVote.lastClaimedDownVotes)) *
-                int256(downVoteWeight));
+                int256(downVoteMultiplier));
         // Check if Content Vote has votes to claim
         require(_claimableMent > 0, "No MENT to claim!");
         // Mint MENT Tokens for Creator
@@ -232,7 +248,8 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
         // Check if claimed ticket plus _quantity is less or equal to threshold
         require(
-            (_creatorTickets[msg.sender] + _quantity) <= (_mentBalance / 20),
+            (_creatorTickets[msg.sender] + _quantity) <=
+                (_mentBalance / exptTokenDivisor),
             "Quantity will exceed EXPT threshold!"
         );
         // Mint EXPT for msg.sender
@@ -241,5 +258,102 @@ contract EMTMarketplace is Pausable, AccessControl {
         _creatorTickets[msg.sender] += _quantity;
         // Emit Event
         emit ExptClaimed(msg.sender, _quantity);
+    }
+
+    function buyExpt(uint256 _tokenId) public {
+        try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
+            address _owner
+        ) {
+            // Check if _tokenId belongs to this
+            require(_owner == address(this), "No deposit yet for token id!");
+            // Retrieve Expt Offer
+            ExptOffer storage _exptOffer = exptOffers[_tokenId];
+            // Check if msg.sender has approved amount of payment token to this
+            require(
+                ERC20(_exptOffer.paymentToken).allowance(
+                    msg.sender,
+                    address(this)
+                ) >= _exptOffer.amount,
+                "Insufficient payment token allowance for marketplace!"
+            );
+            // Deduct Fees for EMT Marketplace @ 2%
+            uint256 _fees = (_exptOffer.amount * exptBuyFeePercent) / 100;
+            ERC20(_exptOffer.paymentToken).transferFrom(
+                msg.sender,
+                address(this),
+                _fees
+            );
+            // Transfer payment token to seller
+            ERC20(_exptOffer.paymentToken).transferFrom(
+                msg.sender,
+                _exptOffer.seller,
+                _exptOffer.amount - _fees
+            );
+            // Transfer expt token to buyer
+            ExpertToken(exptTokenAddress).transferFrom(
+                address(this),
+                msg.sender,
+                _tokenId
+            );
+            // Emit event
+            emit ExptBought(msg.sender, _tokenId);
+        } catch Error(string memory reason) {
+            revert(reason);
+        }
+    }
+
+    function withdrawExpt(uint256 _tokenId) public {
+        try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
+            address _owner
+        ) {
+            require(_owner == address(this), "No deposit yet for token id!");
+            // Retrieve Expt Offer
+            ExptOffer storage _exptOffer = exptOffers[_tokenId];
+            // check if msg.sender is seller or owner
+            require(
+                msg.sender == _exptOffer.seller ||
+                    msg.sender == _exptOffer.owner,
+                "Not eligible to withdraw EXPT!"
+            );
+            // transfer expt back to msg.sender
+            ExpertToken(exptTokenAddress).transferFrom(
+                address(this),
+                msg.sender,
+                _tokenId
+            );
+            // emit event
+            emit ExptWithdrawn(msg.sender, _tokenId);
+        } catch Error(string memory reason) {
+            revert(reason);
+        }
+    }
+
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        try ExpertToken(exptTokenAddress).ownerOf(tokenId) returns (address) {
+            // Require data exists
+            require(data.length != 0, "Data is required for EXPT deposit!");
+            // Decode data
+            (address paymentToken, uint256 amount) = abi.decode(
+                data,
+                (address, uint256)
+            );
+            // Add tokeId to marketplace offers
+            exptOffers[tokenId] = ExptOffer(
+                operator,
+                from,
+                tokenId,
+                paymentToken,
+                amount
+            );
+            // Emit event
+            emit ExptDeposited(operator, tokenId);
+        } catch {}
+        // Return to satisfy specification
+        return this.onERC721Received.selector;
     }
 }
