@@ -63,8 +63,8 @@ export function useContracts(): ContractContext{
  */
 export function ContractProvider({ children }: { children: React.ReactNode }) {
     const {openChainModal} = useChainModal()
-    const account = useAccount()
-
+    const account = useAccount();
+    
   const [contracts, setContracts] = useState<ContractContext | null>(null);
   
   useEffect(() => {

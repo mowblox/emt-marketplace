@@ -39,21 +39,21 @@ export const SignInButton = () => {
             {(() => {
               if (!connected) {
                 return (
-                  <Button variant={'gradient'} onClick={openConnectModal}>
+                  <Button variant={'default'} onClick={openConnectModal}>
                     {isLoading? "Signing in..." : "Sign in"}
                   </Button>
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <Button onClick={openChainModal}>
+                  <Button variant={"default"} onClick={openChainModal}>
                     Wrong network
                   </Button>
                 );
               }
               return (
                 <div style={{ display: 'flex', gap: 12 }}>
-                  <Button variant={'gradient'}  onClick={openAccountModal}>
+                  <Button variant={'default'}  onClick={openAccountModal}>
                     {account.displayName}
                   </Button>
                 </div>

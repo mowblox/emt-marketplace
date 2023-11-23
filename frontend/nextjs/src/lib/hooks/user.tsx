@@ -5,18 +5,11 @@ import axios from "axios";
 import { auth, firestore } from "@/lib/firebase";
 import { signInWithCustomToken, signOut, onAuthStateChanged,  } from "firebase/auth";
 import {  doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-
-interface User {
-  address: string;
-  displayName?: string,
-  email?: string;
-  isAuthenticated?: boolean;
-  photoUrl?: string,
-}
+import {User} from '@/lib/types'
 
 interface UserContext {
   user: User | null;
-  updateUser: (data: {username?: string, photoUrl?: string, displayName?: string, email?: string}) => void;
+  updateUser: (data: {username?: string, photoURL?: string, displayName?: string, email?: string}) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -29,6 +22,7 @@ declare global {
 const UserContext = createContext<UserContext | null>(null);
 
 export function useUser(): UserContext {
+
   const userContext = useContext(UserContext);
 
   return userContext!;
@@ -37,14 +31,14 @@ export function useUser(): UserContext {
 }
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-
   const [user, setUser] = useState<User | null>(null);
   const { data: session, status } : {data: any, status: string}  = useSession(); 
   const [isLoading, setIsLoading] = useState(false);
 
-  async function updateUser(data: {username?: string, photoUrl?: string, displayName?: string, email?: string}) {
+  async function updateUser(data: {username?: string, photoURL?: string, displayName?: string, email?: string, tags?: string[]}) {
     const userDocRef = doc(firestore, 'users', session?.address); 
     await updateDoc(userDocRef, data);
+    setUser({...user!, ...data});
   }
 
   useEffect(() => {

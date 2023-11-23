@@ -15,8 +15,8 @@ const dummyPosts = [
   {
     author: {
       name: "Naval",
-      avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      mentor: "true"
+      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
+      isExpert: true
     },
     post: {
       title: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
@@ -33,8 +33,8 @@ const dummyPosts = [
   {
     author: {
       name: "Naval",
-      avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      mentor: "true"
+      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
+      isExpert: true
     },
     post: {
       title: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
@@ -51,8 +51,8 @@ const dummyPosts = [
   {
     author: {
       name: "Naval",
-      avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      mentor: "true"
+      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
+      isExpert: true
     },
     post: {
       title: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
@@ -69,8 +69,8 @@ const dummyPosts = [
   {
     author: {
       name: "Naval",
-      avatar: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      mentor: "true"
+      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
+      isExpert: true
     },
     post: {
       title: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
@@ -89,9 +89,10 @@ const dummyPosts = [
 const Profile = () => {
   const profile = {
     name: "Naval",
-    avatar: "https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    mentor: "true",
+    photoURL: "https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    isExpert: true,
     skill: "UX Design",
+    username: "naval",
     about: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
 
   }
@@ -107,22 +108,22 @@ const Profile = () => {
                 fill
                 className='rounded-full object-cover'
                 loading="eager"
-                src={profile.avatar}
-                alt={`${profile.name}-avatar`}
+                src={profile.photoURL}
+                alt={`${profile.name}-photoURL`}
                 quality={80}
               />
             </div>
             <div className='ml-3'>
               <div className="flex items-center">
                 <p className='text-md text-foreground'>{profile.name}</p>
-                {profile.mentor === "true" && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
+                {profile.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
               </div>
               <Badge>{profile.skill}</Badge>
             </div>
           </div>
           <Button 
             variant="ghost" 
-            onClick={() => router.push('/dapp/profile/edit')} 
+            onClick={() => router.push('/dapp/profile/'+ profile.username + '/edit')} 
             className='text-xs hover:bg-transparent text-muted hover:text-accent-3'
           >
             <HiOutlineCog6Tooth className="w-4 h-4 mr-1 " />

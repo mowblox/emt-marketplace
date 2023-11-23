@@ -12,13 +12,18 @@ import Link from 'next/link';
 import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
 import { POST_PAGE } from '@/app/dapp/_components/page-links';
+import useBackend from '@/lib/hooks/useBackend';
+import { Content } from "@/lib/types";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-const PostCard = ({data}: any) => {
+
+const PostCard = ({data, handleVote}:{data:Content, handleVote:any}) => {
     const {post, author, metadata} = data
-    
+
     return (
-        <Link href={POST_PAGE(metadata.permalink)}>
-            <Card className='border-none p-4 hover:bg-accent-shade'>
+        <Card className='border-none p-4 hover:bg-accent-shade'>
+                <Link href={POST_PAGE(metadata.id)}>
+
                 <CardHeader className='px-0 pt-0'>
                     <div className='flex items-center'>
                         <div className="w-10 h-10 relative">
@@ -26,15 +31,15 @@ const PostCard = ({data}: any) => {
                                 fill
                                 className='rounded-full object-cover'
                                 loading="eager"
-                                src={author.avatar}
-                                alt={`${author.name}-avatar`}
+                                src={author.photoURL}
+                                alt={`${author.displayName}-photoURL`}
                                 quality={80}
                             />
                         </div>
                         <div className='ml-3'>
                             <div className="flex items-center">
-                                <p className='text-md text-foreground'>{author.name}</p>
-                                {author.mentor === "true" && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
+                                <p className='text-md text-foreground'>{author.displayName}</p>
+                                {author.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                                 <div className='ml-2 text-[11px] text-muted'>20 secs. ago</div>
                             </div>
                             <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>
@@ -48,17 +53,19 @@ const PostCard = ({data}: any) => {
                     <div className="w-full h-[400px] relative">
                     <Image 
                         fill
-                        src={post.image}
+                        src={post.imageURL as string}
                         className='rounded-md object-cover'
                         loading="lazy"
                         alt={`${post.title} cover photo`}
                     />
                     </div>
                 </CardContent>
+        </Link>
+
                 <CardFooter className='pb-0 px-0 flex justify-between'>
                     <div className='flex items-center'>
                         <div className="flex items-center">
-                            <Button variant="ghost" aria-label='Upvote a post' size="icon">
+                            <Button onClick={handleVote} name='upvote' variant="ghost" aria-label='Upvote a post' size="icon">
                                 <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
                             </Button>
                             <div className='text-sm text-foreground ml-1'>
@@ -67,7 +74,7 @@ const PostCard = ({data}: any) => {
                             
                         </div>
                         <div className="flex items-center ml-2">
-                            <Button variant="ghost" aria-label='Upvote a post' size="icon">
+                            <Button onClick={handleVote} variant="ghost" aria-label='Downvote a post' name='downvote' size="icon">
                                 <HiOutlineHandThumbDown className="h-5 w-5 text-foreground" />
                             </Button>
                         </div>
@@ -78,7 +85,6 @@ const PostCard = ({data}: any) => {
                     </Button>
                 </CardFooter>
             </Card>
-        </Link>
     )
 }
 

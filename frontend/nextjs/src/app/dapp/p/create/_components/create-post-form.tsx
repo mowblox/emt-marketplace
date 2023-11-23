@@ -40,15 +40,14 @@ const CreatePostForm = () => {
             postBody: "",
         },
     })
+    const imageRef = React.useRef<HTMLInputElement>(null);
+    
     const { toast } = useToast()
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
-        
-        //@ts-ignore
-        //@todo: add image to form
-        const {contentId, imageUrl} = await createPost({title: values.postTitle, body: values.postBody, image: values.image})
+        const image = imageRef.current?.files![0];
+        const {id, imageURL} = await createPost({title: values.postTitle, body: values.postBody, image})
 
 
         toast({
@@ -71,7 +70,7 @@ const CreatePostForm = () => {
                                     <>
                                         <div className="w-full h-20 relative">
                                             <Image
-                                                src=""
+                                                src={imageRef.current?.files![0] ? URL.createObjectURL(imageRef.current?.files![0]) : profilePlaceholderImage}
                                                 fill
                                                 placeholder={profilePlaceholderImage}
                                                 className='object-cover '
@@ -79,7 +78,7 @@ const CreatePostForm = () => {
                                             />
                                         </div>
 
-                                        <Input placeholder="Upload photo" className='mb-4' type='file' {...field} />
+                                        <Input placeholder="Upload photo" className='mb-4' type='file' {...field} ref= {imageRef}  />
                                         <div className='mb-4'></div>
                                     </>
                                 </FormControl>
