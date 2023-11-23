@@ -4,6 +4,7 @@ import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import {isValidFileType, profilePlaceholderImage} from "@/lib/utils"
+import { useRouter } from 'next/navigation'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,8 +18,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import Image from 'next/image'
-import { Textarea } from '@/components/ui/textarea'
-import { Plus } from 'lucide-react'
 
 const formSchema = z.object({
     displayName: z.string().min(1, {
@@ -30,22 +29,20 @@ const formSchema = z.object({
     email: z.string().email({
         message: "Please enter a valid email address"
     }),
-    about: z.string(),
     profilePicture: z.string().refine((value) => isValidFileType(value), {
         message: 'Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.',
     }),
-    tags: z.any()
 
 })
 
-const EditProfileForm = () => {
+const ProfileDetailsForm = () => {
+    const router = useRouter()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             displayName: "Naval Ravikant",
             username: "naval",
             email: "naval@ravikant.io",
-            about: "Congue id arcu pellentesque mauris ac sed. Integer enim ac in porta sit.",
         },
     })
     const { toast } = useToast()
@@ -59,17 +56,18 @@ const EditProfileForm = () => {
     function onSubmit(values: z.infer<typeof formSchema>) {
         console.log(values)
         toast({
-            title: "Profile updated!",
+            title: "Profile created!",
             variant: "success",
         })
+        router.push("/onboarding/3")
     }
 
-    return (
-        <div>
-            <Form {...form}>
+  return (
+    <>
+       <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-                    <FormField
+                    {/* <FormField
                         control={form.control}
                         name="profilePicture"
                         render={({ field }) => (
@@ -94,7 +92,7 @@ const EditProfileForm = () => {
                                 <FormMessage />
                             </FormItem>
                         )}
-                    />
+                    /> */}
 
                     <FormField
                         control={form.control}
@@ -138,50 +136,14 @@ const EditProfileForm = () => {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="about"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>About</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Say what you're about" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="tags"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Tags</FormLabel>
-                                <FormControl>
-                                    <div className='flex gap-3 flex-wrap w-full'>
-                                        {['blockchain', 'UX design','blockchain', 'UX design','blockchain', 'UX design'].map((tag, key) => (
-                                            <Button key={`skills-tags-${key}`} className='rounded-full text-sm ' size="sm" variant="outline">
-                                                {tag}
-                                                <Plus className='w-4 h-4 text-muted ml-2' />
-                                            </Button>)
-                                        )}
-                                    </div>
-                                   
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
                     <div className="flex justify-end w-full">
-                        <Button variant='outline' className='w-[160px] mr-3'>Cancel</Button>
-                        <Button type="submit" variant='default' className='w-[160px] '>Update Profile</Button>
+                        <Button variant='outline' className='w-[160px] mr-3'>Back</Button>
+                        <Button type="submit" variant='default' className='w-[160px] '>Next</Button>
                     </div>
                 </form>
             </Form>
-        </div>
-    )
+    </>
+  )
 }
 
-export default EditProfileForm
+export default ProfileDetailsForm

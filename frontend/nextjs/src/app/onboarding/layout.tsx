@@ -1,8 +1,14 @@
 import React from 'react'
 
-const OnboardingLayout = () => {
+type Props = {
+  children: React.ReactNode
+}
+
+const OnboardingLayout = ({children}: Props) => {
   return (
-    <div>OnboardingLayout</div>
+    <div className="bg-[url('/img/sky-bg.png')] h-screen w-full">
+      {children}
+    </div>
   )
 }
 

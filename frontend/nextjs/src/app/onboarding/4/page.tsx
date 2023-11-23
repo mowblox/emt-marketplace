@@ -11,12 +11,11 @@ const OnboardingPage = () => {
         <Image src={String(onboardingPhoto.default.src)} fill className="object-contain" alt="Onboarding photo"/>
       </div>
       <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
-        <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
         <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>In sed in velit lacus at. Ultricies morbi morbi pharetra nulla eget eget.</h4>
         <p className='text-muted text-center'>Ut accumsan accumsan molestie aliquam feugiat urna quisque eu. Sagittis adipiscing pellentesque massa vulputate curabitur scelerisque.</p>
         <div className="w-full lg:w-2/3 space-y-5 mb-20 md:mb-0">
-          <Button className='w-full'>Get Started</Button>
-          <Button className='w-full' variant="outline">I already have an account</Button>
+          <Button className='w-full'>Create Wallet</Button>
+          <Button className='w-full' variant="outline">I already have a Wallet</Button>
         </div>
       </div>
     </div>
