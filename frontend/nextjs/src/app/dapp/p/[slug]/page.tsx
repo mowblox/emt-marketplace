@@ -12,22 +12,36 @@ import { RightSidebar } from '../../_components/right-sidebar'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
 import PageLoading from '@/components/ui/page-loading';
+import { Content } from '@/lib/types';
 
 //@todo move voting to own component
 
 const Post = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
   const{fetchSinglePost} = useBackend();
-  // @todo fetch post from cache
-  const cachedPosts = queryClient.getQueryData(["posts"]);
+  
+  const cachedPosts = queryClient.getQueryData(["posts"]) as {pages: [][]}
   console.log('cached', cachedPosts);
 
+  let post : Content | undefined ;
+
+  if(cachedPosts){
+    cachedPosts.pages.find((page:Content[]) => {
+        post =  page.find((post) => {post.metadata.id === params.slug})
+    })
+  }
+
   
-  const { data : post, isLoading } = useQuery({
+  const { isLoading } = useQuery({
     queryKey: ["post", params.slug],
-    queryFn: () => fetchSinglePost(params.slug)
-    // enabled = !cachedPost
+    queryFn: () => fetchSinglePost(params.slug),
+    enabled: !post,
+    select(data) {
+        post = data
+        return data
+    },
   });
+
 
   
   // const post = {
