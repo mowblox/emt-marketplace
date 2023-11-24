@@ -1,3 +1,9 @@
+
+/**
+ * This file contains the implementation of the ContractProvider and useContracts hooks,
+ * which provide access to the Ethereum smart contracts used in the application.
+ */
+
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { ethers } from "ethers6";
@@ -13,11 +19,16 @@ import {
 import {useAccount} from "wagmi"
 import PageLoading from "@/components/ui/page-loading";
 
+/**
+ * The context interface that defines the contract context object.
+ */
 interface ContractContext {
   EMTMarketPlace: EMTMarketplace;
   ExpertToken: ExpertToken;
   MentorToken: MentorToken;
+  provider: ethers.BrowserProvider;
 }
+
 
 declare global {
     interface Window {
@@ -25,8 +36,16 @@ declare global {
     }
   }
 
+/**
+ * The context object that holds the contract instances and provider.
+ */
 const ContractContext = createContext<ContractContext | null>(null);
 
+/**
+ * A custom hook that provides access to the contract context.
+ * @returns The contracts context object.
+ * @throws Error if the contract context is not available.
+ */
 export function useContracts(): ContractContext{
   const contractContext = useContext(ContractContext);
 
@@ -34,18 +53,20 @@ export function useContracts(): ContractContext{
     throw new Error("Contract context is not available");
   }
 
-
   return contractContext;
 }
 
+/**
+ * A component that wraps the application and provides the contracts context.
+ * @param children - The child components.
+ * @returns The ContractProvider component.
+ */
 export function ContractProvider({ children }: { children: React.ReactNode }) {
     const {openChainModal} = useChainModal()
-    const account = useAccount()
-
+    const account = useAccount();
+    
   const [contracts, setContracts] = useState<ContractContext | null>(null);
   
-
-
   useEffect(() => {
     if (typeof window == "undefined") {
       return;
@@ -54,16 +75,9 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     async function fetchContracts() {
     const provider = new ethers.BrowserProvider(window.ethereum);
 
-
-
       const EMTMarketPlace_ = require(`@/deployments/${chain.id}/EMTMarketplace.js`).default;
-
       const ExpertToken_ = require(`@/deployments/${chain.id}/ExpertToken.js`).default;
-
       const MentorToken_ = require(`@/deployments/${chain.id}/MentorToken.js`).default;
-
-
-      ethers.ContractFactory
 
       const EMTMarketPlace = new ethers.Contract(EMTMarketPlace_.address, EMTMarketPlace_.abi, provider) as unknown as EMTMarketplace ;
       const ExpertToken = new ethers.Contract(ExpertToken_.address, ExpertToken_.abi, provider)  as unknown as ExpertToken ;
@@ -73,6 +87,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
         EMTMarketPlace,
         ExpertToken,
         MentorToken,
+        provider,
       });
     }
 

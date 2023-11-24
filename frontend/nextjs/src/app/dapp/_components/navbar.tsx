@@ -8,6 +8,7 @@ import { HiMagnifyingGlass, HiBars3, HiOutlinePencilSquare } from 'react-icons/h
 import { X } from "lucide-react"
 import Link from 'next/link'
 import { CREATE_A_POST_PAGE, primaryNavigationLinks, resourcesLinks, hasBackButtonList, } from "./page-links"
+import { SignInButton } from './signInButton';
 
 export const Navbar = () => {
     const [showSearch, setShowSearch] = useState(false)
@@ -38,15 +39,7 @@ export const Navbar = () => {
                                         <HiOutlinePencilSquare className="h-4 w-4" />
                                     </Button>
                                     <div className="hidden md:block">
-                                        <ConnectButton
-                                            label="Sign in"
-                                            accountStatus={{
-                                                smallScreen: "avatar",
-                                                largeScreen: "address"
-                                            }}
-                                            chainStatus="none"
-                                            showBalance={false}
-                                        />
+                                        <SignInButton/>
                                     </div>
                                     <div className="block md:hidden">
                                         <Popover>

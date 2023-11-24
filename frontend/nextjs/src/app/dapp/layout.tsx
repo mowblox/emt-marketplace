@@ -13,6 +13,7 @@ import DappProviders from './_components/providers';
 import SessionProvider from "@/lib/hooks/sessionProvider";
 import { getServerSession } from "next-auth";
 import {Navbar} from "./_components/navbar"
+import { SignInButton } from './_components/signInButton';
 
 export const metadata: Metadata = {
   title: 'MEMM! Homepage',
@@ -32,7 +33,6 @@ export default async function DappLayout({
     <SessionProvider refetchInterval={0} session={session}>
       <DappProviders>
         <Navbar />
-
         <div className="body">
           <div className="border-t">
             <div className="bg-background">
