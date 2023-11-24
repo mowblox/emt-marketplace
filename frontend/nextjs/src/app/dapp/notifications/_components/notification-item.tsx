@@ -17,8 +17,8 @@ const NotificationItem = ({ notification }: Props) => {
                     fill
                     className='rounded-full object-cover'
                     loading="eager"
-                    src={notification.avatar}
-                    alt={`${notification.username}-avatar`}
+                    src={notification.photoURL}
+                    alt={`${notification.username}-photoURL`}
                     quality={80}
                 />
             </div>

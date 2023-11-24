@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { Toaster } from "@/components/ui/toaster"
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +18,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
 
-
-
   return (
     <html lang="en">
       <body className={`${inter.className}`}>
@@ -31,6 +30,7 @@ export default async function RootLayout({
           {children}
           <Toaster />
         </ThemeProvider>
+
       </body>
     </html>
   );

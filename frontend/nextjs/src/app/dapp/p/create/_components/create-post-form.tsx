@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import RichTextEditor from '@/components/ui/rich-text-editor'
+import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
 
 
@@ -31,6 +32,7 @@ const formSchema = z.object({
 })
 
 const CreatePostForm = () => {
+    const { createPost } = useBackend()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -38,20 +40,19 @@ const CreatePostForm = () => {
             postBody: "",
         },
     })
+    const imageRef = React.useRef<HTMLInputElement>(null);
+    
     const { toast } = useToast()
 
-    const handleFileUpload = (file: File) => {
-        // Handle the uploaded file here
-        // You can perform validation, processing, etc.
-        console.log('Uploaded cover photo:', file);
-    };
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values)
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        const image = imageRef.current?.files![0];
+        const {id, imageURL} = await createPost({title: values.postTitle, body: values.postBody, image})
+
+
         toast({
             title: "Post published!",
             variant: "success",
-            
         })
     }
 
@@ -69,7 +70,7 @@ const CreatePostForm = () => {
                                     <>
                                         <div className="w-full h-20 relative">
                                             <Image
-                                                src=""
+                                                src={imageRef.current?.files![0] ? URL.createObjectURL(imageRef.current?.files![0]) : profilePlaceholderImage}
                                                 fill
                                                 placeholder={profilePlaceholderImage}
                                                 className='object-cover '
@@ -77,7 +78,7 @@ const CreatePostForm = () => {
                                             />
                                         </div>
 
-                                        <Input placeholder="Upload photo" className='mb-4' type='file' {...field} />
+                                        <Input placeholder="Upload photo" className='mb-4' type='file' {...field} ref= {imageRef}  />
                                         <div className='mb-4'></div>
                                     </>
                                 </FormControl>

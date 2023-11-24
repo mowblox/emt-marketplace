@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "start": "concurrently \"npx hardhat node\" \"wait-on http://127.0.0.1:8545 && npx hardhat run scripts/deploy.ts --network localhost\"",
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
@@ -17,10 +18,12 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^3.0.0",
     "@openzeppelin/contracts": "^5.0.0",
+    "concurrently": "^8.2.2",
     "dotenv": "^16.3.1",
     "erc721a": "^4.2.3",
     "hardhat": "^2.18.3",
-    "hardhat-log-remover": "^2.0.2"
+    "hardhat-log-remover": "^2.0.2",
+    "wait-on": "^7.2.0"
   },
   "dependencies": {
     "solidity-docgen": "^0.6.0-beta.36"
