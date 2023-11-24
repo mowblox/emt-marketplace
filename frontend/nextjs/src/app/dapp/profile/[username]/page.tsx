@@ -8,6 +8,11 @@ import Image from "next/image"
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import PostCard from '@/components/ui/post-card'
+import { useUser } from '@/lib/hooks/user'
+import PageLoading from '@/components/ui/page-loading'
+import { useQueries } from '@tanstack/react-query'
+import Posts from '@/components/ui/posts'
+import useBackend from '@/lib/hooks/useBackend'
 
 
 
@@ -87,16 +92,20 @@ const dummyPosts = [
 ]
 
 const Profile = () => {
-  const profile = {
-    name: "Naval",
-    photoURL: "https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    isExpert: true,
-    skill: "UX Design",
-    username: "naval",
-    about: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
+  // const profile = {
+  //   name: "Naval",
+  //   photoURL: "https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  //   isExpert: true,
+  //   skill: "UX Design",
+  //   username: "naval",
+  //   about: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
 
-  }
-  const router = useRouter()
+  // }
+  const {user: profile} = useUser()
+  const router = useRouter();
+  const {fetchUserPosts} = useBackend();
+  
+  if (!profile) return <PageLoading/>;
 
   return (
     <div className=''>
@@ -108,14 +117,14 @@ const Profile = () => {
                 fill
                 className='rounded-full object-cover'
                 loading="eager"
-                src={profile.photoURL}
-                alt={`${profile.name}-photoURL`}
+                src={profile.photoURL!}
+                alt={`${profile.displayName}-photoURL`}
                 quality={80}
               />
             </div>
             <div className='ml-3'>
               <div className="flex items-center">
-                <p className='text-md text-foreground'>{profile.name}</p>
+                <p className='text-md text-foreground'>{profile.displayName}</p>
                 {profile.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
               </div>
               <Badge>{profile.skill}</Badge>
@@ -167,14 +176,8 @@ const Profile = () => {
             <TabsTrigger value="notification-settings">Notification Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="my-posts">
-            <div className="flex flex-col gap-y-4 items-center">
-              {dummyPosts.map((post, key) => {
-                return <>
-                  <PostCard key={`post-${key}`} data={post} />
-                  <Separator className="bg-border w-[94%]" />
-                </>
-              })}
-            </div>
+            <Posts filters = {{owner: profile.address}} />
+   
           </TabsContent>
           <TabsContent value="wallet">
             <div className="flex flex-col gap-y-4 mt-5">

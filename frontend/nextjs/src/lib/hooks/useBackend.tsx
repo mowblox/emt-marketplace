@@ -30,7 +30,7 @@ import {
 import { useEffect, useState } from "react";
 import { ContractTransactionResponse, ethers } from "ethers6";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Content } from "@/lib/types";
+import { Content, PostFilters } from "@/lib/types";
 
 const db = firestore;
 
@@ -91,12 +91,23 @@ export default function useBackend() {
    * @param size - The number of posts to fetch.
    * @returns An array of fetched posts.
    */
-  async function fetchPosts(lastDocTimeStamp?: number, size = 1): Promise<Content[]> {
+  async function fetchPosts(lastDocTimeStamp?: number, size = 1, filters?: PostFilters): Promise<Content[]> {
     let q = query(collection(db, "contents"), orderBy("timestamp", "desc"), limit(size))
 
     if(lastDocTimeStamp){
       q = query(q, startAfter(lastDocTimeStamp))
     }
+    if (filters?.tags) {
+        q = query(q, where("tags", "array-contains-any", filters.tags));
+    } 
+    if (filters?.owner) {
+        q = query(q, where("owner", "==", filters.owner));
+    }
+    if (filters?.isFollowing) {
+      // @todo
+     
+    }
+
     
     const querySnapshot = await getDocs(q);
 

@@ -12,12 +12,7 @@ export interface Content {
       downvotes: number;
       id: string;
     },
-    author: {
-      displayName: string;
-      address: string;
-      photoURL: string;
-      isExpert: boolean;
-    }
+    author: User
   }
 
   export 
@@ -28,4 +23,14 @@ export interface Content {
     isAuthenticated?: boolean;
     photoURL?: string,
     tags?: string[];
+    about?: string;
+    isExpert?: boolean;
+    skill?: string;
+    username?: string
+  }
+
+  export type PostFilters = {
+    tags?: string[],
+    owner?: string,
+    isFollowing?: boolean
   }

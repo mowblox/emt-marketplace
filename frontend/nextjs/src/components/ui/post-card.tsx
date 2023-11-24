@@ -15,9 +15,10 @@ import { POST_PAGE } from '@/app/dapp/_components/page-links';
 import useBackend from '@/lib/hooks/useBackend';
 import { Content } from "@/lib/types";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Voter from './Voter';
 
 
-const PostCard = ({data, handleVote}:{data:Content, handleVote:any}) => {
+const PostCard = ({data}:{data:Content}) => {
     const {post, author, metadata} = data
 
     return (
@@ -31,7 +32,7 @@ const PostCard = ({data, handleVote}:{data:Content, handleVote:any}) => {
                                 fill
                                 className='rounded-full object-cover'
                                 loading="eager"
-                                src={author.photoURL}
+                                src={author.photoURL!}
                                 alt={`${author.displayName}-photoURL`}
                                 quality={80}
                             />
@@ -63,24 +64,9 @@ const PostCard = ({data, handleVote}:{data:Content, handleVote:any}) => {
         </Link>
 
                 <CardFooter className='pb-0 px-0 flex justify-between'>
-                    <div className='flex items-center'>
-                        <div className="flex items-center">
-                            <Button onClick={handleVote} name='upvote' variant="ghost" aria-label='Upvote a post' size="icon">
-                                <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
-                            </Button>
-                            <div className='text-sm text-foreground ml-1'>
-                                {metadata.upvotes}
-                            </div>
-                            
-                        </div>
-                        <div className="flex items-center ml-2">
-                            <Button onClick={handleVote} variant="ghost" aria-label='Downvote a post' name='downvote' size="icon">
-                                <HiOutlineHandThumbDown className="h-5 w-5 text-foreground" />
-                            </Button>
-                        </div>
-                    </div>
+<Voter   metadata={metadata}  />
 
-                    <Button variant="ghost" aria-label='Upvote a post' size="icon">
+                    <Button variant="ghost" aria-label='Share post' size="icon">
                         <HiOutlineShare className="h-5 w-5 text-foreground" />
                     </Button>
                 </CardFooter>
