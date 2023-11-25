@@ -7,6 +7,13 @@ import Heading from "@tiptap/extension-heading"
 import Placeholder from "@tiptap/extension-placeholder"
 import Toolbar from './toolbar'
 
+type EditorProps = {
+    value: string,
+    placeholder?: string,
+    onChange?: (value: string) => void,
+    editable?: boolean
+}
+
 const RichTextEditor = (props: any) => {
     const { value, placeholder, onChange } = props
     const editor = useEditor({
@@ -34,7 +41,7 @@ const RichTextEditor = (props: any) => {
     return (
         <div className='flex flex-col justify-stretch min-h-[250px]'>
             <Toolbar editor={editor} />
-            <EditorContent editor={editor} />
+            <EditorContent  editor={editor} />
         </div>
     )
 }

@@ -142,7 +142,6 @@ const topCreatorList = [
 ];
 
 export default function RootLayout() {
-  const { fetchPosts } = useBackend();
   const {user} = useUser();
 
   return (
@@ -152,12 +151,12 @@ export default function RootLayout() {
           <div className="flex flex-col">
             <Tabs defaultValue="following" className="w-full px-2">
               <TabsList className="">
+                <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="following">Following</TabsTrigger>
                 <TabsTrigger value="design">Design</TabsTrigger>
               </TabsList>
-              <TabsContent value="All">
-              {user? <Posts />
-              : <>Sign in to view posts from mentors you follow</>}
+              <TabsContent value="all">
+               <Posts />
               </TabsContent>
               <TabsContent value="following">
               {user? <Posts filters={{isFollowing:true}}/>

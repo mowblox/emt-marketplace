@@ -1,10 +1,12 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface Content {
     post:{
       title: string;
       body: string;
       imageURL?: String;
       owner: string;
-      timestamp: number;
+      timestamp: Timestamp;
       id: string;
     },
     metadata: {

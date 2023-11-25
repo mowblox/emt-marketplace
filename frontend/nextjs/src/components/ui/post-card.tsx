@@ -16,6 +16,8 @@ import useBackend from '@/lib/hooks/useBackend';
 import { Content } from "@/lib/types";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Voter from './Voter';
+import { formatDistance } from 'date-fns';
+
 
 
 const PostCard = ({data}:{data:Content}) => {
@@ -41,7 +43,7 @@ const PostCard = ({data}:{data:Content}) => {
                             <div className="flex items-center">
                                 <p className='text-md text-foreground'>{author.displayName}</p>
                                 {author.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
-                                <div className='ml-2 text-[11px] text-muted'>20 secs. ago</div>
+                                <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                             </div>
                             <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>
                         </div>
@@ -50,7 +52,7 @@ const PostCard = ({data}:{data:Content}) => {
                 </CardHeader>
                 <CardContent className='space-y-3 px-0'>
                     <CardTitle className='font-bold text-md text-foreground tracking-wide'>{post.title}</CardTitle>
-                    <CardDescription className='text-muted text-sm'>{post.body}</CardDescription>
+                    <CardDescription className='text-muted text-sm' dangerouslySetInnerHTML={{ __html: post.body }} />
                     <div className="w-full h-[400px] relative">
                     <Image 
                         fill

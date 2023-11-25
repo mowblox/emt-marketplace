@@ -32,8 +32,9 @@ export default function Posts ({filters}: Props) {
       fetchNextPage,
       isFetchingNextPage,
       hasNextPage,
+      isInitialLoading
     } = useInfiniteQuery({
-      queryKey: ["posts"],
+      queryKey: ["posts", filters],
       queryFn: async ({ pageParam }) => {
         const contents = await fetchPosts(pageParam, 1, filters);
         return contents;
@@ -42,7 +43,7 @@ export default function Posts ({filters}: Props) {
         if (lastPage.length === 0) {
           return undefined;
         }
-        return lastPage[lastPage.length - 1]
+        return lastPage[lastPage.length - 1].post.timestamp;
       },
       select:(data)=>{
         return {
@@ -61,7 +62,7 @@ export default function Posts ({filters}: Props) {
       fetchNextPage();
     }
 
-    if(!contentPages) return <PageLoading/>
+    if(!contentPages && isInitialLoading) return <PageLoading/>
   
   return (
     <div className="flex flex-col gap-y-4 items-center">

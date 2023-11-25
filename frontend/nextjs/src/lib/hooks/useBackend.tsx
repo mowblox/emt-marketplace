@@ -118,7 +118,7 @@ export default function useBackend() {
       const { author, metadata } = await fetchPostMetadata(post.owner, doc.id);
       posts.push({ post, author, metadata });
     }
-
+    console.log("posts", posts);
     return posts;
   }
 
