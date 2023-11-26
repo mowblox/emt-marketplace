@@ -18,6 +18,7 @@ import {
   getDoc,
   endBefore,
   Timestamp,
+  deleteDoc,
 } from "firebase/firestore";
 import { firestore, storage } from "../firebase";
 import { toast } from "@/components/ui/use-toast";
@@ -30,7 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import { ContractTransactionResponse, ethers } from "ethers6";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Content, PostFilters } from "@/lib/types";
+import { Content, PostFilters, User } from "@/lib/types";
 
 const db = firestore;
 
@@ -73,7 +74,7 @@ export default function useBackend() {
     return { author, metadata: { upvotes: Number(_upvotes), downvotes: Number(_downvotes), id } };
   }
   
-  async function fetchPost(id: string) {
+  async function fetchSinglePost(id: string) {
     const docRef = doc(db, "contents", id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
@@ -85,13 +86,20 @@ export default function useBackend() {
     }
   }
 
+  async function fetchProfile(id: string) {
+    const userDocRef = doc(db, "users", id);
+    const userDoc = await getDoc(userDocRef);
+    const profile : User = userDoc.data() as User;
+    return profile;
+  }
+
   /**
    * Fetches posts from the database.
    * @param lastDocTimeStamp - The timestamp of the last document.
    * @param size - The number of posts to fetch.
    * @returns An array of fetched posts.
    */
-  async function fetchPosts(lastDocTimeStamp?: number, size = 1, filters?: PostFilters): Promise<Content[]> {
+  async function fetchPosts(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<Content[]> {
     let q = query(collection(db, "contents"), orderBy("timestamp", "desc"), limit(size))
 
     if(lastDocTimeStamp){
@@ -104,8 +112,7 @@ export default function useBackend() {
         q = query(q, where("owner", "==", filters.owner));
     }
     if (filters?.isFollowing) {
-      // @todo
-     
+        q = query(q, where("owner", "in", filters.isFollowing));
     }
 
     
@@ -223,6 +230,34 @@ export default function useBackend() {
     }
   }
 
+  async function followUser(id: string) {
+    try {
+      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      //check if is already following
+       //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
+       if (await checkFollowing(id)) return false;
+
+      await setDoc(userFollowersRef, { timestamp: serverTimestamp() });
+      return true;
+    } catch (err: any) {
+      throw new Error("Error following user. Message: " + err.message);
+    }
+  }
+
+  async function unfollowUser(id: string) {
+    try {
+      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      //check if is already following
+       //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
+      if (await checkFollowing(id)) return false;
+
+      await deleteDoc(userFollowersRef)
+      return true;
+    } catch (err: any) {
+      throw new Error("Error unfollowing user. Message: " + err.message);
+    }
+  }
+
   /**
    * Updates the user profile.
    * @param updates - The profile updates.
@@ -247,6 +282,18 @@ export default function useBackend() {
     }
   }
 
-  return { createPost, updateProfile, fetchUserPosts, fetchPosts, voteOnPost, fetchSinglePost: fetchPost };
-}
+  async function checkFollowing(id: string) {
+    try {
+      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      const userFollowersSnap = await getDoc(userFollowersRef);
+      return !!userFollowersSnap.exists();
+    } catch (err:any) {
+      console.log("err", err.message);
+    }
+      return false;
+  }
 
+  
+
+  return { createPost, updateProfile, fetchUserPosts, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
+}

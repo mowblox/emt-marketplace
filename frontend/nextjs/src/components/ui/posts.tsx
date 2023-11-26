@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-query";
 import PageLoading from './page-loading';
 import useBackend from "@/lib/hooks/useBackend";
+import { Timestamp } from "firebase/firestore";
 
 
 type Props = {
@@ -32,18 +33,16 @@ export default function Posts ({filters}: Props) {
       fetchNextPage,
       isFetchingNextPage,
       hasNextPage,
-      isInitialLoading
+      isLoading
     } = useInfiniteQuery({
       queryKey: ["posts", filters],
       queryFn: async ({ pageParam }) => {
         const contents = await fetchPosts(pageParam, 1, filters);
         return contents;
       },
+      initialPageParam : undefined as unknown as Timestamp,
       getNextPageParam: (lastPage) => {
-        if (lastPage.length === 0) {
-          return undefined;
-        }
-        return lastPage[lastPage.length - 1].post.timestamp;
+        return lastPage[lastPage.length - 1]?.post.timestamp;
       },
       select:(data)=>{
         return {
@@ -62,19 +61,19 @@ export default function Posts ({filters}: Props) {
       fetchNextPage();
     }
 
-    if(!contentPages && isInitialLoading) return <PageLoading/>
+    if(!contentPages && isLoading) return <PageLoading/>
   
   return (
     <div className="flex flex-col gap-y-4 items-center">
     {contentPages?.pages?.map((content : Content) => {
       return (
-        <>
+        <div key = {`post-${content.metadata.id}`}>
           <PostCard
             key={`post-${content.metadata.id}`}
             data={content}
           />
           <Separator className="bg-border w-[94%]" />
-        </>
+        </div>
       );
     })}
     {}

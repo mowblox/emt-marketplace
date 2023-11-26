@@ -6,14 +6,14 @@ import { LucideImport } from "lucide-react";
   } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
-/* @todo: define topos chains
+/* TODO: define topos chains
 https://wagmi.sh/react/chains#build-your-own
  const topos...
  */
 
- const productionChain = polygonMumbai /*todo: use topos */
+ const productionChain = polygonMumbai /*TODO: use topos */
 
- const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, /*todo: add topos */]
+ const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, /*TODO: add topos */]
 
  const { chains, publicClient } = configureChains(
   envChains,

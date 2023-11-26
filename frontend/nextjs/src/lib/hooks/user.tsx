@@ -51,7 +51,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
             // const token = session.firebaseToken
             const token = session.firebaseToken;
-            console.log("sess", session)
             const userData = await signInWithCustomToken(auth, token);
             //get user data from fireStore
             const userDocRef = doc(firestore, 'users', userData.user.uid); 

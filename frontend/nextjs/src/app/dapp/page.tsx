@@ -105,6 +105,7 @@ const dummyPosts = [
 const topCreatorList = [
   {
     displayName: "Naval",
+    address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: "false",
@@ -113,30 +114,33 @@ const topCreatorList = [
     ment: 134,
   },
   {
-    displayName: "Naval",
+    displayName: "vally",
+    address: "0x27486f33523DFB323ee47e8E4279269Be719Ec6A",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "Java",
-    username: "naval",
+    username: "vally",
     ment: 693,
   },
   {
-    displayName: "Naval",
+    displayName: "opda",
+    address: "0x6435cE1AE109cEC3C7CCD03E851c43AaeD684Cc7",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "Ruby",
-    username: "naval",
+    username: "opda",
     ment: 953,
   },
   {
-    displayName: "Naval",
+    displayName: "jack",
+    address: "0x27486f33523DFB323ee47e8E4279269Be719Ec6A",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "AI",
-    username: "naval",
+    username: "jack",
     ment: 422,
   },
 ];
@@ -179,7 +183,7 @@ export default function RootLayout() {
               {topCreatorList.map((profile, key) => {
                 return (
                   <Link
-                    href={`/dapp/profile/${profile.username}`}
+                    href={`/dapp/profile/${profile.address}`}
                     key={`top-creator-${key}`}
                     className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                     <div className="flex items-center">
@@ -223,7 +227,7 @@ export default function RootLayout() {
               {topCreatorList.map((profile, key) => {
                 return (
                   <Link
-                    href={`/dapp/profile/${profile.username}`}
+                    href={`/dapp/profile/${profile.address}`}
                     key={`top-creator-${key}`}
                     className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                     <div className="flex items-center">

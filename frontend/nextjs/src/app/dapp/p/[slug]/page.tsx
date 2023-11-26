@@ -16,7 +16,6 @@ import PageLoading from '@/components/ui/page-loading';
 import { Content } from '@/lib/types';
 import Voter from '@/components/ui/Voter';
 
-//@todo move voting to own component
 
 const Post = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
@@ -167,7 +166,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
@@ -208,7 +207,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
