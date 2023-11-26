@@ -6,6 +6,9 @@ import StarterKit from "@tiptap/starter-kit"
 import Heading from "@tiptap/extension-heading"
 import Placeholder from "@tiptap/extension-placeholder"
 import Toolbar from './toolbar'
+ 
+
+//TODO @od41 FIXME: the rich text editorbuttons are erratic
 
 const RichTextEditor = (props: any) => {
     const { value, placeholder, onChange } = props
@@ -34,7 +37,7 @@ const RichTextEditor = (props: any) => {
     return (
         <div className='flex flex-col justify-stretch min-h-[250px]'>
             <Toolbar editor={editor} />
-            <EditorContent editor={editor} />
+            <EditorContent  editor={editor} />
         </div>
     )
 }

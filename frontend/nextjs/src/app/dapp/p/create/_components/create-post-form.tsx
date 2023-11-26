@@ -19,6 +19,8 @@ import { useToast } from "@/components/ui/use-toast"
 import RichTextEditor from '@/components/ui/rich-text-editor'
 import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
+import { useMutation } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 
 
 const formSchema = z.object({
@@ -32,7 +34,11 @@ const formSchema = z.object({
 })
 
 const CreatePostForm = () => {
-    const { createPost } = useBackend()
+    const { createPost } = useBackend();
+    const {data, mutateAsync} = useMutation({
+        mutationFn: (variables : {title: string, body: string, image: File} ) => createPost(variables),
+    })
+    const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -46,8 +52,12 @@ const CreatePostForm = () => {
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        const image = imageRef.current?.files![0];
-        const {id, imageURL} = await createPost({title: values.postTitle, body: values.postBody, image})
+        const image = imageRef.current?.files![0] as File;
+
+        const {id, imageURL} = await mutateAsync({title: values.postTitle, body: values.postBody, image})
+
+        router.push("dapp/p/"+ id);
+
 
 
         toast({

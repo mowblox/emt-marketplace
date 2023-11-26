@@ -11,14 +11,9 @@ import Image from "next/image";
 import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { useUser } from "@/lib/hooks/user";
-import { useIntersection } from "@mantine/hooks";
 import useBackend from "@/lib/hooks/useBackend";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import Posts from "@/components/ui/posts";
+import { useUser } from "@/lib/hooks/user";
 
 const dummyPosts = [
   {
@@ -110,6 +105,7 @@ const dummyPosts = [
 const topCreatorList = [
   {
     displayName: "Naval",
+    address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: "false",
@@ -118,109 +114,39 @@ const topCreatorList = [
     ment: 134,
   },
   {
-    displayName: "Naval",
+    displayName: "vally",
+    address: "0x27486f33523DFB323ee47e8E4279269Be719Ec6A",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "Java",
-    username: "naval",
+    username: "vally",
     ment: 693,
   },
   {
-    displayName: "Naval",
+    displayName: "opda",
+    address: "0x6435cE1AE109cEC3C7CCD03E851c43AaeD684Cc7",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "Ruby",
-    username: "naval",
+    username: "opda",
     ment: 953,
   },
   {
-    displayName: "Naval",
+    displayName: "jack",
+    address: "0x27486f33523DFB323ee47e8E4279269Be719Ec6A",
     photoURL:
       "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
     isExpert: true,
     skill: "AI",
-    username: "naval",
+    username: "jack",
     ment: 422,
   },
 ];
 
 export default function RootLayout() {
-  const { EMTMarketPlace, ExpertToken, MentorToken } = useContracts();
-  const { user, updateUser, isLoading } = useUser();
-  const { fetchPosts, voteOnPost } = useBackend();
-  const loadMoreRef = React.useRef<HTMLDivElement>(null);
-
-  const { entry, ref } = useIntersection({
-    threshold: 0,
-    // root: loadMoreRef.current
-  });
-  const {
-    data: postPages,
-    fetchNextPage,
-    isFetchingNextPage,
-    hasNextPage,
-  } = useInfiniteQuery({
-    queryKey: ["posts"],
-    queryFn: async ({ pageParam }) => {
-      const posts = await fetchPosts(pageParam, 1);
-      return posts;
-    },
-    getNextPageParam: (lastPage) => {
-      if (lastPage.length === 0) {
-        return undefined;
-      }
-      return lastPage[lastPage.length - 1].post.timestamp;
-    },
-  });
-
-  const posts =
-    postPages?.pages?.flatMap((page, i) =>
-      page.map((p, j) => ({ ...p, indexes: [i, j] }))
-    ) || [];
-
-  if (hasNextPage && entry?.isIntersecting) {
-    fetchNextPage();
-  }
-
-  const queryClient = useQueryClient();
-  const { mutateAsync } = useMutation({
-    mutationFn: async (vote: {
-      id: string;
-      voteType: "upvote" | "downvote";
-      indexes: number[];
-    }) => {
-      return await voteOnPost(vote.id, vote.voteType);
-    },
-    onSuccess: (data, variables, context) => {
-      console.log("data", data, variables, context);
-      const [pageIndex, postIndex] = variables.indexes;
-
-      queryClient.setQueryData(["posts"], (oldData: any) => {
-        const newData = { ...oldData };
-        const post = newData.pages[pageIndex][postIndex];
-        post.metadata.upvotes = data.upvotes;
-        post.metadata.downvotes = data.downvotes;
-        console.log("old", oldData, "new", newData, "post", post);
-        return newData;
-      });
-    },
-  });
-
-  async function handleVote(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    indexes: number[]
-  ) {
-    const voteType = e.currentTarget.name as "upvote" | "downvote";
-    const [pageIndex, postIndex] = indexes;
-    const res = await mutateAsync({
-      id: postPages?.pages[pageIndex][postIndex].metadata.id!,
-      voteType,
-      indexes,
-    });
-    console.log("res", res);
-  }
+  const {user} = useUser();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-6 col-span-1 md:col-span-4">
@@ -229,46 +155,19 @@ export default function RootLayout() {
           <div className="flex flex-col">
             <Tabs defaultValue="following" className="w-full px-2">
               <TabsList className="">
+                <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="following">Following</TabsTrigger>
                 <TabsTrigger value="design">Design</TabsTrigger>
               </TabsList>
+              <TabsContent value="all">
+               <Posts />
+              </TabsContent>
               <TabsContent value="following">
-                <div className="flex flex-col gap-y-4 items-center">
-                  {posts.map((post, index) => {
-                    return (
-                      <>
-                        <PostCard
-                          key={`post-${post.metadata.id}`}
-                          handleVote={(
-                            e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-                          ) => handleVote(e, post.indexes)}
-                          data={post}
-                        />
-                        <Separator className="bg-border w-[94%]" />
-                      </>
-                    );
-                  })}
-                  {}
-
-                  <div ref={ref}>
-                    {isFetchingNextPage ? "loading more..." : "done"}
-                  </div>
-                </div>
+              {user? <Posts filters={{isFollowing:true}}/>
+              : <>Sign in to view posts from mentors you follow</>}
               </TabsContent>
               <TabsContent value="design">
-                <div className="flex flex-col gap-y-4 items-center">
-                  {dummyPosts.map((post, key) => {
-                    return (
-                      <>
-                      {
-                          // @ts-ignore
-                        <PostCard key={`post-${key}`} data={post} />
-                      }
-                        <Separator className="bg-border w-[94%]" />
-                        </>
-                    );
-                  })}
-                </div>
+                <Posts filters={{tags:["design"]}} />
               </TabsContent>
             </Tabs>
           </div>
@@ -284,7 +183,7 @@ export default function RootLayout() {
               {topCreatorList.map((profile, key) => {
                 return (
                   <Link
-                    href={`/dapp/profile/${profile.username}`}
+                    href={`/dapp/profile/${profile.address}`}
                     key={`top-creator-${key}`}
                     className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                     <div className="flex items-center">
@@ -328,7 +227,7 @@ export default function RootLayout() {
               {topCreatorList.map((profile, key) => {
                 return (
                   <Link
-                    href={`/dapp/profile/${profile.username}`}
+                    href={`/dapp/profile/${profile.address}`}
                     key={`top-creator-${key}`}
                     className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                     <div className="flex items-center">
@@ -368,3 +267,4 @@ export default function RootLayout() {
     </div>
   );
 }
+
