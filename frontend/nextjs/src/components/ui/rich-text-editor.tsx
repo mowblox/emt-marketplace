@@ -6,13 +6,9 @@ import StarterKit from "@tiptap/starter-kit"
 import Heading from "@tiptap/extension-heading"
 import Placeholder from "@tiptap/extension-placeholder"
 import Toolbar from './toolbar'
+ 
 
-type EditorProps = {
-    value: string,
-    placeholder?: string,
-    onChange?: (value: string) => void,
-    editable?: boolean
-}
+//TODO @od41 FIXME: the rich text editorbuttons are erratic
 
 const RichTextEditor = (props: any) => {
     const { value, placeholder, onChange } = props

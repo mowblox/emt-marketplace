@@ -137,7 +137,7 @@ export default function useBackend() {
     if (user && provider) {
       setSigner();
     }
-  }, [user, provider]);
+  }, [user, provider, EMTMarketPlace]);
 
   /**
    * Creates a new post.

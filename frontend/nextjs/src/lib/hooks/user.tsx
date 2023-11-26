@@ -92,7 +92,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
 
 
-  }, [session?.address])
+  }, [session?.address, session.firebaseToken])
   
 
 
