@@ -1,3 +1,4 @@
+
 "use client";
 import React from 'react'
 import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare, HiOutlineFire } from 'react-icons/hi2'
@@ -13,13 +14,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
 import PageLoading from '@/components/ui/page-loading';
 import { Content } from '@/lib/types';
+import Voter from '@/components/ui/Voter';
 
-//@todo move voting to own component
 
 const Post = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
   const{fetchSinglePost} = useBackend();
-  
+
   const cachedPosts = queryClient.getQueryData(["posts"]) as {pages: [][]}
   console.log('cached', cachedPosts);
 
@@ -114,8 +115,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
                                 fill
                                 className='rounded-full object-cover'
                                 loading="eager"
-                                src={post.author.photoURL
-                        }
+                                src={post.author.photoURL!}
                                 alt={`${post.author.displayName}-photoURL
                         `}
                                 quality={80}
@@ -148,22 +148,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
                 <Separator className="bg-border mb-3" />
                 <CardFooter className='pb-0 px-0 flex justify-between'>
 
-                    <div className='flex items-center'>
-                        <div className="flex items-center">
-                            <Button variant="ghost" aria-label='Upvote a post' size="icon">
-                                <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
-                            </Button>
-                            <div className='text-sm text-foreground ml-1'>
-                                {post.metadata.upvotes}
-                            </div>
-                            
-                        </div>
-                        <div className="flex items-center ml-2">
-                            <Button variant="ghost" aria-label='Upvote a post' size="icon">
-                                <HiOutlineHandThumbDown className="h-5 w-5 text-foreground" />
-                            </Button>
-                        </div>
-                    </div>
+                    <Voter metadata={post.metadata}/>
 
                     <Button variant="ghost" aria-label='Upvote a post' size="icon">
                         <HiOutlineShare className="h-5 w-5 text-foreground" />
@@ -181,7 +166,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
@@ -222,7 +207,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
             </h2>
             <div className="flex flex-col gap-y-0">
               {topCreatorList.map((profile, key) => {
-                return <Link href={profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
+                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
                   <div className='flex items-center'>
                     <div className="w-10 h-10 relative">
                       <Image
@@ -262,4 +247,6 @@ const Post = ({ params }: { params: { slug: string } }) => {
   )
 }
 
-export default Post
+
+
+  export default Post
