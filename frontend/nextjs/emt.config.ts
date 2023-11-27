@@ -1,3 +1,4 @@
+
 import {getDefaultWallets} from "@rainbow-me/rainbowkit";
 import { LucideImport } from "lucide-react";
   import { configureChains, createConfig } from 'wagmi';
@@ -8,38 +9,32 @@ import { publicProvider } from 'wagmi/providers/public';
 
 
  import { Chain } from 'wagmi'
-/* TODO: @mickeymond define topos chain
-ref: https://wagmi.sh/react/chains#build-your-own
 
 export const toposTestnet = {
-  id: 43_114,
-  name: 'Avalanche',
-  network: 'avalanche',
+  id: 2359,
+  name: 'Topos Subnet',
+  network: 'topos',
   nativeCurrency: {
     decimals: 18,
-    name: 'Avalanche',
-    symbol: 'AVAX',
+    name: 'TOPOS',
+    symbol: 'TOPOS',
   },
   rpcUrls: {
-    public: { http: ['https://api.avax.network/ext/bc/C/rpc'] },
-    default: { http: ['https://api.avax.network/ext/bc/C/rpc'] },
+    public: { http: ['https://rpc.topos-subnet.testnet-1.topos.technology'] },
+    default: { http: ['https://rpc.topos-subnet.testnet-1.topos.technology'] },
   },
   blockExplorers: {
-    etherscan: { name: 'SnowTrace', url: 'https://snowtrace.io' },
-    default: { name: 'SnowTrace', url: 'https://snowtrace.io' },
+    etherscan: { name: 'Blockscout', url: 'https://topos.blockscout.testnet-1.topos.technology' },
+    default: { name: 'Blockscout', url: 'https://topos.blockscout.testnet-1.topos.technology' },
   },
-  contracts: {
-    multicall3: {
-      address: '0xca11bde05977b3631167028862be2a173976ca11',
-      blockCreated: 11_907_934,
-    },
-  },
-} as const satisfies Chain
+  // contracts: {
+  //   multicall3: {
+  //     address: '0xca11bde05977b3631167028862be2a173976ca11',
+  //     blockCreated: 11_907_934,
+  //   },
+  // },
+} as const satisfies Chain 
 
-const toposMainnet = {...} as const satisfies Chain
-*/
-
-//TODO: @mickeymond deploy contacts to topos testnet
 
 
  const productionChain = polygonMumbai /*TODO: @Jovells use topos */
@@ -55,7 +50,8 @@ const toposMainnet = {...} as const satisfies Chain
   
  const { connectors } = getDefaultWallets({
     appName: 'My RainbowKit App',
-    projectId: 'YOUR_PROJECT_ID',
+    //todo: @od41 add walletconnect project id in Vercel
+    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
     chains
   });
   

@@ -31,7 +31,7 @@ import {
 import { useEffect, useState } from "react";
 import { ContractTransactionResponse, ethers } from "ethers6";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Content, PostFilters, User } from "@/lib/types";
+import { Content, PostFilters, User, UserProfile } from "@/lib/types";
 
 const db = firestore;
 
@@ -42,7 +42,7 @@ const db = firestore;
  * @param subpath - The subpath to store the image in.
  * @returns The URL of the uploaded image.
  */
-async function uploadImage(image: Blob, name: string, subpath?: string) {
+export async function uploadImage(image: Blob, name: string, subpath?: string) {
   const storageRef = ref(storage, `images/${subpath || ""}/${name}`);
   const uploadResult = await uploadBytes(storageRef, image);
   const imageURL = await getDownloadURL(uploadResult.ref);
@@ -89,7 +89,7 @@ export default function useBackend() {
   async function fetchProfile(id: string) {
     const userDocRef = doc(db, "users", id);
     const userDoc = await getDoc(userDocRef);
-    const profile : User = userDoc.data() as User;
+    const profile : UserProfile = userDoc.data() as UserProfile;
     return profile;
   }
 
@@ -125,7 +125,7 @@ export default function useBackend() {
       const { author, metadata } = await fetchPostMetadata(post.owner, doc.id);
       posts.push({ post, author, metadata });
     }
-    console.log("posts", posts);
+
     return posts;
   }
 
@@ -153,9 +153,7 @@ export default function useBackend() {
     const docRef = doc(collection(db, "contents"));
     const id = ethers.encodeBytes32String(docRef.id);
     try {
-      console.log("id", id);
       const tx = await EMTMarketPlaceWithSigner.addContent(id);
-      console.log("iwaiyd", EMTMarketPlaceWithSigner);
       await tx.wait();
       console.log("Content added to blockchain");
     } catch (err: any) {
@@ -176,7 +174,7 @@ export default function useBackend() {
       await setDoc(docRef, {
         title: post.title,
         body: post.body,
-        owner: user?.address,
+        owner: user?.uid,
         imageURL: imageURL,
         timestamp: serverTimestamp(),
       });
@@ -196,7 +194,7 @@ export default function useBackend() {
     if (!user) {
       return [];
     }
-    const querySnapshot = await getDocs(query(collection(db, "contents"), where("owner", "==", user.address)));
+    const querySnapshot = await getDocs(query(collection(db, "contents"), where("owner", "==", user.uid)));
     const _posts = querySnapshot.docs.map((doc) => {
       return { ...doc.data(), id: doc.id };
     });
@@ -232,7 +230,7 @@ export default function useBackend() {
 
   async function followUser(id: string) {
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
       //check if is already following
        //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
        if (await checkFollowing(id)) return false;
@@ -246,7 +244,7 @@ export default function useBackend() {
 
   async function unfollowUser(id: string) {
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
       //check if is already following
        //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
       if (await checkFollowing(id)) return false;
@@ -267,7 +265,7 @@ export default function useBackend() {
     const _updates: { [key: string]: string | File } = { ...updates };
     if (updates.profilePicture) {
       try {
-        const imageURL = await uploadImage(updates.profilePicture, user?.address!, "profilePictures");
+        const imageURL = await uploadImage(updates.profilePicture, user?.uid!, "profilePictures");
         _updates.photoURL = imageURL;
         delete _updates.profilePicture;
       } catch (err: any) {
@@ -284,7 +282,7 @@ export default function useBackend() {
 
   async function checkFollowing(id: string) {
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.address!);
+      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
       const userFollowersSnap = await getDoc(userFollowersRef);
       return !!userFollowersSnap.exists();
     } catch (err:any) {
@@ -295,5 +293,5 @@ export default function useBackend() {
 
   
 
-  return { createPost, updateProfile, fetchUserPosts, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
+  return { createPost, updateProfile, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
 }

@@ -11,7 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
-import { POST_PAGE } from '@/app/dapp/_components/page-links';
+import { POST_PAGE } from '@/app/(with wallet)/_components/page-links';
 import useBackend from '@/lib/hooks/useBackend';
 import { Content } from "@/lib/types";
 import { useMutation, useQueryClient } from '@tanstack/react-query';

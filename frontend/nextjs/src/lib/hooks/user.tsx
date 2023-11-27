@@ -1,16 +1,20 @@
 "use client";
-import { createContext, useContext, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useSession, signOut as signOutNextAuth } from "next-auth/react";
 import axios from "axios";
 import { auth, firestore } from "@/lib/firebase";
 import { signInWithCustomToken, signOut, onAuthStateChanged,  } from "firebase/auth";
 import {  doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import {User} from '@/lib/types'
+import {SignUpData, User} from '@/lib/types'
+import { FirebaseError } from "firebase-admin";
 
 interface UserContext {
   user: User | null;
   updateUser: (data: {username?: string, photoURL?: string, displayName?: string, email?: string}) => Promise<void>;
   isLoading: boolean;
+  signUpDataRef: React.MutableRefObject<SignUpData | null>;
+  signIn: () => Promise<void>;
+  isMultipleSignUpAttempt: boolean;
 }
 
 declare global {
@@ -30,49 +34,45 @@ export function useUser(): UserContext {
 
 }
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children, signUpDataRef }: { children: React.ReactNode, signUpDataRef: React.MutableRefObject<SignUpData | null> }) {
   const [user, setUser] = useState<User | null>(null);
-  const { data: session, status } : {data: any, status: string}  = useSession(); 
+  const { data: session, status, update }: {[key:string]: any}  = useSession(); 
   const [isLoading, setIsLoading] = useState(false);
 
   async function updateUser(data: {username?: string, photoURL?: string, displayName?: string, email?: string, tags?: string[]}) {
-    const userDocRef = doc(firestore, 'users', session?.address); 
-    await updateDoc(userDocRef, data);
+    // const userDocRef = doc(firestore, 'users', session?.address); 
+    // await updateDoc(userDocRef, data);
+    await update(data);
     setUser({...user!, ...data});
   }
+
+    const signIn = useMemo(() => async function (){
+      try {
+        setIsLoading(true);
+        const token = session.firebaseToken;
+
+        const userData = await signInWithCustomToken(auth, token);
+
+          setUser(userData.user as User);
+
+        signUpDataRef.current = null;
+        if (session?.isMultipleSignUpAttempt) {
+          update({resetMultipleSignUpAttempt: true})
+        }
+      } catch (err: FirebaseError | any ) {
+        if( err.code === 'auth/invalid-custom-token')
+        signOutNextAuth();
+      }
+      finally{
+        setIsLoading(false);
+      }
+      
+}, [session?.address, session?.firebaseToken])  
 
   useEffect(() => {
     
 
-    async function signIn(){
-      
-          try {
-            setIsLoading(true);
 
-            // const token = session.firebaseToken
-            const token = session.firebaseToken;
-            const userData = await signInWithCustomToken(auth, token);
-            //get user data from fireStore
-            const userDocRef = doc(firestore, 'users', userData.user.uid); 
-            const userDocSnap = await getDoc(userDocRef);
-      
-            if (userDocSnap.exists()) {
-              //@ts-ignore
-              setUser({  ...userDocSnap.data() });
-            } else {
-              const newUser = { address: session?.address};
-              await setDoc(userDocRef, newUser);
-              //@ts-ignore
-              setUser(newUser);
-            }
-          } catch (err:any) {
-            throw new Error(err);
-          }
-          finally{
-            setIsLoading(false);
-          }
-          
-    }
     async function _signOut(){
       setIsLoading(true)
       signOut(auth).then(() => {
@@ -87,18 +87,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (status === 'unauthenticated' && user) {
       _signOut();
     }
+    if (session?.isMultipleSignUpAttempt) {
+      return
+    }
     if (session?.address && !user) {
       signIn();
     }
 
 
-  }, [session?.address, session.firebaseToken])
+  }, [session?.address, session?.firebaseToken, signIn])
   
 
 
 
 
   return (
-    <UserContext.Provider value={{user, updateUser, isLoading}}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{user, signIn, updateUser, isLoading, signUpDataRef, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt}}>{children}</UserContext.Provider>
   );
 }
