@@ -33,7 +33,8 @@ export default function Posts ({filters}: Props) {
       fetchNextPage,
       isFetchingNextPage,
       hasNextPage,
-      isLoading
+      isLoading,
+      error
     } = useInfiniteQuery({
       queryKey: ["posts", filters],
       queryFn: async ({ pageParam }) => {
@@ -56,6 +57,8 @@ export default function Posts ({filters}: Props) {
     //   postPages?.pages?.flatMap((page, i) =>
     //     page.map((p, j) => ({ ...p, indexes: [i, j] }))
     //   ) || [];
+
+    console.error("postsloading error:", error)
   
     if (hasNextPage && entry?.isIntersecting) {
       fetchNextPage();

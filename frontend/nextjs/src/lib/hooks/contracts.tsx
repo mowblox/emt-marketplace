@@ -6,7 +6,7 @@
 
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { ethers } from "ethers6";
+import { BrowserProvider, JsonRpcProvider, ethers } from "ethers6";
 import { chain } from "../../../emt.config";
 import {EMTMarketplace} from "../../../../../blockchain/typechain-types/contracts/EMTMarketplace";
 import {ExpertToken} from "../../../../../blockchain/typechain-types/contracts/ExpertToken";
@@ -26,7 +26,7 @@ interface ContractContext {
   EMTMarketPlace: EMTMarketplace;
   ExpertToken: ExpertToken;
   MentorToken: MentorToken;
-  provider: ethers.BrowserProvider;
+  provider: ethers.BrowserProvider | ethers.JsonRpcProvider;
 }
 
 
@@ -73,7 +73,13 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     }
    
     async function fetchContracts() {
-    const provider = new ethers.BrowserProvider(window.ethereum);
+      let provider: JsonRpcProvider | BrowserProvider
+      if(window.ethereum){
+         provider = new ethers.BrowserProvider(window.ethereum);
+      }
+      else{
+        provider = new JsonRpcProvider(chain.rpcUrls.default.http[0]);
+      }
 
       const EMTMarketPlace_ = require(`@/deployments/${chain.id}/EMTMarketplace.js`).default;
       const ExpertToken_ = require(`@/deployments/${chain.id}/ExpertToken.js`).default;
