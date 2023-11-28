@@ -21,6 +21,7 @@ import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
+import { POST_PAGE } from '@/app/(with wallet)/_components/page-links'
 
 
 const formSchema = z.object({
@@ -56,7 +57,7 @@ const CreatePostForm = () => {
 
         const {id, imageURL} = await mutateAsync({title: values.postTitle, body: values.postBody, image})
 
-        router.push("dapp/p/"+ id);
+        router.push(POST_PAGE(id));
 
 
 

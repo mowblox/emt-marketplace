@@ -148,7 +148,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
                 <Separator className="bg-border mb-3" />
                 <CardFooter className='pb-0 px-0 flex justify-between'>
 
-                    <Voter metadata={post.metadata}/>
+                    <Voter post={post}/>
 
                     <Button variant="ghost" aria-label='Upvote a post' size="icon">
                         <HiOutlineShare className="h-5 w-5 text-foreground" />

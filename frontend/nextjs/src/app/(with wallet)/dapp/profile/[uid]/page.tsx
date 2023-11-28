@@ -142,8 +142,6 @@ const Profile = () => {
   console.log('user', user?.uid, 'uidparam', uid, 'isCurrentUserProfile', isCurrentUserProfile, 'isFollowingUser', isFollowingUser,)
   const queryClient = useQueryClient();
 
-  // TODO: @Jovells convert this to react query v5 syntax and use react query v5
-
   const {mutateAsync} = useMutation( {
     mutationFn: ()=>  isFollowingUser? unfollowUser(profile?.uid!) :followUser(profile?.uid!),
     onSuccess: () => {

@@ -21,7 +21,7 @@ import Image from 'next/image'
 import { useUser } from '@/lib/hooks/user'
 import useBackend from '@/lib/hooks/useBackend'
 
-//TODO: @Jovells aprevent multiple email signups
+//TODO: @Jovells a prevent multiple email signups
 const formSchema = z.object({
     displayName: z.string().min(1, {
         message: "Title can't be empty",

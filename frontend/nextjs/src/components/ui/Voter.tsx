@@ -6,16 +6,17 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import useBackend from "@/lib/hooks/useBackend";
 import { useQueryClient } from "wagmi";
 
-    export default function Voter({metadata}:{metadata:Content['metadata']}) {
+    export default function Voter({post}:{post:Content}) {
         const {voteOnPost} = useBackend();
-        const queryClient = useQueryClient()
+
         const { mutateAsync, data: votes  } = useMutation({
-            mutationKey: ["vote", metadata.id],
+            mutationKey: ["vote", post.metadata.id],
             mutationFn: async (vote: {
               id: string;
               voteType: "upvote" | "downvote";
+              owner: string;
             }) => {
-              return await voteOnPost(vote.id, vote.voteType);
+              return await voteOnPost(vote.id, vote.voteType, vote.owner);
             },
             onSuccess: (data, variables, context) => {
               console.log("data", data, variables, context);
@@ -27,8 +28,9 @@ import { useQueryClient } from "wagmi";
           ) {
             const voteType = e.currentTarget.name as "upvote" | "downvote";
             const res = await mutateAsync({
-              id: metadata.id,
+              id: post.metadata.id,
               voteType,
+              owner: post.author.uid,
             });
             console.log("res", res);
           }
@@ -38,7 +40,7 @@ import { useQueryClient } from "wagmi";
                                 <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
                             </Button>
                             <div className='text-sm text-foreground ml-1'>
-                                {metadata.upvotes}
+                                {post.metadata.upvotes}
                             </div>
                             
                         </div>

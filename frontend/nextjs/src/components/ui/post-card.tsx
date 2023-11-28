@@ -66,7 +66,7 @@ const PostCard = ({data}:{data:Content}) => {
         </Link>
 
                 <CardFooter className='pb-0 px-0 flex justify-between'>
-<Voter   metadata={metadata}  />
+<Voter   post={data}  />
 
                     <Button variant="ghost" aria-label='Share post' size="icon">
                         <HiOutlineShare className="h-5 w-5 text-foreground" />

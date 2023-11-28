@@ -25,6 +25,8 @@ import {
 import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 
+//FIXME: @od41 popover button doesn't always show when sidebar disappears
+
 export const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const { user } = useUser();

@@ -1,13 +1,16 @@
 import React from 'react'
 import Image from 'next/image'
 import {cn} from "@/lib/utils"
+import { BuiltNotification } from '@/lib/types';
+import Link from 'next/link';
 
 type Props = {
-    notification: any;
+    notification: BuiltNotification;
 }
 
 const NotificationItem = ({ notification }: Props) => {
     return (
+        <Link href={notification.href}>
         <div className={cn(
             'w-full border px-4 py-4 rounded-md bg-accent-shade flex items-start justify-between',
             notification.isNew ? "border-accent-2 border-2 shadow-custom" : "border-stroke"
@@ -39,11 +42,12 @@ const NotificationItem = ({ notification }: Props) => {
                 <div className="flex justify-between items-center w-full">
                     
                     <div className="text-muted text-xs">
-                        {notification.upvotes} Upvotes
+                        {notification.votes} {notification.type}s
                     </div>
                 </div>
             </div>
         </div>
+        </Link>
     )
 }
 
