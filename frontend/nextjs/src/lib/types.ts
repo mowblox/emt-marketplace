@@ -1,38 +1,81 @@
-import { Timestamp } from "firebase/firestore";
+import { UserCredential } from "firebase/auth";
+import { Timestamp, FieldValue } from "firebase/firestore";
+
+export type SignUpData =
+  { username?: string, 
+    email?: string,
+    displayName?: string, 
+    profilePicture?: File,
+    photoURL?: string,
+    tags?: string[] }
+
 
 export interface Content {
-    post:{
-      title: string;
-      body: string;
-      imageURL?: String;
-      owner: string;
-      timestamp: Timestamp;
-      id: string;
-    },
-    metadata: {
-      upvotes: number;
-      downvotes: number;
-      id: string;
-    },
-    author: User
-  }
+  post: {
+    title: string;
+    body: string;
+    imageURL?: String;
+    owner: string;
+    timestamp: Timestamp;
+    id: string;
+  },
+  metadata: {
+    upvotes: number;
+    downvotes: number;
+    id: string;
+  },
+  author: UserProfile
+}
 
-  export 
-  interface User {
-    address: string;
-    displayName?: string,
-    email?: string;
-    isAuthenticated?: boolean;
-    photoURL?: string,
-    tags?: string[];
-    about?: string;
-    isExpert?: boolean;
-    skill?: string;
-    username?: string
-  }
 
-  export type PostFilters = {
-    tags?: string[],
-    owner?: string,
-    isFollowing?: boolean
-  }
+export type  User = Partial<UserCredential["user"]> 
+
+
+
+export type UserProfile ={
+  uid: string,
+  displayName?: string,
+  photoURL?: string,
+  tags?: string[];
+  about?: string;
+  isExpert?: boolean;
+  skill?: string;
+  username?: string
+}
+
+export type PostFilters = {
+  tags?: string[],
+  owner?: string,
+  isFollowing?: boolean
+}
+
+export type NotificationData = {
+  recipients: [string],
+  sender: string,
+  type: "upvote" | "downvote"  | "follow" ,
+  contentId?: string,
+  timestamp: FieldValue,
+  isRead: boolean,
+  optionalData?: {[key: string]: any}
+}
+export type NotificationFilters = {
+  isRead?: boolean,
+  sender: boolean,
+}
+
+export type BuiltNotification = {
+  type: "upvote" | "downvote"  | "follow" ,
+  contentId?: string,
+  isNew: boolean,
+  ids: string[];
+  href: string;
+  others: number;
+  timestamp: Timestamp,
+  datePublished: string,
+  username: string,
+  photoURL: string,
+  sender: string,
+  votes: number,
+  message: string,
+  summary: string,
+}
