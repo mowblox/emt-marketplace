@@ -14,6 +14,7 @@ import DataLoading from './data-loading';
 import useBackend from "@/lib/hooks/useBackend";
 import { Timestamp } from "firebase/firestore";
 import NoData from "./no-data";
+import LoadingMore, { LoadingDone } from "./loading-more";
 
 
 type Props = {
@@ -90,14 +91,14 @@ export default function Posts ({filters}: Props) {
                 key={`post-${content.metadata.id}`}
                 data={content}
               />
-              <Separator className="bg-border my-4 w-[94%] " />
+              <Separator className="bg-border mx-auto my-4 w-[94%] " />
             </div>
           );
         })}
       </div>
 
       <div ref={ref}>
-        {isFetchingNextPage ? "loading more..." : "done"}
+        { isFetchingNextPage ? <LoadingMore />: <LoadingDone /> }
       </div>
     </>
   )
