@@ -4,7 +4,7 @@ export const CREATE_A_POST_PAGE = "/dapp/p/create"
 export const POST_PAGE = (permalink:string) => `/dapp/p/${permalink}`
 export const PROFILE_EDIT_PAGE = (uid:string) => `/dapp/profile/${uid}/edit`
 export const HOME_PAGE = "/dapp"
-export const MARKETPLACE_PAGE = "/dapp/marketplace"
+export const EXPERT_HUB_PAGE = "/dapp/expert-hub"
 export const BOOKINGS_PAGE = "/dapp/bookings"
 export const PROFILE_PAGE = (uid:string) => `/dapp/profile/${uid}`
 export const NOTIFICATIONS_PAGE = "/dapp/notifications"
@@ -23,10 +23,10 @@ export const primaryNavigationLinks = [
         href: HOME_PAGE
     },
     {
-        title: "Marketplace",
+        title: "Expert Hub",
         icon: HiOutlineUsers,
         isActive: false,
-        href: MARKETPLACE_PAGE
+        href: EXPERT_HUB_PAGE
     },
     {
         title: "Bookings",
