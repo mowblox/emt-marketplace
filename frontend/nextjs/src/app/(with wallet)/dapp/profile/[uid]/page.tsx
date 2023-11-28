@@ -20,6 +20,7 @@ import useBackend from "@/lib/hooks/useBackend";
 import { toast } from "@/components/ui/use-toast";
 import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
+import DataLoading from "@/components/ui/data-loading";
 
 const dummyPosts = [
   {
@@ -165,7 +166,11 @@ const Profile = () => {
   }
 
 
-  if (!profile || !ready) return <PageLoading />;
+  if (!profile || !ready) {
+    return (<div className="h-screen">
+        <DataLoading />
+      </div>)
+  }
   console.log('profile', profile, user)
 
   return (

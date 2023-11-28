@@ -10,8 +10,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import PageLoading from './page-loading';
+import DataLoading from './data-loading';
 import useBackend from "@/lib/hooks/useBackend";
 import { Timestamp } from "firebase/firestore";
+import NoData from "./no-data";
 
 
 type Props = {
@@ -57,30 +59,43 @@ export default function Posts ({filters}: Props) {
     //     page.map((p, j) => ({ ...p, indexes: [i, j] }))
     //   ) || [];
   
-    if (hasNextPage && entry?.isIntersecting) {
-      fetchNextPage();
-    }
+  if (hasNextPage && entry?.isIntersecting) {
+    fetchNextPage();
+  }
+  
+  if(!contentPages && isLoading) {
+    return (<div className="h-screen">
+        <DataLoading />
+      </div>)
+  }
 
-    if(!contentPages && isLoading) return <PageLoading/>
+  if(!contentPages && !isLoading) {
+    return (<div className="h-screen">
+        <NoData message="No posts" />
+      </div>)
+  }
+
+  console.log('contendData', contentPages)
   
   return (
-    <div className="flex flex-col gap-y-4 items-center">
-    {contentPages?.pages?.map((content : Content) => {
-      return (
-        <div key = {`post-${content.metadata.id}`}>
-          <PostCard
-            key={`post-${content.metadata.id}`}
-            data={content}
-          />
-          <Separator className="bg-border w-[94%]" />
-        </div>
-      );
-    })}
-    {}
+    <>
+      <div className="flex flex-col gap-y-4">
+        {contentPages?.pages?.map((content: Content) => {
+          return (
+            <div className="" key={`post-${content.metadata.id}`}>
+              <PostCard
+                key={`post-${content.metadata.id}`}
+                data={content}
+              />
+              <Separator className="bg-border my-4 w-[94%] " />
+            </div>
+          );
+        })}
+      </div>
 
-    <div ref={ref}>
-      {isFetchingNextPage ? "loading more..." : "done"}
-    </div>
-  </div>
+      <div ref={ref}>
+        {isFetchingNextPage ? "loading more..." : "done"}
+      </div>
+    </>
   )
 }
