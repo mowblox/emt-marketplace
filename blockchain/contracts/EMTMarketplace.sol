@@ -36,6 +36,10 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         address paymentToken;
         uint256 amount;
     }
+    struct ExptLevel {
+        uint256 requiredMent;
+        uint256 receivableExpt;
+    }
 
     // Event Definitions
     event ContentAdded(address indexed, bytes32);
@@ -55,6 +59,7 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
     uint256 public exptTokenDivisor = 20;
     uint256 public exptBuyFeePercent = 2;
     mapping(uint256 => ExptOffer) public exptOffers;
+    mapping(uint256 => ExptLevel) public exptLevels;
     // Private Data Definitions
     mapping(bytes32 => ContentVote) _contentVotes;
     mapping(address => CreatorVote) _creatorVotes;
@@ -93,6 +98,18 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         uint256 _downVoteMultiplier
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         downVoteMultiplier = _downVoteMultiplier;
+    }
+
+    function setExptLevel(
+        uint256 _level,
+        uint256 _requiredMent,
+        uint256 _receivableExpt
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        // Retrieve Expt Level
+        ExptLevel storage _exptLevel = exptLevels[_level];
+        // Update fields
+        _exptLevel.requiredMent = _requiredMent;
+        _exptLevel.receivableExpt = _receivableExpt;
     }
 
     // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
@@ -237,25 +254,34 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit MentClaimed(msg.sender, uint256(_claimableMent));
     }
 
-    function claimExpt(uint256 _quantity) public {
+    function claimExpt(uint256 _level) public {
         // Check If exptTokenAddress is not address(0)
         require(exptTokenAddress != address(0), "EXPT claiming is disabled!");
-        // Check if _quantity is greater than 0
-        require(_quantity > 0, "Cannot claim zero EXPT!");
+        // Retrieve Expt Level
+        ExptLevel storage _exptLevel = exptLevels[_level];
+        // Check if expt level exists
+        require(_exptLevel.requiredMent > 0, "Expt Level does not exists!");
         // Get msg.sender MENT balance
         uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
             msg.sender
         );
-        // Check if claimed ticket plus _quantity is less or equal to threshold
+        // check if msg.sender is qualified for the level
         require(
-            (_creatorTickets[msg.sender] + _quantity) <=
-                (_mentBalance / exptTokenDivisor),
-            "Quantity will exceed EXPT threshold!"
+            _mentBalance >= _exptLevel.requiredMent,
+            "Not qualified for level!"
         );
+        // check if there is a difference in EXPT to be claimed
+        require(
+            _exptLevel.receivableExpt > _creatorTickets[msg.sender],
+            "Level has already been claimed!"
+        );
+        // Calculate remaining quantity to receive
+        uint256 _quantity = _exptLevel.receivableExpt -
+            _creatorTickets[msg.sender];
         // Mint EXPT for msg.sender
         ExpertToken(exptTokenAddress).mint(msg.sender, _quantity);
         // Increase _creatorTickets
-        _creatorTickets[msg.sender] += _quantity;
+        _creatorTickets[msg.sender] = _exptLevel.receivableExpt;
         // Emit Event
         emit ExptClaimed(msg.sender, _quantity);
     }
