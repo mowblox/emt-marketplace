@@ -32,6 +32,13 @@ async function main() {
   await expertToken.waitForDeployment();
   console.log("Expert Token deployed at: ", expertToken.target);
 
+  // Set MENT & EXPT token addresses
+  await emtMarketplace.setTokenAddresses(mentorToken.target, expertToken.target);
+  // Initialize all EXPT levels
+  await emtMarketplace.setExptLevel(1, 1000, 50);
+  await emtMarketplace.setExptLevel(2, 3000, 100);
+  await emtMarketplace.setExptLevel(3, 5000, 200);
+
   const chainId = (await ethers.provider.getNetwork()).chainId;
   //Generate files containining Abis and contract addresses for use in frontend
   generateAbis(chainId, {

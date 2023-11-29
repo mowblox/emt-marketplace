@@ -17,6 +17,9 @@ describe("EMTMarketplace", function () {
 
     const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
     const emtMarketplace = await EMTMarketplace.deploy(owner.address);
+    await emtMarketplace.setExptLevel(1, 1000, 50);
+    await emtMarketplace.setExptLevel(2, 3000, 100);
+    await emtMarketplace.setExptLevel(3, 5000, 200);
 
     const MentorToken = await ethers.getContractFactory("MentorToken");
     const mentorToken = await MentorToken.deploy(owner.address, emtMarketplace.target);
@@ -235,40 +238,45 @@ describe("EMTMarketplace", function () {
   });
 
   describe("Expt Claiming", function () {
-    it("should successfully claim expt", async function () {
+    it("should successfully claim expt levels", async function () {
       const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
-      await mentorToken.connect(owner).mint(mentor.address, 1000);
-      await expect(emtMarketplace.connect(mentor).claimExpt(50)).to.be.emit(emtMarketplace, "ExptClaimed");
+      await mentorToken.connect(owner).mint(mentor.address, 1100);
+      await expect(emtMarketplace.connect(mentor).claimExpt(1)).to.be.emit(emtMarketplace, "ExptClaimed");
+      await mentorToken.connect(owner).mint(mentor.address, 2100);
+      await expect(emtMarketplace.connect(mentor).claimExpt(2)).to.be.emit(emtMarketplace, "ExptClaimed");
+      await mentorToken.connect(owner).mint(mentor.address, 2500);
+      await expect(emtMarketplace.connect(mentor).claimExpt(3)).to.be.emit(emtMarketplace, "ExptClaimed");
+      // console.log(await expertToken.balanceOf(mentor.address));
     });
 
     it("should not claim expt if expt token address is zero", async function () {
       const { emtMarketplace, mentorToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
 
       await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
-      await mentorToken.connect(owner).mint(mentor.address, 1000);
-      await expect(emtMarketplace.connect(mentor).claimExpt(50)).to.be.revertedWith("EXPT claiming is disabled!");
+      await mentorToken.connect(owner).mint(mentor.address, 1034);
+      await expect(emtMarketplace.connect(mentor).claimExpt(1)).to.be.revertedWith("EXPT claiming is disabled!");
     });
 
-    it("should not claim expt if claimable expt is zero", async function () {
+    it("should not claim expt if not qualified for level", async function () {
       const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
-      await mentorToken.connect(owner).mint(mentor.address, 1000);
-      await expect(emtMarketplace.connect(mentor).claimExpt(0)).to.be.revertedWith("Cannot claim zero EXPT!");
+      await mentorToken.connect(owner).mint(mentor.address, 1204);
+      await expect(emtMarketplace.connect(mentor).claimExpt(2)).to.be.revertedWith("Not qualified for level!");
     });
 
-    it("should not be able to over claim expt", async function () {
+    it("should not be able to over claim expt level more than once", async function () {
       const { emtMarketplace, mentorToken, expertToken, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
-      await mentorToken.connect(owner).mint(mentor.address, 1000);
-      await emtMarketplace.connect(mentor).claimExpt(25);
-      await expect(emtMarketplace.connect(mentor).claimExpt(30)).to.be.revertedWith("Quantity will exceed EXPT threshold!");
+      await mentorToken.connect(owner).mint(mentor.address, 1015);
+      await emtMarketplace.connect(mentor).claimExpt(1);
+      await expect(emtMarketplace.connect(mentor).claimExpt(1)).to.be.revertedWith("Level has already been claimed!");
     });
   });
 
