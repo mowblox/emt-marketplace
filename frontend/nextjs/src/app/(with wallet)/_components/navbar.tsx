@@ -26,6 +26,8 @@ import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 
 //FIXME: @od41 popover button doesn't always show when sidebar disappears
+//TODO: fix mobile menu layout
+//TODO: display an 'x' button when the mobile menu is active
 
 export const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);

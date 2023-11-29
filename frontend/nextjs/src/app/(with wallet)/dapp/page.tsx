@@ -16,93 +16,6 @@ import Posts from "@/components/ui/posts";
 import { useUser } from "@/lib/hooks/user";
 import { PROFILE_PAGE } from "../_components/page-links";
 
-const dummyPosts = [
-  {
-    author: {
-      displayName: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      displayName: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      displayName: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      displayName: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-];
-
 const topCreatorList = [
   {
     displayName: "Naval",
@@ -157,19 +70,21 @@ export default function RootLayout() {
             <Tabs defaultValue="all" className="w-full px-2">
               <TabsList className="">
                 <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="following">Following</TabsTrigger>
-                <TabsTrigger value="design">Design</TabsTrigger>
+                {user && <TabsTrigger value="following">Following</TabsTrigger>}
+                {/* <TabsTrigger value="design">Design</TabsTrigger> */}
               </TabsList>
               <TabsContent value="all">
-               <Posts />
+                {/* <div className="flex flex-col gap-y-4 items-center"> */}
+
+                  <Posts />
+                {/* </div> */}
               </TabsContent>
-              <TabsContent value="following">
-              {user? <Posts filters={{isFollowing:true}}/>
-              : <>Sign in to view posts from mentors you follow</>}
-              </TabsContent>
-              <TabsContent value="design">
+              {user && <TabsContent value="following">
+                <Posts filters={{ isFollowing: true }} />
+              </TabsContent>}
+              {/* <TabsContent value="design">
                 <Posts filters={{tags:["design"]}} />
-              </TabsContent>
+              </TabsContent> */}
             </Tabs>
           </div>
         </ScrollArea>

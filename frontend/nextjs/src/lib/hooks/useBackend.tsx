@@ -165,7 +165,13 @@ export default function useBackend() {
     const userDoc = await getDoc(userDocRef);
     const author = userDoc.data() as Content["author"];
     const contentId = ethers.encodeBytes32String(id);
-    const [_upvotes, _downvotes] = await EMTMarketPlace.contentVotes(contentId);
+    let _upvotes  , _downvotes ;
+    try{
+       [_upvotes, _downvotes] = await EMTMarketPlace.contentVotes(contentId);
+    }catch(e){
+      [_upvotes, _downvotes] = [0, 0];
+      console.log("error fetching post votes", e)
+    }
     return { author, metadata: { upvotes: Number(_upvotes), downvotes: Number(_downvotes), id } };
   }
   
