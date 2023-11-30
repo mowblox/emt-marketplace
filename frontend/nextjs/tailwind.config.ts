@@ -27,6 +27,7 @@ const config: Config = {
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
         'pink-gradient': 'linear-gradient(96deg, hsl(var(--accent-3)) 0%, hsl(var(--accent-4)) 137%)',
         'reverse-pink-gradient': 'linear-gradient(96deg, hsl(var(--accent-4)) 0%, hsl(var(--accent-3)) 137%)',
+        'glass': 'linear-gradient(149deg, hsla(0, 0%, 0%, 0) -2%, #ffffff 137%)',
       },
       colors: {
         border: "hsl(var(--stroke) / 0.1)",

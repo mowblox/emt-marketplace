@@ -74,10 +74,7 @@ export default function RootLayout() {
                 {/* <TabsTrigger value="design">Design</TabsTrigger> */}
               </TabsList>
               <TabsContent value="all">
-                {/* <div className="flex flex-col gap-y-4 items-center"> */}
-
                   <Posts />
-                {/* </div> */}
               </TabsContent>
               {user && <TabsContent value="following">
                 <Posts filters={{ isFollowing: true }} />
