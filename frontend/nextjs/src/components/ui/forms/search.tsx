@@ -1,13 +1,17 @@
+import React from 'react'
 import { Input } from "@/components/ui/input"
+import { cn } from '@/lib/utils'
+import { HiMagnifyingGlass } from "react-icons/hi2";
 
-export function Search() {
+interface Props extends React.HTMLAttributes<HTMLDivElement> {}
+export function Search({className, placeholder="Search"}: Props) {
   return (
-    <div>
+    <>
       <Input
         type="search"
-        placeholder="Search"
-        className="md:w-[100px] lg:w-[300px] rounded-full bg-accent-shade border-alt-stoke"
+        placeholder={placeholder}
+        className={cn("md:w-[100px] lg:w-[300px] rounded-full bg-accent-shade border-alt-stoke", className)}
       />
-    </div>
+    </>
   )
 }

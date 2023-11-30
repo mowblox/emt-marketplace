@@ -27,6 +27,18 @@ export interface Content {
   author: UserProfile
 }
 
+export interface ExpertTicket {
+  price: number;
+  paymentCurrency: string;
+  metadata: {
+    id: string;
+    imageURL: string;
+    title: string;
+    description: string;
+  },
+  author: UserProfile
+}
+
 
 export type  User = Partial<UserCredential["user"]> 
 
@@ -40,7 +52,12 @@ export type UserProfile ={
   about?: string;
   isExpert?: boolean;
   skill?: string;
+  level?: number;
   username?: string
+  sessionStats?: {
+    sessions: number;
+    timeSpent: number;
+  }
 }
 
 export type PostFilters = {
