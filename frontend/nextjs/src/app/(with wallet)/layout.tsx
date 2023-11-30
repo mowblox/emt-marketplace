@@ -22,10 +22,10 @@ export default async function DappLayout({
 
   return (
     <>
-    <SessionProvider refetchInterval={0} session={session}>
-      <DappProviders>
-        {children}
-      </DappProviders>
+      <SessionProvider refetchInterval={0} session={session}>
+        <DappProviders>
+          {children}
+        </DappProviders>
       </SessionProvider>
     </>
   )

@@ -92,7 +92,7 @@ const ExpertHub = () => {
                 <Button><HiMiniAdjustmentsVertical className="mr-1" />Filter</Button>
             </div>
 
-            <div className="w-full flex flex-wrap gap-4 flex-grow">
+            <div className="w-full flex flex-wrap gap-2 lg:gap-4 flex-grow">
                 {dummyData.map(expert => {
                     return <ExpertHubCard data={expert}/>
                 })}

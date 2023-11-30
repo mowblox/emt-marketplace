@@ -1,6 +1,6 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { RightSidebar } from '../../_components/right-sidebar'
+// import { RightSidebar } from '../../_components/right-sidebar'
 
 type Props = {
     children: React.ReactNode
@@ -14,9 +14,9 @@ const BookingsLayout = ({children}: Props) => {
                     {children}
                 </ScrollArea>
             </div>
-            <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" >
+            {/* <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" > */}
                 {/* leave empty */}
-            </RightSidebar>
+            {/* </RightSidebar> */}
         </div>
     )
 }
