@@ -88,8 +88,8 @@ const ExpertHub = () => {
     return (
         <div className="col-span-4">
             <div className="flex justify-between items-center w-full mb-12">
-                <Search className='lg:w-2/3' placeholder='Search by name or expert category'/>
-                <Button><HiMiniAdjustmentsVertical className="mr-1" />Filter</Button>
+                <Search className='w-auto lg:w-2/3' placeholder='Search by name or expert category'/>
+                <Button variant="outline"><HiMiniAdjustmentsVertical className="mr-1" />Filter</Button>
             </div>
 
             <div className="w-full flex flex-wrap gap-4 flex-grow">

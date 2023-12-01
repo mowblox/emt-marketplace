@@ -2,7 +2,7 @@ import {HiOutlineHome, HiOutlineUser, HiOutlineUsers, HiOutlineCalendarDays, HiO
 
 export const CREATE_A_POST_PAGE = "/dapp/p/create"
 export const POST_PAGE = (permalink:string) => `/dapp/p/${permalink}`
-export const EXPERT_TICKET_PAGE = (permalink:string) => `/dapp/e/${permalink}`
+export const EXPERT_TICKET_PAGE = (permalink:string) => `/dapp/expert-hub/${permalink}`
 export const PROFILE_EDIT_PAGE = (uid:string) => `/dapp/profile/${uid}/edit`
 export const HOME_PAGE = "/dapp"
 export const EXPERT_HUB_PAGE = "/dapp/expert-hub"

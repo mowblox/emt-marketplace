@@ -25,6 +25,17 @@ export function Sidebar({ className }: SidebarProps) {
         setHasBackButton(false)
       }
     }, [pathname])
+
+    const isPageActive = (path: string, substring: any, uid: any, title: string): boolean => {
+       
+        if (pathname.endsWith(HOME_PAGE) && title === "Home") {
+            return pathname.endsWith(path);
+        } 
+        else if (path != HOME_PAGE && title != 'Home'){
+            return path.includes(typeof(substring)==="function" ? substring(uid!) : substring)
+        }
+        return false;
+    }
     
     return (
         <div className={cn("pb-12", className)}>
@@ -39,9 +50,9 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="px-3 py-2">
                     <div className="space-y-1">
                         {primaryNavigationLinks.map((link, key)=> (
-                            <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start" asChild>
-                                <Link href={typeof(link.href)==="function" ? link.href(user?.uid!) : link.href}>
-                                    <link.icon className="mr-2 h-4 w-4 text-accent-2" />
+                            <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start font-normal" asChild>
+                                <Link href={typeof(link.href)==="function" ? link.href(user?.uid!) : link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
+                                    <link.icon className={`mr-2 h-4 w-4  ${isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3": "text-accent-2"}`} />
                                     {link.title}
                                 </Link>
                             </Button>
@@ -59,7 +70,7 @@ export function Sidebar({ className }: SidebarProps) {
                         <div className="space-y-0">
                             {resourcesLinks.map((link, key) => (
                                 <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
-                                    <Link href={link.href}>
+                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
                                         {link.title}
                                     </Link>
                                 </Button>
