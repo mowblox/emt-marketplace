@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -26,12 +26,13 @@ import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 
 //FIXME: @od41 popover button doesn't always show when sidebar disappears
-//TODO: fix mobile menu layout
-//TODO: display an 'x' button when the mobile menu is active
+//TODO:  @od41 fix mobile menu layout
+//TODO: @od41 display an 'x' button when the mobile menu is active
 
 export const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const { user } = useUser();
+  
 
   return (
     <>

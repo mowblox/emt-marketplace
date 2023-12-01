@@ -25,7 +25,7 @@ const ExpertHubCard = ({ data }: { data: ExpertTicket }) => {
     const { price, paymentCurrency, author, metadata } = data
 
     return (
-            <Link href={EXPERT_TICKET_PAGE(metadata.id)}>
+            <Link href={EXPERT_TICKET_PAGE(metadata.id)} className='w-full md:w-auto'>
         <Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[234px] hover:bg-accent-shade'>
 
                 <CardHeader className='px-0 pt-0'>
