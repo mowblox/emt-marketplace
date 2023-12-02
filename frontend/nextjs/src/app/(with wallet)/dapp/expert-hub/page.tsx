@@ -94,7 +94,7 @@ const ExpertHub = () => {
 
             <div className="w-full flex flex-wrap gap-4 flex-grow">
                 {dummyData.map(expert => {
-                    return <ExpertHubCard data={expert}/>
+                    return <ExpertHubCard key={expert.metadata.id} data={expert}/>
                 })}
             </div>
         </div>

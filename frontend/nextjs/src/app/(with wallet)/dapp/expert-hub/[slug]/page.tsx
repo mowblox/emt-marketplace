@@ -15,6 +15,7 @@ import useBackend from '@/lib/hooks/useBackend';
 import DataLoading from '@/components/ui/data-loading';
 import { Content } from '@/lib/types';
 import Voter from '@/components/ui/Voter';
+import { profilePlaceholderImage } from '@/lib/utils';
 
 
 const ExpertDetails = ({ params }: { params: { slug: string } }) => {
@@ -117,16 +118,16 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                     fill
                     className='rounded-full object-cover'
                     loading="eager"
-                    src={post.author.photoURL!}
-                    alt={`${post.author.displayName}-photoURL
+                    src={post.author?.photoURL || profilePlaceholderImage}
+                    alt={`${post.author?.displayName}-photoURL
                         `}
                     quality={80}
                   />
                 </div>
                 <div className='ml-3'>
                   <div className="flex items-center">
-                    <p className='text-md text-foreground'>{post.author.displayName}</p>
-                    {post.author.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
+                    <p className='text-md text-foreground'>{post.author?.displayName}</p>
+                    {post.author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                     <div className='ml-2 text-[11px] text-muted'>20 secs. ago</div>
                   </div>
                   <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>
