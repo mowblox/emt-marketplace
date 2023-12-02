@@ -96,7 +96,7 @@ const Bookings = () => {
                         <div className="w-full flex flex-wrap gap-4 flex-grow">
                             {dummyOtherExperts.map((expert, key) => {
                                 if (key >= 4) return
-                                return <ExpertHubCard data={expert} />
+                                return <ExpertHubCard key={`expertsss-${key}`} data={expert} />
                             })}
                         </div>
                     </div>
