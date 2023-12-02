@@ -45,18 +45,18 @@ const ExpertHubCard = ({ data, disableLink = true }: Props) => {
                         <div className="flex items-center justify-between w-full">
                             <div className="flex justify-between w-full">
                                 <div className="">
-                                    <p className='text-md text-foreground'>{author.displayName}</p>
-                                    <p className='text-sm text-muted'>{author.username}</p>
+                                    <p className='text-md text-foreground'>{author?.displayName}</p>
+                                    <p className='text-sm text-muted'>{author?.username}</p>
                                 </div>
 
                                 <div className="flex h-[16px] mt-1   items-center text-accent-3">
-                                    <p className='text-md text-muted font-semibold'>L{author.level}</p>
+                                    <p className='text-md text-muted font-semibold'>L{author?.level}</p>
                                     <HiOutlineFire className="w-4 h-4 ml-1" />
                                 </div>
                             </div>
                         </div>
                         <div className="flex gap-2 flex-wrap mt-3 capitalize">
-                            {author.tags?.map((tag, key) => (
+                            {author?.tags?.map((tag, key) => (
                                 <Badge key={`${tag}-${key}`}>{tag}</Badge>
                             ))}
                         </div>

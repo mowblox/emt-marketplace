@@ -1,12 +1,16 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { useSession, signOut as signOutNextAuth } from "next-auth/react";
+import { useSession, signOut as signOutNextAuth, signIn as signInNextAuth } from "next-auth/react";
 import axios from "axios";
 import { auth, firestore } from "@/lib/firebase";
 import { signInWithCustomToken, signOut, onAuthStateChanged,  } from "firebase/auth";
 import {  doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import {SignUpData, User} from '@/lib/types'
+import {SignUpData, User, UserSession} from '@/lib/types'
 import { FirebaseError } from "firebase-admin";
+import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import { Session } from "next-auth";
+import { redirect, useRouter } from "next/navigation";
+import { isEmpty } from "../utils";
 
 interface UserContext {
   user: User | null;
@@ -14,8 +18,10 @@ interface UserContext {
   isLoading: boolean;
   signUpDataRef: React.MutableRefObject<SignUpData | null>;
   signIn: () => Promise<void>;
-  isMultipleSignUpAttempt: boolean;
+  isMultipleSignUpAttempt: boolean | undefined;
+  session: UserSession | null;
 }
+
 
 declare global {
     interface Window {
@@ -36,8 +42,11 @@ export function useUser(): UserContext {
 
 export function UserProvider({ children, signUpDataRef }: { children: React.ReactNode, signUpDataRef: React.MutableRefObject<SignUpData | null> }) {
   const [user, setUser] = useState<User | null>(null);
-  const { data: session, status, update }: {[key:string]: any}  = useSession(); 
+  const { data: session, status, update }: { data: UserSession | null , [key:string]: any}  = useSession(); 
   const [isLoading, setIsLoading] = useState(false);
+  const { openConnectModal } = useConnectModal();
+
+  const router = useRouter();
 
   async function updateUser(data: {username?: string, photoURL?: string, displayName?: string, email?: string, tags?: string[]}) {
     // const userDocRef = doc(firestore, 'users', session?.address); 
@@ -46,10 +55,23 @@ export function UserProvider({ children, signUpDataRef }: { children: React.Reac
     setUser({...user!, ...data});
   }
 
+
     const signIn = useMemo(() => async function (){
       try {
         setIsLoading(true);
-        const token = session.firebaseToken;
+        const token = session?.firebaseToken;
+
+        if (!token) {
+          console.log('sess', session, signUpDataRef.current)
+          if(session?.isNotSignedUp && isEmpty(signUpDataRef.current as any)){
+            return router.push('/onboarding')
+          }
+
+          signOutNextAuth({redirect: false});
+          return
+          // await signOutNextAuth({redirect: false});
+          // openConnectModal!();
+        }
 
         const userData = await signInWithCustomToken(auth, token);
 
@@ -102,6 +124,6 @@ export function UserProvider({ children, signUpDataRef }: { children: React.Reac
 
 
   return (
-    <UserContext.Provider value={{user, signIn, updateUser, isLoading, signUpDataRef, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt}}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{user, signIn, updateUser, isLoading, signUpDataRef, session, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt}}>{children}</UserContext.Provider>
   );
 }

@@ -20,7 +20,7 @@ import {
   Timestamp,
   deleteDoc,
 } from "firebase/firestore";
-import { firestore, storage } from "../firebase";
+import { storage } from "../firebase";
 import { toast } from "@/components/ui/use-toast";
 import {
   getDownloadURL,
@@ -34,8 +34,8 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { BuiltNotification, Content, NotificationData, NotificationFilters, PostFilters, User, UserProfile } from "@/lib/types";
 import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
 import { formatDistance } from 'date-fns';
+import { CONTENTS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
 
-const db = firestore;
 
 /**
  * Uploads an image to Firebase Storage.
@@ -71,7 +71,7 @@ export default function useBackend() {
     data.isRead = false;
     data.timestamp = serverTimestamp();
     data.sender = data.sender || user.uid;
-    const docRef = doc(collection(db, "notifications"));
+    const docRef = doc(NOTIFICATIONS_COLLECTION);
     await setDoc(docRef, data);
   }
 
@@ -80,14 +80,14 @@ export default function useBackend() {
     const fetchPromises = notifications.map(async (notification) => {
       if (!notification.isNew) return notification;
   
-      const userDocRef = doc(db, "users", notification.sender);
+      const userDocRef = doc(USERS_COLLECTION, notification.sender);
       const userDoc = await getDoc(userDocRef);
       const user = userDoc.data() as UserProfile;
       notification.username = user.username!;
       notification.photoURL = user.photoURL!;
   
       if (notification.type === "upvote" || notification.type === "downvote") {
-        const contentDocRef = doc(db, "contents", notification.contentId!);
+        const contentDocRef = doc(CONTENTS_COLLECTION, notification.contentId!);
         const contentDoc = await getDoc(contentDocRef);
         const content = contentDoc.data() as Content["post"];
         notification.message = content.title;
@@ -143,7 +143,7 @@ export default function useBackend() {
   async function fetchNotifications(lastDocTimeStamp?: Timestamp, size = 1, oldNotifications?: BuiltNotification[]): Promise<BuiltNotification[]> {
     if(user?.uid === undefined) return [];
     // fetch notifications from firestore
-      let q = query(collection(db, "notifications"), orderBy("timestamp", "desc"), where("recipients","array-contains-any", [user?.uid, "all"]), limit(size));
+      let q = query(NOTIFICATIONS_COLLECTION, orderBy("timestamp", "desc"), where("recipients","array-contains-any", [user?.uid, "all"]), limit(size));
       if(lastDocTimeStamp){
         q = query(q, startAfter(lastDocTimeStamp))
       }
@@ -161,7 +161,7 @@ export default function useBackend() {
    * @returns The author and metadata of the post.
    */
   async function fetchPostMetadata(owner: string, id: string) {
-    const userDocRef = doc(db, "users", owner);
+    const userDocRef = doc(USERS_COLLECTION, owner);
     const userDoc = await getDoc(userDocRef);
     const author = userDoc.data() as Content["author"];
     const contentId = ethers.encodeBytes32String(id);
@@ -176,7 +176,7 @@ export default function useBackend() {
   }
   
   async function fetchSinglePost(id: string) {
-    const docRef = doc(db, "contents", id);
+    const docRef = doc(CONTENTS_COLLECTION, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const post = docSnap.data() as Content["post"];
@@ -188,7 +188,7 @@ export default function useBackend() {
   }
 
   async function fetchProfile(id: string) {
-    const userDocRef = doc(db, "users", id);
+    const userDocRef = doc(USERS_COLLECTION, id);
     const userDoc = await getDoc(userDocRef);
     const profile : UserProfile = userDoc.data() as UserProfile;
     return profile;
@@ -201,7 +201,7 @@ export default function useBackend() {
    * @returns An array of fetched posts.
    */
   async function fetchPosts(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<Content[]> {
-    let q = query(collection(db, "contents"), orderBy("timestamp", "desc"), limit(size))
+    let q = query(CONTENTS_COLLECTION, orderBy("timestamp", "desc"), limit(size))
 
     if(lastDocTimeStamp){
       q = query(q, startAfter(lastDocTimeStamp))
@@ -249,7 +249,7 @@ export default function useBackend() {
     body: string;
     image?: Blob;
   }) {
-    const docRef = doc(collection(db, "contents"));
+    const docRef = doc(CONTENTS_COLLECTION);
     const id = ethers.encodeBytes32String(docRef.id);
     try {
       const tx = await EMTMarketPlaceWithSigner.addContent(id);
@@ -293,7 +293,7 @@ export default function useBackend() {
     if (!user) {
       return [];
     }
-    const querySnapshot = await getDocs(query(collection(db, "contents"), where("owner", "==", user.uid)));
+    const querySnapshot = await getDocs(query(CONTENTS_COLLECTION, where("owner", "==", user.uid)));
     const _posts = querySnapshot.docs.map((doc) => {
       return { ...doc.data(), id: doc.id };
     });
@@ -340,7 +340,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
+      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
       //check if is already following
        //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
        if (await checkFollowing(id)) return false;
@@ -357,7 +357,7 @@ export default function useBackend() {
 
   async function unfollowUser(id: string) {
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
+      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
       //check if is already following
        //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
       if (await checkFollowing(id)) return false;
@@ -395,7 +395,7 @@ export default function useBackend() {
 
   async function checkFollowing(id: string) {
     try {
-      const userFollowersRef = doc(db, "users", id, "followers", user?.uid!);
+      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
       const userFollowersSnap = await getDoc(userFollowersRef);
       return !!userFollowersSnap.exists();
     } catch (err:any) {

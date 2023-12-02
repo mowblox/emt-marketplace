@@ -40,6 +40,7 @@
     "firebase-admin": "^11.11.1",
     "lucide-react": "^0.291.0",
     "next": "14.0.1",
+    "next-auth": "^4.24.5",
     "next-themes": "^0.2.1",
     "prettier": "^3.0.3",
     "react": "^18",

@@ -6,7 +6,7 @@ import {
   darkTheme,
 } from '@rainbow-me/rainbowkit';
 import { GetSiweMessageOptions, RainbowKitSiweNextAuthProvider } from '@rainbow-me/rainbowkit-siwe-next-auth';
-import { emtChains, emtWagmiConfig } from "../../../../emt.config"
+import { chain, emtChains, emtWagmiConfig } from "@/../emt.config"
 import { WagmiConfig } from 'wagmi';
 import { ContractProvider } from '@/lib/hooks/contracts';
 import { UserProvider } from '@/lib/hooks/user';
@@ -38,7 +38,7 @@ export default function DappProviders({
 }) {
   // TODO: @Jovells persist Signupdata lo loaclstorage
   
-  const signUpDataRef = React.useRef<SignUpData>({});
+  const signUpDataRef = React.useRef<SignUpData>(null);
   const {data: session, update }: {data: any, update: any}= useSession();
   console.log('signUpData', signUpDataRef.current)
   
@@ -59,7 +59,7 @@ export default function DappProviders({
       <QueryClientProvider client={queryClient}> 
     <WagmiConfig config={emtWagmiConfig}>
       <RainbowKitSiweNextAuthProvider getSiweMessageOptions = {getSiweMessageOptions} >
-      <RainbowKitProvider  chains={emtChains} theme={darkTheme({
+      <RainbowKitProvider initialChain={chain}  chains={emtChains} theme={darkTheme({
         accentColorForeground: 'white',
         
         accentColor: '#5957e9',

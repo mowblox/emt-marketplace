@@ -2,9 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/lib/hooks/user";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+
 export const SignInButton = ({ label }: { label?: string }) => {
-  const { user, isLoading, signIn } = useUser();
+  const { user, isLoading, session, signIn, signUpDataRef } = useUser();
+  const pathname = usePathname()
 
   return (
     <ConnectButton.Custom>
@@ -40,7 +43,8 @@ export const SignInButton = ({ label }: { label?: string }) => {
               if (!signedIn) {
                 return isConnected ? (
                   <Button variant={"default"} onClick={signIn}>
-                    {isLoading ? "Signing in..." : "Sign in"}
+
+                    {session?.isNotSignedUp? "Sign up": isLoading ? "Signing in..." : "Sign in"}
                   </Button>
                 ) : (
                   <Button variant={"default"} onClick={openConnectModal}>

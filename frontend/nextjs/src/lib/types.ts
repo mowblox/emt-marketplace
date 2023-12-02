@@ -1,5 +1,6 @@
 import { UserCredential } from "firebase/auth";
 import { Timestamp, FieldValue } from "firebase/firestore";
+import { Session } from "next-auth";
 
 export type SignUpData =
   { username?: string, 
@@ -8,6 +9,12 @@ export type SignUpData =
     profilePicture?: File,
     photoURL?: string,
     tags?: string[] }
+
+export type UserSession = Session & {firebaseToken?: string;
+  isMultipleSignUpAttempt?: boolean;
+  isNotSignedUp?: boolean;
+  address?: string
+  isNewUser?:boolean }
 
 
 export interface Content {
