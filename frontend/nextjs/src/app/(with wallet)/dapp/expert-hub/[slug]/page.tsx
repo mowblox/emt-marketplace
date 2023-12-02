@@ -184,7 +184,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                 </div>
               </div>
 
-              <Tabs defaultValue="overview" className="w-full mt-4">
+              <Tabs defaultValue="overview" className="w-full mt-4 md:pr-12">
                 <TabsList>
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="reviews">Reviews</TabsTrigger>
