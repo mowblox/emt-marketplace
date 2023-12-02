@@ -62,7 +62,7 @@ const SessionReviewForm = () => {
           name="rating"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Rating</FormLabel>
               <Select onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
@@ -83,15 +83,17 @@ const SessionReviewForm = () => {
         />
     
               <div className="flex justify-start w-full">
-                <Button type="submit" variant="default" className="w-[160px] ">
+                <Button type="submit" variant="default" className="w-full md:w-[160px] ">
                   Submit Review
                 </Button>
               </div>
 
-              <div className="w-full flex items-center text-xs">
-                <AlertTriangleIcon className='w-4 h-4 mr-2'/>
-                Send a report if the session did not hold. 
-                <Link href={`mailto:${REPORT_EMAIL}`}>Send report</Link>
+              <div className="w-full flex flex-col md:flex-row md:items-center text-sm">
+                <div className="flex items-center mr-2">
+                  <AlertTriangleIcon className='w-4 h-4 mr-2 text-accent-4'/>
+                  Send a report if the session did not hold. 
+                </div>
+                <Link href={`mailto:${REPORT_EMAIL}`} className='text-accent-3 hover:text-accent-4'>Send report</Link>
               </div>
             </form>
           </Form>

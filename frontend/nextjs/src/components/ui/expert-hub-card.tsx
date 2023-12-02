@@ -22,11 +22,16 @@ import { Badge } from './badge';
 type Props = { data: ExpertTicket, disableLink?: boolean }
 
 
-const ExpertHubCard = ({ data, disableLink = true }: Props) => {
+const ExpertHubCard = ({ data, disableLink = false }: Props) => {
     const { price, paymentCurrency, author, metadata } = data
 
     return (
-        <Link href={EXPERT_TICKET_PAGE(metadata.id)} className='w-full md:w-auto'>
+        <Link 
+            href={EXPERT_TICKET_PAGE(metadata.id)} 
+            className='w-full md:w-auto' 
+            style={{
+                pointerEvents: (disableLink) ? "none" : "auto",
+          }} >
             <Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
 
                 <CardHeader className='px-0 pt-0'>
