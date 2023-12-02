@@ -73,7 +73,7 @@ export default function Posts ({filters}: Props) {
       </div>)
   }
 
-  if(!contentPages && !isLoading) {
+  if(!contentPages?.pages[0] && !isLoading) {
     return (<div className="h-screen">
         <NoData message="No posts" />
       </div>)

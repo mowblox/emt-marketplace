@@ -10,7 +10,7 @@ import { ONBOARDING_PAGE } from '../_components/page-links';
 
 const OnboardingPage = async () => {
   const session : any = await getServerSession(authOptions);
-  if (session?.address) {
+  if (session?.address && !session?.isNotSignedUp) {
     redirect(ONBOARDING_PAGE(4))
   }
   return (

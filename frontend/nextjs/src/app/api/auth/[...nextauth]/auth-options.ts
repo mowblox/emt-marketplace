@@ -13,6 +13,8 @@ import { cert } from "firebase-admin/app";
 import { SignUpData } from "@/lib/types";
 import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
 
+const USERS_COLLECTION =  'users' 
+
 const serviceAccount = JSON.parse(
   process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string
 );
@@ -49,10 +51,11 @@ async function getFirebaseToken(address: string, signUpData: SignUpData = {}) {
   } catch (error: any) {
     console.log('error', error.code)
     if (error.code !== 'auth/user-not-found') return { error };
-    if (signUpData.username) {
+    console.log('second try', signUpData)
+    if (signUpData?.username) {
       console.log("sign up data to be saved")
       await auth.createUser({ uid: address, ...signUpData })
-      const newUserDoc = await firestore.collection('users').doc(address).set(signUpData)
+      const newUserDoc = await firestore.collection(USERS_COLLECTION).doc(address).set(signUpData)
       console.log("sign up data  saved", newUserDoc)
       const token = await auth.createCustomToken(address, {});
 
@@ -106,6 +109,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (result.success) {
+            console.log("siwe", siwe, "result", result)
             const signUpData: SignUpData = siwe.resources ? JSON.parse(siwe.resources[0]) : null
             const tokenResult = await getFirebaseToken(siwe.address, signUpData);
             console.log('sdata', signUpData, 'tres', tokenResult)
@@ -114,7 +118,7 @@ export const authOptions: NextAuthOptions = {
               throw new Error(tokenResult?.error)
             }
             if(tokenResult?.isNotSignedUp){
-                return {id, tokenResult}
+                return {id, isNotSignedUp: true}
             }
             return {
               id,
@@ -125,6 +129,7 @@ export const authOptions: NextAuthOptions = {
 
 
           }
+          console.log("result", result);
           return null;
         } catch (e) {
           return null;
@@ -156,7 +161,7 @@ export const authOptions: NextAuthOptions = {
           return token
         }
         auth.updateUser(token.sub, session);
-        const updated = await firestore.collection('users').doc(token.sub).update(session);
+        const updated = await firestore.collection(USERS_COLLECTION).doc(token.sub).update(session);
         console.log("UPDATEDfire", updated);
       }
       return token;
@@ -170,5 +175,10 @@ export const authOptions: NextAuthOptions = {
       console.log("SESSION CALLBACK", "fbt?", !!session?.firebaseToken, "isMultipleSignUpAttempt", session?.isMultipleSignUpAttempt, 'notSignedUp?', session?.isNotSignedUp)
       return session;
     },
+
+    async redirect({url, baseUrl}){
+      console.log("REDIRECT CALLBACK", url, baseUrl)
+      return baseUrl
+    }
   },
 };

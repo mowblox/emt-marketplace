@@ -21,31 +21,36 @@ export const primaryNavigationLinks = [
         title: "Home",
         icon: HiOutlineHome,
         isActive: false,
-        href: HOME_PAGE
+        href: HOME_PAGE,
+        needsAuth: false
     },
     {
         title: "Expert Hub",
         icon: HiOutlineUsers,
         isActive: false,
-        href: EXPERT_HUB_PAGE
+        href: EXPERT_HUB_PAGE,
+        needsAuth: false
     },
     {
         title: "Bookings",
         icon: HiOutlineCalendarDays,
         isActive: false,
-        href: BOOKINGS_PAGE
+        href: BOOKINGS_PAGE,
+        needsAuth: true
     },
     {
         title: "My Profile",
         icon: HiOutlineUser,
         isActive: false,
-        href: PROFILE_PAGE
+        href: PROFILE_PAGE,
+        needsAuth: true
     },
     {
         title: "Notifications",
         icon: HiOutlineEnvelope,
         isActive: false,
-        href: NOTIFICATIONS_PAGE
+        href: NOTIFICATIONS_PAGE,
+        needsAuth: true
     }
 ]
 

@@ -30,7 +30,7 @@ import { useQueryClient } from "wagmi";
             const res = await mutateAsync({
               id: post.metadata.id,
               voteType,
-              owner: post.author.uid,
+              owner: post.author?.uid,
             });
             console.log("res", res);
           }
