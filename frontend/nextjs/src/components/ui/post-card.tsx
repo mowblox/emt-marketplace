@@ -34,15 +34,15 @@ const PostCard = ({data}:{data:Content}) => {
                                 fill
                                 className='rounded-full object-cover'
                                 loading="eager"
-                                src={author.photoURL!}
-                                alt={`${author.displayName}-photoURL`}
+                                src={author?.photoURL!}
+                                alt={`${author?.displayName}-photoURL`}
                                 quality={80}
                             />
                         </div>
                         <div className='ml-3'>
                             <div className="flex items-center">
-                                <p className='text-md text-foreground'>{author.displayName}</p>
-                                {author.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
+                                <p className='text-md text-foreground'>{author?.displayName}</p>
+                                {author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                                 <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                             </div>
                             <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>

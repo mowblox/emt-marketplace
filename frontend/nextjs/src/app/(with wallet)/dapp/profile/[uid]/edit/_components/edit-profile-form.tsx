@@ -24,6 +24,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@/lib/hooks/user";
 import { isValidFileType, profilePlaceholderImage } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { TAGS } from "@/lib/contants";
 
 const formSchema = z.object({
   displayName: z
@@ -227,14 +228,7 @@ const EditProfileForm = () => {
                 <FormLabel>Tags</FormLabel>
                 <FormControl>
                   <div className="flex gap-3 flex-wrap w-full">
-                    {[
-                      "Blockchain",
-                      "Engineering",
-                      "Graphic Design",
-                      "Music",
-                      "Web3",
-                      "UX design",
-                    ].map((tag, key) => {
+                    {TAGS.map((tag) => {
                       const isSelected = selectedTags.includes(tag);
                       const setTags = () =>
                         setSelectedTags(

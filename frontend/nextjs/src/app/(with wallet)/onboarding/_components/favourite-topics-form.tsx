@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { Plus } from 'lucide-react'
 import { ONBOARDING_PAGE } from '@/app/(with wallet)/_components/page-links'
 import { useUser } from '@/lib/hooks/user'
+import { TAGS } from '@/lib/contants'
 
 
 
@@ -42,7 +43,7 @@ const FavouriteTopicsForm = () => {
 
 
                                     <div className='flex gap-3 flex-wrap w-full'>
-                                        {['blockchain', 'UX design','design', 'UX','programming', 'dance'].map((tag) => (
+                                        {TAGS.map((tag) => (
                                             <Button onClick={handleTags} key={`skills-tags-${tag}`} className='rounded-full text-sm ' size="sm" variant={tags.includes(tag)? "default": "outline"}>
                                                 {tag}
                                                 <Plus className='w-4 h-4 text-muted ml-2' />

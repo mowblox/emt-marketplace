@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { HiChevronLeft} from 'react-icons/hi2'
 import { HOME_PAGE, CREATE_A_POST_PAGE, primaryNavigationLinks, resourcesLinks, hasBackButtonList,  } from "./page-links"
 import { useUser } from "@/lib/hooks/user"
+import { useConnectModal } from "@rainbow-me/rainbowkit"
 
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -15,6 +16,7 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function Sidebar({ className }: SidebarProps) {
     const [hasBackButton, setHasBackButton] = useState(false);
+    const { openConnectModal } = useConnectModal();
     const { user} = useUser();
     const pathname = usePathname();
 
@@ -50,6 +52,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="px-3 py-2">
                     <div className="space-y-1">
                         {primaryNavigationLinks.map((link, key)=> (
+                            link.needsAuth && !user ? null :
                             <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start font-normal" asChild>
                                 <Link href={typeof(link.href)==="function" ? link.href(user?.uid!) : link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
                                     <link.icon className={`mr-2 h-4 w-4  ${isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3": "text-accent-2"}`} />
@@ -58,8 +61,8 @@ export function Sidebar({ className }: SidebarProps) {
                             </Button>
                         ))}
                     </div>
-                    <Button variant="gradient" className="w-full mt-4" asChild>
-                        <Link href={CREATE_A_POST_PAGE}>Create a Post</Link>
+                    <Button onClick={user? undefined : (e) => {e.stopPropagation(); openConnectModal?.()}} variant="gradient" className="w-full mt-4" asChild>
+                        <Link href={user ? CREATE_A_POST_PAGE : ''}>Create a Post</Link>
                     </Button>
                 </div>
                 <div className="px-3 py-2">

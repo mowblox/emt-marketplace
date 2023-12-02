@@ -28,6 +28,9 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# dev env files
+.env*.development
+
 # vercel
 .vercel
 
@@ -38,6 +41,7 @@ next-env.d.ts
 # Miscellaneous
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # contract deployment files
 /src/deployments/31337

@@ -9,6 +9,8 @@ import { publicProvider } from 'wagmi/providers/public';
 
 
  import { Chain } from 'wagmi'
+import { collection } from "firebase/firestore";
+import { firestore } from "@/lib/firebase";
 
 export const toposTestnet = {
   id: 2359,
@@ -37,9 +39,9 @@ export const toposTestnet = {
 
 
 
- const productionChain = polygonMumbai /*TODO: @Jovells use topos */
+ const productionChain = toposTestnet
 
- const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, /*TODO: @Jovells add topos */]
+ const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain]
 
  const { chains, publicClient } = configureChains(
   envChains,
@@ -64,4 +66,11 @@ export const toposTestnet = {
   export const emtChains = chains
   export const emtWagmiConfig = wagmiConfig
 
-  export const chain = process.env.NODE_ENV === "production" ? productionChain : hardhat
+  export const chain = process.env.NODE_ENV === "production" ? productionChain : chains.find(c => c.id == parseInt(process.env.NEXT_PUBLIC_DEVCHAIN!)) || hardhat
+
+  export const USERS_COLLECTION = collection(firestore, 'users');
+  export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', process.env.NEXT_PUBLIC_DEV!+chain.id as string, 'notifications');
+  export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', process.env.NEXT_PUBLIC_DEV!+chain.id as string, 'contents');
+
+
+

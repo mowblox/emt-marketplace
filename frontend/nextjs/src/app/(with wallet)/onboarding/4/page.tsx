@@ -72,7 +72,7 @@ const OnboardingPage = () => {
         <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>In sed in velit lacus at. Ultricies morbi morbi pharetra nulla eget eget.</h4>
         <p className='text-muted text-center'>Ut accumsan accumsan molestie aliquam feugiat urna quisque eu. Sagittis adipiscing pellentesque massa vulputate curabitur scelerisque.</p>
         <div className="w-full flex  justify-center lg:w-2/3 space-y-5 mb-20 md:mb-0">
-          <SignInButton label='Connect Wallet' />
+          <SignInButton label='Sign Up' />
         </div>
       </div>
     </div>
