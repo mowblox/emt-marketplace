@@ -1,167 +1,97 @@
+"use client";
 import { Button } from '@/components/ui/button';
-import { FormField, FormItem, FormControl, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
+import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from '@/components/ui/form';
 import { profilePlaceholderImage } from '@/lib/utils';
 import { profile } from 'console';
-import { Minus, Plus } from 'lucide-react';
+import { AlertTriangleIcon, Minus, Plus } from 'lucide-react';
 import { Input } from 'postcss';
 import React from 'react'
-import { Form } from 'react-hook-form';
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const REPORT_EMAIL = 'mail@mail.com'
+
+const formSchema = z.object({
+  description: z
+    .string()
+    .optional(),
+  rating: z
+    .number()
+    .min(1, {
+      message: "That username is too short. Use atleast 4 characters",
+    })
+});
 
 const SessionReviewForm = () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema)
+  });
+
+  const onSubmit = () => {}
     return (
         <div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="profilePicture"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl className="mb-3">
-                      <>
-                        <div className="w-20 h-20 rounded-full relative">
-                          <Image
-                            src={
-                              imageRef.current?.files?.[0]
-                                ? URL.createObjectURL(imageRef.current?.files?.[0])
-                                : profile?.photoURL || profilePlaceholderImage
-                            }
-                            fill
-                            placeholder={profilePlaceholderImage}
-                            className="object-cover rounded-full"
-                            alt={`Preview your profile picture`}
-                          />
-                        </div>
-    
-                        <Input
-                          placeholder="New Profile Picture"
-                          className="mb-4"
-                          type="file"
-                          {...field}
-                          ref={imageRef}
-                        />
-                        <div className="mb-4"></div>
-                      </>
-                    </FormControl>
-                    <FormLabel>Profile Picture</FormLabel>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
     
               <FormField
                 control={form.control}
-                name="email"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Tell us how your session went</FormLabel>
                     <FormControl>
-                      <Input placeholder="Your email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-    
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Display Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your name" {...field} />
+                      <Textarea placeholder="Describe your session" {...field} />
                     </FormControl>
                     <FormMessage className="text-xs text-muted font-normal" />
                   </FormItem>
                 )}
               />
     
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Your username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <FormField
+          control={form.control}
+          name="rating"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <Select onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Set a rating" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className='w-full md:w-10"'>
+                  <SelectItem value="1">1 star</SelectItem>
+                  <SelectItem value="m@google.com">2</SelectItem>
+                  <SelectItem value="3">3</SelectItem>
+                  <SelectItem value="4">4</SelectItem>
+                  <SelectItem value="5">5</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
     
-              <FormField
-                control={form.control}
-                name="about"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>About</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Say what you're about" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-    
-              <FormField
-                control={form.control}
-                name="about"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tags</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-3 flex-wrap w-full">
-                        {[
-                          "Blockchain",
-                          "Engineering",
-                          "Graphic Design",
-                          "Music",
-                          "Web3",
-                          "UX design",
-                        ].map((tag, key) => {
-                          const isSelected = selectedTags.includes(tag);
-                          const setTags = () =>
-                            setSelectedTags(
-                              isSelected
-                                ? selectedTags.filter(
-                                    (item: string) => item !== tag
-                                  )
-                                : [...selectedTags, tag]
-                            );
-                          return (
-                            <Button
-                              type="button"
-                              onClick={setTags}
-                              key={`skills-tags-${tag}`}
-                              className="rounded-full text-sm "
-                              size="sm"
-                              variant={isSelected ? "default" : "outline"}>
-                              {tag}
-                              {isSelected ? (
-                                <Minus className="w-4 h-4 text-muted ml-2" />
-                              ) : (
-                                <Plus className="w-4 h-4 text-accent-2 ml-2" />
-                              )}
-                            </Button>
-                          );
-                        })}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-    
-              <div className="flex justify-end w-full">
-                <Button variant="outline" className="w-[160px] mr-3">
-                  Cancel
-                </Button>
+              <div className="flex justify-start w-full">
                 <Button type="submit" variant="default" className="w-[160px] ">
-                  Update Profile
+                  Submit Review
                 </Button>
+              </div>
+
+              <div className="w-full flex items-center text-xs">
+                <AlertTriangleIcon className='w-4 h-4 mr-2'/>
+                Send a report if the session did not hold. 
+                <Link href={`mailto:${REPORT_EMAIL}`}>Send report</Link>
               </div>
             </form>
           </Form>

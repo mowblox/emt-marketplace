@@ -102,9 +102,11 @@ const Bookings = () => {
                     </div>
                 </TabsContent>
                 <TabsContent value="history" className='pt-2'>
-                    <div className="grid grid-cols-5 mt-4">
-                        <ExpertHubCard data={dummyOtherExperts[0]} disableLink={true} />
-                        <div className="col-span-4">
+                    <div className="grid grid-cols-[1fr] md:grid-cols-[240px_1fr] gap-8 mt-4">
+                        <div className="">
+                            <ExpertHubCard data={dummyOtherExperts[0]} disableLink={true} />
+                        </div>
+                        <div className="">
                             <SessionReviewForm />
                         </div>
                     </div>
