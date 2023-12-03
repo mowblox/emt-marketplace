@@ -22,93 +22,6 @@ import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
 
-const dummyPosts = [
-  {
-    author: {
-      name: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      name: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      name: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-  {
-    author: {
-      name: "Naval",
-      photoURL:
-        "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-    },
-    post: {
-      title:
-        "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-      body: "Et pulvinar purus purus pharetra non lobortis nunc. Consectetur feugiat orci consectetur consectetur facilisi. Urna cursus risus nisl sit suscipit nunc sed id in. ",
-      image:
-        "https://images.unsplash.com/photo-1577100078279-b3445eae827c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    metadata: {
-      upvotes: 435,
-      downvotes: 23,
-      permalink: "something.com",
-      datePublished: "5hrs ago",
-    },
-  },
-];
-
 const Profile = () => {
   const { uid } = useParams();
   // const profile = {
@@ -241,7 +154,6 @@ const Profile = () => {
 
       <div className="flex flex-col">
         {isCurrentUserProfile ? (
-          // TODO @od41 add "Posts" heading
           <div>
             <h3>Posts</h3>
             <Posts filters={{ owner: profile.uid }} />
