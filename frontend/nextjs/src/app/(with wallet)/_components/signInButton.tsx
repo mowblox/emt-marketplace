@@ -1,15 +1,43 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonProps } from "@/components/ui/button";
 import { useUser } from "@/lib/hooks/user";
+import { isEmpty } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { signOut } from "next-auth/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
-import Link from 'next/link'
+import { useEffect, useLayoutEffect } from "react";
 import { ONBOARDING_PAGE } from "./page-links";
+import { is } from "date-fns/locale";
 
-export const SignInButton = ({ label }: { label?: string }) => {
-  const { user, isLoading, session, signIn, signUpDataRef } = useUser();
-  const pathname = usePathname()
+/**
+ * Props for the SignInButton component.
+ */
+interface SignInButtonProps extends ButtonProps {
+  /**
+   * The URL to navigate to when the button is clicked.
+   * if provided, the button will not open the connect modal.
+   */
+  href?: string;
+
+  /**
+   * The label text for the button.
+   */
+  label?: string;
+
+  /**
+   * An function to run anything else when the button is clicked.
+   */
+  before?: () => void;
+}
+interface SignInButtonProps extends ButtonProps  {
+  href?: string
+  
+  label?: string
+}
+
+export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
+  const { user, isLoading, session, signIn } = useUser();
 
   return (
     <ConnectButton.Custom>
@@ -42,47 +70,41 @@ export const SignInButton = ({ label }: { label?: string }) => {
               },
             })}>
             {(() => {
-              if (!signedIn) {
-                return isConnected ? (
-                  <div className="flex gap-2 items-center">
-
-                    <Button variant={"default"} size="sm" onClick={signIn}>
-
-                      {session?.isNotSignedUp ? "Sign up" : isLoading ? "Signing in..." : "Sign in"}
-                    </Button>
-
-                    <Button variant="outline" size="sm">
-                      <Link
-                        href={ONBOARDING_PAGE()}>
-                        New Account
-                      </Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2 items-center">
-                    <Button variant={"ghost"} size="sm" onClick={openConnectModal}>
-                      {label || "Connect Wallet"}
-                    </Button>
-
-                    <Button variant="outline" size="sm">
-                      <Link
-                        href={ONBOARDING_PAGE()}>
-                        New Account
-                      </Link>
-                    </Button>
-                  </div>
+              if(!isConnected){
+                console.log('not connectd')
+                return(
+                  <Button variant={"default"} onClick={openConnectModal}>
+                  {label || "Connect Wallet"}
+                </Button>
+                )
+              }
+              if(isConnected && session?.isNotSignedUp){
+                console.log('not signed up')
+                return (
+                  <Button variant={"default"} asChild>
+                    <Link href={ONBOARDING_PAGE()}>Sign Up</Link>
+                  </Button>
+                );
+              }
+              if (isConnected && !signedIn) {
+                console.log('not signed in')
+                // if (isConnected ) signOut({redirect:false}) 
+                return (
+                  <Button variant={"default"} onClick={()=>(signIn())}>
+                    {isLoading? "...Signing In": label || "Sign In"}
+                  </Button>
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <Button variant={"outline"} size="sm" onClick={openChainModal}>
+                  <Button variant={"default"} onClick={()=> (openChainModal())}>
                     Wrong network
                   </Button>
                 );
               }
               return (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Button variant={"outline"} size="sm" onClick={openAccountModal}>
+                  <Button variant={"default"} onClick={()=>(openAccountModal())}>
                     {account.displayName}
                   </Button>
                 </div>
