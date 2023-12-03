@@ -103,3 +103,11 @@ export type BuiltNotification = {
   message: string,
   summary: string,
 }
+
+export type ReviewItem = {
+  user: UserProfile;
+  content: {
+    body: string;
+    datePublished: string;
+  }
+}

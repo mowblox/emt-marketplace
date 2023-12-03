@@ -242,7 +242,10 @@ const Profile = () => {
       <div className="flex flex-col">
         {isCurrentUserProfile ? (
           // TODO @od41 add "Posts" heading
-          <Posts filters={{ owner: profile.uid }} />
+          <div>
+            <h3>Posts</h3>
+            <Posts filters={{ owner: profile.uid }} />
+          </div>
         ) : (
           <Tabs defaultValue="my-posts" className="w-full">
             <TabsList>

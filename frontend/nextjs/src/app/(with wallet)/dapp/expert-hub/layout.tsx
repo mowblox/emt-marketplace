@@ -1,6 +1,5 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-// import { RightSidebar } from '../../_components/right-sidebar'
 
 type Props = {
     children: React.ReactNode
