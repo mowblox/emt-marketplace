@@ -1,23 +1,14 @@
 "use client";
 import { Button } from '@/components/ui/button';
 import { Form, FormField, FormItem, FormControl, FormLabel, FormMessage } from '@/components/ui/form';
-import { profilePlaceholderImage } from '@/lib/utils';
-import { profile } from 'console';
-import { AlertTriangleIcon, Minus, Plus } from 'lucide-react';
-import { Input } from 'postcss';
+import { AlertTriangleIcon, } from 'lucide-react';
 import React from 'react'
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import Rating from '@/components/ui/rating';
 
 const REPORT_EMAIL = 'mail@mail.com'
 
@@ -37,7 +28,9 @@ const SessionReviewForm = () => {
     resolver: zodResolver(formSchema)
   });
 
-  const onSubmit = () => {}
+  const onSubmit = () => {
+    console.log(form.getValues())
+  }
     return (
         <div>
           <Form {...form}>
@@ -57,30 +50,19 @@ const SessionReviewForm = () => {
                 )}
               />
     
-    <FormField
-          control={form.control}
-          name="rating"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Rating</FormLabel>
-              <Select onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Set a rating" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className='w-full md:w-10"'>
-                  <SelectItem value="1">1 star</SelectItem>
-                  <SelectItem value="m@google.com">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="rating"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rating</FormLabel>
+                  <FormControl>
+                    <Rating {...field}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
     
               <div className="flex justify-start w-full">
                 <Button type="submit" variant="default" className="w-full md:w-[160px] ">
