@@ -12,7 +12,8 @@ export const isValidFileType = (fileName: string): boolean => {
   return validExtensions.includes(fileExtension);
 };
 
-export const isEmpty = (obj: {[key:string | number]:any}) => {
+export const isEmpty = (obj: {[key:string | number]:any} | null) => {
+  if (obj === null) return true;
   return Object.keys(obj).length === 0;
 }
 

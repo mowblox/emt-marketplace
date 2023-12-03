@@ -52,7 +52,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="px-3 py-2">
                     <div className="space-y-1">
                         {primaryNavigationLinks.map((link, key)=> (
-                            link.needsAuth && !user ? null :
+                            link.needsAuth && !user?.uid ? null :
                             <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start font-normal" asChild>
                                 <Link href={typeof(link.href)==="function" ? link.href(user?.uid!) : link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
                                     <link.icon className={`mr-2 h-4 w-4  ${isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3": "text-accent-2"}`} />
