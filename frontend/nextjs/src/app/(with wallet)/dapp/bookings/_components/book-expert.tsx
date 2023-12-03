@@ -36,13 +36,15 @@ import {
 } from "@/components/ui/popover"
 import { toast } from "@/components/ui/use-toast"
 import { Globe2Icon } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 
 
 const FormSchema = z.object({
-    dob: z.date({
-        required_error: "A date of birth is required.",
+    availableDate: z.date({
+        required_error: "A date is required.",
     }),
+    message: z.string().optional()
 })
 
 export function BookingCalendarForm() {
@@ -56,9 +58,9 @@ export function BookingCalendarForm() {
         toast({
             title: "You submitted the following values:",
             description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+                // <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
                     <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-                </pre>
+                // {/* </pre> */}
             ),
         })
     }
@@ -68,24 +70,47 @@ export function BookingCalendarForm() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                 <FormField
                     control={form.control}
-                    name="dob"
+                    name="availableDate"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
                             <FormLabel>Select Date &amp; Time</FormLabel>
-                            <Calendar
-                                mode="single"
-                                className='border rounded-md p-3'
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) =>
-                                    date > new Date() || date < new Date("1900-01-01")
-                                }
-                                initialFocus
-                            />
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-[200px] pl-3 text-center text-foreground font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        className='bg-accent-shade rounded-md p-3'
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) =>
+                                            date > new Date() || date < new Date("1900-01-01")
+                                        }
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
                 <div className="">
                     <div className="text-sm mb-2">Saturday, November 25</div>
                     <div className="text-xs text-muted flex items-center">
@@ -93,15 +118,29 @@ export function BookingCalendarForm() {
                     </div>
                 </div>
 
+                <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Message (optional)</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Share anything that might help the mentor prepare for the meeting" {...field} />
+                            </FormControl>
+                            <FormMessage className="text-xs text-muted font-normal" />
+                        </FormItem>
+                    )}
+                />
+
                 <div className="">
                     <div className="text-sm mb-2">Time Zone</div>
                     <div className="text-xs text-muted flex items-center">
-                        <Globe2Icon className='w-4 h-4 mr-2' /> {currentTimezone} 
+                        <Globe2Icon className='w-4 h-4 mr-2' /> {currentTimezone}
                         <Button variant="ghost" className="text-xs hover:bg-transparent text-accent-3 hover:text-accent-4">Update</Button>
                     </div>
                 </div>
-                <div className="w-full flex justify-end">
-                    <Button type="submit" className='w-[160px]'>Continue</Button>
+                <div className="w-full flex justify-end mb-[240px]">
+                    <Button type="submit" className='w-[160px]'>Book Session</Button>
                 </div>
             </form>
         </Form>
@@ -119,14 +158,14 @@ const BookExpert = ({ ownedExpt }: Props) => {
                 {ownedExpt.map((expert, key) => {
                     const { author, metadata } = expert
                     return <>
-                        <Dialog key={`expertsss-${key}-${author.uid}`}>
+                        <Dialog key={`book-modal-${key}-${author.uid}`}>
                             <DialogTrigger>
                                 <ExpertHubCard data={expert} type="modal" />
                             </DialogTrigger>
 
                             <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
                                 <div className="grid grid-cols-[35%_60%]">
-                                    <ScrollArea className="h-full">
+                                    <ScrollArea className="h-[90vh]">
                                         <div className="border-r pr-6 py-6">
                                             <DialogHeader className='mb-6'>
                                                 <DialogTitle>Book a Session with {author.displayName}</DialogTitle>
@@ -143,11 +182,9 @@ const BookExpert = ({ ownedExpt }: Props) => {
                                             </div>
                                         </div>
                                     </ScrollArea>
-                                    <div className="p-6">
-                                        <ScrollArea className='h-full'>
-                                            <BookingCalendarForm />
-                                        </ScrollArea>
-                                    </div>
+                                    <ScrollArea className='h-[90vh] p-6'>
+                                        <BookingCalendarForm />
+                                    </ScrollArea>
                                 </div>
                             </DialogContent>
                         </Dialog>
