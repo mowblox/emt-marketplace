@@ -7,6 +7,8 @@ import {
   HiCheckBadge,
   HiOutlineCog6Tooth,
   HiOutlineFire,
+  HiOutlineUserPlus,
+  HiUser,
 } from "react-icons/hi2";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
@@ -63,8 +65,9 @@ const Profile = () => {
         return !OldfollowStatus;
       })
     },
-    onError: () => {
+    onError: (e: any) => {
       // Handle error state here
+      console.error("oops!", e.message)
     },
   });
 
@@ -78,6 +81,8 @@ const Profile = () => {
 
   }
 
+
+  console.log('profile', profile, "ready", ready)
 
   if (!profile || !ready) {
     return (<div className="h-screen">
@@ -126,8 +131,9 @@ const Profile = () => {
               variant="ghost"
               onClick={toggleFollowing}
               className="text-xs hover:bg-transparent text-muted hover:text-accent-3">
-              {/*TODO: @od41  add follow icon */}
-              {isFollowingUser ? "Unfollow" : "Follow" } 
+              {isFollowingUser ? <div><HiUser className="" /> Following</div> : <div>
+              <HiOutlineUserPlus /> Follow
+              </div> } 
             </Button>
           )}
         </div>
