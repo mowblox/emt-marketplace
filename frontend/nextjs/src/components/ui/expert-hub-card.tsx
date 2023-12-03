@@ -18,66 +18,86 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Voter from './Voter';
 import { formatDistance } from 'date-fns';
 import { Badge } from './badge';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 
-type Props = { data: ExpertTicket, disableLink?: boolean }
+type Props = {
+    data: ExpertTicket,
+    disableLink?: boolean;
+    type?: "link" | "modal";
+}
 
 
-const ExpertHubCard = ({ data, disableLink = false }: Props) => {
+const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
     const { price, paymentCurrency, author, metadata } = data
 
+    const CardTemplate = () => (<Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
+
+        <CardHeader className='px-0 pt-0'>
+            <div className="w-full h-[177px] relative">
+                <Image
+                    fill
+                    src={metadata.imageURL as string}
+                    className='rounded-md object-cover'
+                    loading="lazy"
+                    alt={`${metadata.title} cover photo`}
+                />
+            </div>
+        </CardHeader>
+        <CardContent className='space-y-3 px-0'>
+            <div className='w-full'>
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex justify-between w-full">
+                        <div className="">
+                            <p className='text-md text-foreground'>{author?.displayName}</p>
+                            <p className='text-sm text-muted'>{author?.username}</p>
+                        </div>
+
+                        <div className="flex h-[16px] mt-1   items-center text-accent-3">
+                            <p className='text-md text-muted font-semibold'>L{author?.level}</p>
+                            <HiOutlineFire className="w-4 h-4 ml-1" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex gap-2 flex-wrap mt-3 capitalize">
+                    {author?.tags?.map((tag, key) => (
+                        <Badge key={`${tag}-${key}`}>{tag}</Badge>
+                    ))}
+                </div>
+            </div>
+
+        </CardContent>
+
+        <CardFooter className='pb-0 px-0 flex justify-between'>
+            <div className="flex justify-between w-full items-center">
+                <div className="text-md text-foreground">Price</div>
+                <div className="text-lg font-semibold text-accent-3">${price}</div>
+            </div>
+        </CardFooter>
+    </Card>)
+
+    if (type == "modal") {
+        return <CardTemplate />
+    }
+
     return (
-        <Link 
-            href={EXPERT_TICKET_PAGE(metadata.id)} 
-            className='w-full md:w-auto' 
+        <Link
+            href={EXPERT_TICKET_PAGE(metadata.id)}
+            className='w-full md:w-auto'
             style={{
                 pointerEvents: (disableLink) ? "none" : "auto",
-          }} >
-            <Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
-
-                <CardHeader className='px-0 pt-0'>
-                    <div className="w-full h-[177px] relative">
-                        <Image
-                            fill
-                            src={metadata.imageURL as string}
-                            className='rounded-md object-cover'
-                            loading="lazy"
-                            alt={`${metadata.title} cover photo`}
-                        />
-                    </div>
-                </CardHeader>
-                <CardContent className='space-y-3 px-0'>
-                    <div className='w-full'>
-                        <div className="flex items-center justify-between w-full">
-                            <div className="flex justify-between w-full">
-                                <div className="">
-                                    <p className='text-md text-foreground'>{author?.displayName}</p>
-                                    <p className='text-sm text-muted'>{author?.username}</p>
-                                </div>
-
-                                <div className="flex h-[16px] mt-1   items-center text-accent-3">
-                                    <p className='text-md text-muted font-semibold'>L{author?.level}</p>
-                                    <HiOutlineFire className="w-4 h-4 ml-1" />
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex gap-2 flex-wrap mt-3 capitalize">
-                            {author?.tags?.map((tag, key) => (
-                                <Badge key={`${tag}-${key}`}>{tag}</Badge>
-                            ))}
-                        </div>
-                    </div>
-
-                </CardContent>
-
-                <CardFooter className='pb-0 px-0 flex justify-between'>
-                    <div className="flex justify-between w-full items-center">
-                        <div className="text-md text-foreground">Price</div>
-                        <div className="text-lg font-semibold text-accent-3">${price}</div>
-                    </div>
-                </CardFooter>
-            </Card>
+            }} >
+            <CardTemplate />
         </Link>
     )
+
+
 }
 
 export default ExpertHubCard

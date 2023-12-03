@@ -42,6 +42,8 @@ export interface ExpertTicket {
     imageURL: string;
     title: string;
     description: string;
+    sessionCount: number;
+    sessionDuration: number;
   },
   author: UserProfile
 }
