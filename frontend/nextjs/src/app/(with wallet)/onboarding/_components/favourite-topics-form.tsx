@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ import { TAGS } from '@/lib/contants'
 
 const FavouriteTopicsForm = () => {
     const router = useRouter()
-    const {signUpDataRef} = useUser()
+    const {signUpData} = useUser()
     const [tags, setTags] = useState<string[]>([])
 
     function handleTags(e : React.MouseEvent<HTMLButtonElement>){
@@ -27,12 +27,12 @@ const FavouriteTopicsForm = () => {
         }
     }
 
-    const { toast } = useToast()
+    const { toast } = useToast();
 
     function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         console.log(tags)
-        signUpDataRef.current ? (signUpDataRef.current.tags = tags) : (signUpDataRef.current = {tags})
+        signUpData.tags = tags
         router.push(ONBOARDING_PAGE(4))
     }
 
