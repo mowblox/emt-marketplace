@@ -1,5 +1,5 @@
 "use client"
-import React, { useContext } from 'react'
+import React from 'react'
 import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -16,11 +16,10 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { toast, useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 import Image from 'next/image'
 import { useUser } from '@/lib/hooks/user'
 import useBackend from '@/lib/hooks/useBackend'
-import { ONBOARDING_PAGE } from '../../_components/page-links'
 
 //TODO: @Jovells a prevent multiple email signups
 const formSchema = z.object({
@@ -40,10 +39,9 @@ const formSchema = z.object({
 })
 
 const ProfileDetailsForm = () => {
-    const {signUpData, validateSignUpData, session, signUp} = useUser()
-
+    const {signUpDataRef} = useUser();
     const imageRef = React.useRef<HTMLInputElement>(null);
-    const { displayName, username,  email, profilePicture} = signUpData
+    const { displayName, username, email, profilePicture} = signUpDataRef.current || {}
     const image = imageRef.current?.files?.[0] || profilePicture 
     const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
@@ -57,31 +55,18 @@ const ProfileDetailsForm = () => {
 
     
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        //TODO: @Jovells change to loading toast
-        const t = toast({
-            variant: "default",
-            title: "loading...",
-            duration: Infinity,
-        })
 
         console.log(values)
-        signUpData.displayName = values.displayName;
-        signUpData.username = values.username
-        signUpData.email = values.email
-        signUpData.profilePicture = image;
-
-        const result = await validateSignUpData();
-        console.log(result)
-        let noErrors = true;
-        if (!result.email) form.setError("email", {message: "This email is already taken"}), noErrors = false;
-            
-        if (!result.username) form.setError("username", {message: "This username is already taken"}), noErrors = false;
+        if(!signUpDataRef.current){
+            signUpDataRef.current = {}
+        }
         
-        if (noErrors){
-            t.dismiss()
-        router.push(ONBOARDING_PAGE(3))}
-        else t.update({id: t.id, title: "Errors found", variant: "destructive", duration: 1000})
-
+        signUpDataRef.current.displayName = values.displayName,
+        signUpDataRef.current.username = values.username,
+        signUpDataRef.current.email = values.email,
+        signUpDataRef.current.profilePicture = image,
+        
+        router.push("/onboarding/3")
     }
 
   return (

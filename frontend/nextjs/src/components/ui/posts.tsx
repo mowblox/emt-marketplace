@@ -61,7 +61,7 @@ export default function Posts ({filters}: Props) {
     //     page.map((p, j) => ({ ...p, indexes: [i, j] }))
     //   ) || [];
 
-    console.info("postsloading error:", error)
+    console.error("postsloading error:", error)
   
   if (hasNextPage && entry?.isIntersecting) {
     fetchNextPage();

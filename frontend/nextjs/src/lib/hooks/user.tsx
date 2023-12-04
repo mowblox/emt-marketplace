@@ -1,125 +1,105 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useSession, signOut as signOutNextAuth, signIn as signInNextAuth } from "next-auth/react";
 import axios from "axios";
 import { auth, firestore } from "@/lib/firebase";
-import { signInWithCustomToken, signOut, onAuthStateChanged, } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { SignUpData, User, UserSession } from '@/lib/types'
+import { signInWithCustomToken, signOut, onAuthStateChanged,  } from "firebase/auth";
+import {  doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import {SignUpData, User, UserSession} from '@/lib/types'
+import { FirebaseError } from "firebase-admin";
+import { useAccountModal, useConnectModal } from "@rainbow-me/rainbowkit";
+import { Session } from "next-auth";
 import { redirect, useRouter } from "next/navigation";
-import { HOME_PAGE } from "@/app/(with wallet)/_components/page-links";
-import { uploadImage } from "./useBackend";
-import { toast } from "@/components/ui/use-toast";
+import { isEmpty } from "../utils";
 
 interface UserContext {
   user: User | null;
-  updateUser: (data: { username?: string, photoURL?: string, displayName?: string, email?: string }) => Promise<void>;
+  updateUser: (data: {username?: string, photoURL?: string, displayName?: string, email?: string}) => Promise<void>;
   isLoading: boolean;
-  signIn: (options?:{redirect?:boolean}) => Promise<void>;
-  signUp: () => Promise<UserSession>;
-  validateSignUpData: () => Promise<{email: boolean, username: boolean}>;
+  signUpDataRef: React.MutableRefObject<SignUpData | null>;
+  signIn: () => Promise<void>;
   isMultipleSignUpAttempt: boolean | undefined;
   session: UserSession | null;
-  signUpData: SignUpData;
 }
 
 
 declare global {
-  interface Window {
-    ethereum: any;
+    interface Window {
+      ethereum: any;
+    }
   }
-}
 
 const UserContext = createContext<UserContext | null>(null);
 
 export function useUser(): UserContext {
+
   const userContext = useContext(UserContext);
+
   return userContext!;
+
+
 }
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+export function UserProvider({ children, signUpDataRef }: { children: React.ReactNode, signUpDataRef: React.MutableRefObject<SignUpData | null> }) {
   const [user, setUser] = useState<User | null>(null);
-  const { data: session, status, update }: { data: UserSession | null} & ReturnType<typeof useSession>  = useSession();
+  const { data: session, status, update }: { data: UserSession | null , [key:string]: any}  = useSession(); 
   const [isLoading, setIsLoading] = useState(false);
-  const signUpDataRef = useRef<SignUpData>({});
-  const signUpData = signUpDataRef.current;
-
-  console.log('u');
+  const { openConnectModal } = useConnectModal();
 
   const router = useRouter();
 
-  async function validateSignUpData() {
-    const result = await update({validateSignUpData: signUpData}) as UserSession;
-    return result.validateSignUpResult!;
+  async function updateUser(data: {username?: string, photoURL?: string, displayName?: string, email?: string, tags?: string[]}) {
+    // const userDocRef = doc(firestore, 'users', session?.address); 
+    // await updateDoc(userDocRef, data);
+    await update(data);
+    setUser({...user!, ...data});
   }
 
-  async function updateUser(updates: Partial<SignUpData>) {
-    await update({ updates });
-    setUser({ ...user!, ...updates });
-  }
 
-  async function signUp (redirect=true) {
-    console.log('signing Up', signUpData)
-    const t = toast({
-      variant:"default",
-      title: "SignIng Up",
-      duration: Infinity,
-    })
-    const data = {...signUpData}
-    delete signUpData.profilePicture
+    const signIn = useMemo(() => async function (){
+      try {
+        setIsLoading(true);
+        const token = session?.firebaseToken;
 
-    const updateResult = await update({ signUpData: data }) as UserSession;
-    console.log('updateResult', updateResult)
-    if (updateResult?.error){
-      t.update({variant:"destructive", id:t.id, duration: 1000})
-      return updateResult
-      }
-    let photoURL
-    if (signUpData.profilePicture) {
-      console.log('uploading pic')
-      photoURL = await uploadImage(signUpData.profilePicture, session?.address!, 'profilePictures');
-      await update({updates: {photoURL: photoURL}});
-    }
+        if (!token) {
+          console.log('sess', session, signUpDataRef.current)
+          if(session?.isNotSignedUp && isEmpty(signUpDataRef.current as any)){
+            return router.push('/onboarding')
+          }
 
-    setUser({ ...user, ...signUpData, photoURL});
-    t.update({id:t.id, title:"Successful", duration: 1000})
-    if (redirect) router.push(HOME_PAGE)
-    return updateResult;
+          signOutNextAuth({redirect: false});
+          return
+          // await signOutNextAuth({redirect: false});
+          // openConnectModal!();
+        }
 
-  }
+        const userData = await signInWithCustomToken(auth, token);
 
-  const signIn = useMemo(() => async function (options?:{redirect?: boolean }) {
-    try {
-      setIsLoading(true);
-      if (session?.firebaseToken) {
-        console.log("signing in");
-        const signInResult = await signInWithCustomToken(auth, session.firebaseToken);
-        console.log("signing in", signInResult);
-        setUser(signInResult.user);
-      }
-      else {
-        await update({ signIn: true });
-      }
-        if (options?.redirect === false) return
-        router.push(HOME_PAGE)
+          setUser(userData.user as User);
 
-    } catch (err: any) {
-      console.log("sign in error", err);
-      if (err.code === 'auth/invalid-custom-token')
+        signUpDataRef.current = null;
+        if (session?.isMultipleSignUpAttempt) {
+          update({resetMultipleSignUpAttempt: true})
+        }
+      } catch (err: FirebaseError | any ) {
+        if( err.code === 'auth/invalid-custom-token')
         signOutNextAuth();
-    }
-    finally {
-      setIsLoading(false);
-    }
-  }, [session?.firebaseToken])
+      }
+      finally{
+        setIsLoading(false);
+      }
+      
+}, [session?.address, session?.firebaseToken])  
 
   useEffect(() => {
-    async function _signOut() {
+    
+
+
+    async function _signOut(){
       setIsLoading(true)
       signOut(auth).then(() => {
         console.log('User signed out');
         setUser(null);
-        router.push(HOME_PAGE)
       }).catch((error) => {
         console.error('Error signing out: ', error);
       });
@@ -129,12 +109,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (status === 'unauthenticated' && user) {
       _signOut();
     }
-    if (session?.firebaseToken) {
-      signIn({redirect: false})
+    if (session?.isMultipleSignUpAttempt) {
+      return
     }
-  }, [session?.firebaseToken, user?.uid])
+    if (session?.address && !user) {
+      signIn();
+    }
+
+
+  }, [session?.address, session?.firebaseToken, signIn])
+  
+
+
+
 
   return (
-    <UserContext.Provider value={{ user, signUp, signIn, validateSignUpData, signUpData, updateUser, isLoading, session, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{user, signIn, updateUser, isLoading, signUpDataRef, session, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt}}>{children}</UserContext.Provider>
   );
 }
