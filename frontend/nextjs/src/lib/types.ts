@@ -1,20 +1,27 @@
+import { FirebaseError } from "firebase-admin";
 import { UserCredential } from "firebase/auth";
 import { Timestamp, FieldValue } from "firebase/firestore";
 import { Session } from "next-auth";
 
 export type SignUpData =
-  { username?: string, 
+  { username?: string,
+    usernameLowercase?: string; 
     email?: string,
     displayName?: string, 
     profilePicture?: File,
     photoURL?: string,
-    tags?: string[] }
+    tags?: string[]
+    isComplete?: boolean,
+   }
 
 export type UserSession = Session & {firebaseToken?: string;
-  isMultipleSignUpAttempt?: boolean;
-  isNotSignedUp?: boolean;
+  isMultipleSignUpAttempt?: boolean
+  isNotSignedUp?: boolean
   address?: string
-  isNewUser?:boolean }
+  isNewUser?:boolean 
+  error?: FirebaseError & {[key:string]: any}
+  validateSignUpResult?: {email: boolean, username: boolean}
+}
 
 
 export interface Content {

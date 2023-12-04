@@ -69,8 +69,8 @@ export const toposTestnet = {
   export const chain = process.env.NODE_ENV === "production" ? productionChain : chains.find(c => c.id == parseInt(process.env.NEXT_PUBLIC_DEVCHAIN!)) || hardhat
 
   export const USERS_COLLECTION = collection(firestore, 'users');
-  export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', process.env.NEXT_PUBLIC_DEV!+chain.id as string, 'notifications');
-  export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', process.env.NEXT_PUBLIC_DEV!+chain.id as string, 'contents');
+  export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'notifications');
+  export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'contents');
 
 
 
