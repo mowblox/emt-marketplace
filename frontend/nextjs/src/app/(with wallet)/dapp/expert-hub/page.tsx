@@ -4,7 +4,6 @@ import React from 'react'
 import { HiMiniAdjustmentsVertical } from 'react-icons/hi2'
 import { ExpertTicket, UserProfile } from '@/lib/types'
 import ExpertHubCard from '@/components/ui/expert-hub-card'
-import { useUser } from "@/lib/hooks/user";
 
 const ExpertHub = () => {
   const dummyUser: UserProfile = {

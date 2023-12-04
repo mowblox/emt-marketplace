@@ -21,11 +21,12 @@ import {
   resourcesLinks,
   hasBackButtonList,
   HOME_PAGE,
+  ONBOARDING_PAGE,
 } from "./page-links";
 import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 
-//FIXME: @od41 popover button doesn't always show when sidebar disappears
+//FIXME: @od41 popover button doesn't always show when sidebar disappears --FIXED
 //TODO:  @od41 fix mobile menu layout
 //TODO: @od41 display an 'x' button when the mobile menu is active
 
@@ -44,7 +45,7 @@ export const Navbar = () => {
             </Link>
             <div className="ml-auto flex items-center space-x-2 sm:justify-end">
               <div className="hidden md:block">
-                <Search />
+                <Search className="w-[240px]" />
               </div>
               {showSearch && <Search />}
               {showSearch ? (
@@ -76,7 +77,7 @@ export const Navbar = () => {
                   <div className="hidden md:block">
                     <SignInButton />
                   </div>
-                  <div className="block md:hidden">
+                  <div className="block lg:hidden">
                     <Popover>
                       <PopoverTrigger>
                         <Button
@@ -125,7 +126,7 @@ export const Navbar = () => {
                               {resourcesLinks.map((link, key) => (
                                 <Button
                                   variant="link"
-                                  key={`primary-nav-${key}`}
+                                  key={`resources-nav-${key}`}
                                   className="w-full text-sm font-normal py-0 h-9 text-muted justify-start"
                                   asChild>
                                   <Link href={link.href}>{link.title}</Link>

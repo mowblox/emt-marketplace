@@ -6,9 +6,9 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect } from "react";
+import Link from 'next/link'
 import { ONBOARDING_PAGE } from "./page-links";
-import { is } from "date-fns/locale";
 
 /**
  * Props for the SignInButton component.
@@ -93,18 +93,22 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                   <Button variant={"default"} onClick={()=>(signIn())}>
                     {isLoading? "...Signing In": label || "Sign In"}
                   </Button>
+
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <Button variant={"default"} onClick={()=> (openChainModal())}>
+
+                  <Button variant={"outline"} onClick={()=> (openChainModal())}>
+
                     Wrong network
                   </Button>
                 );
               }
               return (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Button variant={"default"} onClick={()=>(openAccountModal())}>
+                  <Button variant={"default"} size onClick={()=>(openAccountModal())}>
+
                     {account.displayName}
                   </Button>
                 </div>

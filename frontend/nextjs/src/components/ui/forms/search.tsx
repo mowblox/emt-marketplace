@@ -10,7 +10,7 @@ export function Search({className, placeholder="Search"}: Props) {
       <Input
         type="search"
         placeholder={placeholder}
-        className={cn("md:w-[100px] lg:w-[300px] rounded-full bg-accent-shade border-alt-stoke", className)}
+        className={cn("rounded-full bg-accent-shade border-alt-stoke", className)}
       />
     </>
   )
