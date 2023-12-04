@@ -4,6 +4,8 @@ import { useUser } from "@/lib/hooks/user";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import Link from 'next/link'
+import { ONBOARDING_PAGE } from "./page-links";
 
 export const SignInButton = ({ label }: { label?: string }) => {
   const { user, isLoading, session, signIn, signUpDataRef } = useUser();
@@ -42,26 +44,45 @@ export const SignInButton = ({ label }: { label?: string }) => {
             {(() => {
               if (!signedIn) {
                 return isConnected ? (
-                  <Button variant={"default"} onClick={signIn}>
+                  <div className="flex gap-2 items-center">
 
-                    {session?.isNotSignedUp? "Sign up": isLoading ? "Signing in..." : "Sign in"}
-                  </Button>
+                    <Button variant={"default"} size="sm" onClick={signIn}>
+
+                      {session?.isNotSignedUp ? "Sign up" : isLoading ? "Signing in..." : "Sign in"}
+                    </Button>
+
+                    <Button variant="outline" size="sm">
+                      <Link
+                        href={ONBOARDING_PAGE()}>
+                        New Account
+                      </Link>
+                    </Button>
+                  </div>
                 ) : (
-                  <Button variant={"default"} onClick={openConnectModal}>
-                    {label || "Connect Wallet"}
-                  </Button>
+                  <div className="flex gap-2 items-center">
+                    <Button variant={"ghost"} size="sm" onClick={openConnectModal}>
+                      {label || "Connect Wallet"}
+                    </Button>
+
+                    <Button variant="outline" size="sm">
+                      <Link
+                        href={ONBOARDING_PAGE()}>
+                        New Account
+                      </Link>
+                    </Button>
+                  </div>
                 );
               }
               if (chain.unsupported) {
                 return (
-                  <Button variant={"default"} onClick={openChainModal}>
+                  <Button variant={"outline"} size="sm" onClick={openChainModal}>
                     Wrong network
                   </Button>
                 );
               }
               return (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Button variant={"default"} onClick={openAccountModal}>
+                  <Button variant={"outline"} size="sm" onClick={openAccountModal}>
                     {account.displayName}
                   </Button>
                 </div>
