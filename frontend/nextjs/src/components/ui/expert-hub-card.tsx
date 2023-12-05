@@ -2,30 +2,15 @@ import React from 'react'
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
-    CardTitle,
 } from "@/components/ui/card"
 import Image from 'next/image'
 import Link from 'next/link';
-import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2";
-import { Button } from '@/components/ui/button';
+import { HiOutlineFire } from "react-icons/hi2";
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links';
-import useBackend from '@/lib/hooks/useBackend';
 import { ExpertTicket } from "@/lib/types";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Voter from './Voter';
-import { formatDistance } from 'date-fns';
 import { Badge } from './badge';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
 
 type Props = {
     data: ExpertTicket,
