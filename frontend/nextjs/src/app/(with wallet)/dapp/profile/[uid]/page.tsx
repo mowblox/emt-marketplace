@@ -7,6 +7,7 @@ import {
   HiCheckBadge,
   HiOutlineCog6Tooth,
   HiOutlineFire,
+  HiOutlineTicket,
   HiOutlineUserPlus,
   HiUser,
 } from "react-icons/hi2";
@@ -23,18 +24,17 @@ import { toast } from "@/components/ui/use-toast";
 import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
+import ClaimHistoryItem from "./_components/claim-history-item";
+import ClaimExptCard from "./_components/claim-expt-card";
+
+const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
+{ type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
+{ type: 'expt', amount: 5, dateClaimed: "4 hours ago" },
+{ type: 'ment', amount: 5, dateClaimed: "20 days ago" }]
+
 
 const Profile = () => {
   const { uid } = useParams();
-  // const profile = {
-  //   name: "Naval",
-  //   photoURL: "https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-  //   isExpert: true,
-  //   skill: "UX Design",
-  //   username: "naval",
-  //   about: "I’m an experienced CEO. I applied for 1001 positions. This is what happened.",
-
-  // }
   const { user } = useUser();
   const { fetchProfile, followUser, unfollowUser, checkFollowing } = useBackend();
   const router = useRouter();
@@ -144,14 +144,17 @@ const Profile = () => {
           <div className="flex justify-start gap-4 items-center w-full py-5">
             <div className="flex items-center text-sm text-accent-3">
               <HiOutlineFire className="w-4 h-4 ml-1" />
+              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">245 MENT</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
+              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">5300 Followers</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
+              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">244 Following</div>
             </div>
           </div>
@@ -160,27 +163,41 @@ const Profile = () => {
 
       <div className="flex flex-col">
         {isCurrentUserProfile ? (
-          <div>
-            <h3>Posts</h3>
-            <Posts filters={{ owner: profile.uid }} />
-          </div>
-        ) : (
           <Tabs defaultValue="my-posts" className="w-full">
             <TabsList>
               <TabsTrigger value="my-posts">My Posts</TabsTrigger>
-              <TabsTrigger value="wallet">Wallet</TabsTrigger>
+              <TabsTrigger value="wallet">My Wallet</TabsTrigger>
               <TabsTrigger value="notification-settings">
                 Notification Settings
               </TabsTrigger>
             </TabsList>
             <TabsContent value="my-posts">
+              <h4 className="text-md text-foreground font-bold mb-5">
+                Posts
+              </h4>
               <Posts filters={{ owner: profile.uid }} />
             </TabsContent>
             <TabsContent value="wallet">
               <div className="flex flex-col gap-y-4 mt-5">
+                <div className="flex p-4 items-center justify-between bg-accent-shade rounded-md">
+                  <div className="flex items-center">
+                    <div className="flex items-center text-sm">
+                      <HiOutlineFire className="w-4 h-4 ml-1 text-accent-3" />
+                      <div className="ml-1 flex items-center text-muted">Unclaimed MENT: <span className="ml-1 text-foreground">1200</span></div>
+                    </div>
+                  </div>
+                  <Button size="sm">Claim MENT</Button>
+                </div>
+
+                <ClaimExptCard />
+
                 <h4 className="text-md text-foreground font-bold mb-5">
-                  Wallet
+                  Claim History
                 </h4>
+
+                <div className="flex flex-col gap-7">
+                  {claimHistory.map((claimItem, key) => (<ClaimHistoryItem key={`claim-item-${claimItem.type}-${key}`} claimItem={claimItem} />))}
+                </div>
               </div>
             </TabsContent>
             <TabsContent value="notification-settings">
@@ -191,6 +208,11 @@ const Profile = () => {
               </div>
             </TabsContent>
           </Tabs>
+        ) : (
+          <div>
+            <h3>Posts</h3>
+            <Posts filters={{ owner: profile.uid }} />
+          </div>
         )}
       </div>
     </div>
