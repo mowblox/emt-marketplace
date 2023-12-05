@@ -196,7 +196,7 @@ const Profile = () => {
                 </h4>
 
                 <div className="flex flex-col gap-7">
-                  {claimHistory.map((claimItem, key) => (<ClaimHistoryItem claimItem={claimItem} />))}
+                  {claimHistory.map((claimItem, key) => (<ClaimHistoryItem key={`claim-item-${claimItem.type}-${key}`} claimItem={claimItem} />))}
                 </div>
               </div>
             </TabsContent>
