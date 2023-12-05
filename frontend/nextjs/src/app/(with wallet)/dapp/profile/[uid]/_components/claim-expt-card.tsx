@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { HiOutlineTicket } from 'react-icons/hi2'
 import {
     Dialog,
@@ -27,7 +27,7 @@ import { Globe2Icon } from 'lucide-react'
 import { CalendarIcon } from "@radix-ui/react-icons"
 
 import { Textarea } from '@/components/ui/textarea'
-import { isValidFileType } from "@/lib/utils"
+import { cn, isValidFileType } from "@/lib/utils"
 import { UserProfile } from '@/lib/types';
 import Image from 'next/image'
 import { placeholderImage } from '@/lib/utils'
@@ -39,6 +39,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { format } from 'date-fns'
+import { Calendar } from '@/components/ui/calendar'
+
 
 const FormSchema = z.object({
     coverImage: z
@@ -52,6 +60,13 @@ const FormSchema = z.object({
     price: z.number().min(1, {
         message: "Please add a price",
     }),
+    availableDate: z.date({
+        required_error: "A date is required.",
+    }),
+    availableTime: z.string({
+        required_error: "A time is required.",
+    }),
+    availableDuration: z.number().optional(),
     description: z.string().optional()
 })
 
@@ -59,6 +74,8 @@ const ClaimExptCard = () => {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
     })
+    const MAX_STEPS = 2
+    const [formSteps, setFormSteps] = useState(0);
 
     const currentTimezone = "UTC Time (10:00)"
 
@@ -118,96 +135,186 @@ const ClaimExptCard = () => {
                     </p>
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="coverImage"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormControl className="mb-3">
-                                <>
-                                    <div className="w-20 h-20 rounded-full relative">
-                                        <Image
-                                            src={
-                                                imageRef.current?.files?.[0]
-                                                    ? URL.createObjectURL(imageRef.current?.files?.[0])
-                                                    : placeholderImage
-                                            }
-                                            fill
-                                            placeholder={placeholderImage}
-                                            className="object-cover rounded-full"
-                                            alt={`Preview your profile picture`}
+                {(formSteps < MAX_STEPS && formSteps == 0) && <>
+
+                    <FormField
+                        control={form.control}
+                        name="coverImage"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormControl className="mb-3">
+                                    <>
+                                        <div className="w-20 h-20 rounded-full relative">
+                                            <Image
+                                                src={
+                                                    imageRef.current?.files?.[0]
+                                                        ? URL.createObjectURL(imageRef.current?.files?.[0])
+                                                        : placeholderImage
+                                                }
+                                                fill
+                                                placeholder={placeholderImage}
+                                                className="object-cover rounded-full"
+                                                alt={`Preview your profile picture`}
+                                            />
+                                        </div>
+
+                                        <Input
+                                            placeholder="New Profile Picture"
+                                            className="mb-4"
+                                            type="file"
+                                            {...field}
+                                            ref={imageRef}
                                         />
-                                    </div>
+                                        <div className="mb-4"></div>
+                                    </>
+                                </FormControl>
+                                <FormLabel>Cover Photo</FormLabel>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                                    <Input
-                                        placeholder="New Profile Picture"
-                                        className="mb-4"
-                                        type="file"
-                                        {...field}
-                                        ref={imageRef}
+                    <FormField
+                        control={form.control}
+                        name="tokenIds"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Token Id</FormLabel>
+                                <FormControl>
+                                    <Select>
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Select Token Ids" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">1</SelectItem>
+                                            <SelectItem value="2">2</SelectItem>
+                                            <SelectItem value="3">3</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Price</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Price for your EXPT token" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Message (optional)</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="What would you want your mentee to know about you and your expertise" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-xs text-muted font-normal" />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="w-full flex justify-end mb-[240px]">
+                        <Button onClick={() => setFormSteps(1)} className='w-[160px]'>Next</Button>
+                    </div>
+                </>}
+                
+                {(formSteps < MAX_STEPS && formSteps == 1) && <>
+
+                    <FormField
+                    control={form.control}
+                    name="availableDate"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Select Date &amp; Time</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-[200px] pl-3 text-center text-foreground font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        className='bg-accent-shade rounded-md p-3'
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) =>
+                                            date > new Date() || date < new Date("1900-01-01")
+                                        }
+                                        initialFocus
                                     />
-                                    <div className="mb-4"></div>
-                                </>
-                            </FormControl>
-                            <FormLabel>Cover Photo</FormLabel>
+                                </PopoverContent>
+                            </Popover>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
 
-                <FormField
-                    control={form.control}
-                    name="tokenIds"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Token Id</FormLabel>
-                            <FormControl>
-                                <Select>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select Token Ids" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="1">1</SelectItem>
-                                        <SelectItem value="2">2</SelectItem>
-                                        <SelectItem value="3">3</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                    <FormField
+                        control={form.control}
+                        name="availableTime"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Set Time</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="E.g 2:15 PM" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Price</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Price for your EXPT token" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                    <FormField
+                        control={form.control}
+                        name="availableDuration"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Set Duration</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Duration in minutes" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
 
-                <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Message (optional)</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="What would you want your mentee to know about you and your expertise" {...field} />
-                            </FormControl>
-                            <FormMessage className="text-xs text-muted font-normal" />
-                        </FormItem>
-                    )}
-                />
-                <div className="w-full flex justify-end mb-[240px]">
-                    <Button type="submit" className='w-[160px]'>Next</Button>
+                <div className="">
+                    <div className="text-sm mb-2">Time Zone</div>
+                    <div className="text-xs text-muted flex items-center">
+                        <Globe2Icon className='w-4 h-4 mr-2' /> {currentTimezone}
+                        <Button variant="ghost" className="text-xs hover:bg-transparent text-accent-3 hover:text-accent-4">Update</Button>
+                    </div>
                 </div>
+
+                    <div className="w-full flex justify-end mb-[240px] gap-4">
+                        <Button className='w-[160px]' variant="outline" onClick={()=> setFormSteps(0)}>Back</Button>
+                        <Button type="submit" className='w-[160px]'>Save &amp; List</Button>
+                    </div>
+                </>}
             </form>
         </Form>
     }
