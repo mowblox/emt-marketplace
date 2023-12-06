@@ -66,6 +66,8 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     const account = useAccount();
     
   const [contracts, setContracts] = useState<ContractContext | null>(null);
+
+
   
   useEffect(() => {
     if (typeof window == "undefined") {
@@ -89,6 +91,14 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
       const ExpertToken = new ethers.Contract(ExpertToken_.address, ExpertToken_.abi, provider)  as unknown as ExpertToken ;
       const MentorToken = new ethers.Contract(MentorToken_.address, MentorToken_.abi, provider)  as unknown as MentorToken;
 
+      //TODO: @Jovells REMOVE THIS
+        //@ts-ignore
+        window.EMTMarketPlace = EMTMarketPlace;
+        //@ts-ignore
+        window.ExpertToken = ExpertToken;
+        //@ts-ignore
+        window.MentorToken = MentorToken;
+
       setContracts({
         EMTMarketPlace,
         ExpertToken,
@@ -98,7 +108,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchContracts();
-  }, []);
+  }, [window?.ethereum, chain.id, account?.address]);
 
   if (!contracts) {
     return <div><PageLoading /></div>;

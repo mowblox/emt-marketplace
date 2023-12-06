@@ -19,8 +19,13 @@ import {
   endBefore,
   Timestamp,
   deleteDoc,
+  getCountFromServer,
+  collectionGroup,
+  Firestore,
+  documentId,
+  DocumentReference,
 } from "firebase/firestore";
-import { storage } from "../firebase";
+import { firestore, storage } from "../firebase";
 import { toast } from "@/components/ui/use-toast";
 import {
   getDownloadURL,
@@ -187,11 +192,52 @@ export default function useBackend() {
     }
   }
 
-  async function fetchProfile(id: string) {
+  async function fetchNumFollowers(id: string) {
+    const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
+    const querySnapshot = await getCountFromServer(query(userFollowersRef));
+    const count = querySnapshot.data().count;
+    console.log('fetchNumFollowers', count)
+    return count;
+  }
+
+  async function fetchNumFollowing(id: string) {
+    const q = query(collectionGroup(firestore, 'followers'), where('uid', "==", id));
+    const querySnapshot = await getCountFromServer(q);
+    const count = querySnapshot.data().count;
+    console.log('fetchNumFollowing', count)
+    return count;
+  }
+
+  async function fetchUserDoc(id: string) {
     const userDocRef = doc(USERS_COLLECTION, id);
     const userDoc = await getDoc(userDocRef);
-    const profile : UserProfile = userDoc.data() as UserProfile;
-    return profile;
+    const data = userDoc.data() as UserProfile;
+    data && (data.uid = id);
+    return data;
+  }
+
+  async function fetchMent(address: string){
+    //TODO: @Jovells fetch from contract
+    return 200
+  }
+
+  async function fetchProfile(id: string) {
+    try {
+      const userDocRef = doc(USERS_COLLECTION, id);
+      const [user, numFollowers, numFollowing, ment] = await  Promise.all(
+        [fetchUserDoc(id),
+        fetchNumFollowers(id),
+        fetchNumFollowing(id),
+        fetchMent(id)]
+        );
+      const profile : UserProfile = {...user, numFollowers, numFollowing, ment};
+     
+      console.log('fetched Profile', profile)
+      return profile;
+    } catch (err: any) {
+      console.log("Error fetching profile. Details: " + err);
+      throw new Error(err);
+    }
   }
 
   /**
@@ -216,6 +262,7 @@ export default function useBackend() {
         q = query(q, where("owner", "in", filters.isFollowing));
     }
 
+    console.log("postFilters", filters)
     
     const querySnapshot = await getDocs(q);
 
@@ -229,12 +276,12 @@ export default function useBackend() {
   }
 
   useEffect(() => {
-    async function setSigner() {
+    async function connectToSigner() {
       const signer = await provider.getSigner();
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(signer));
     }
     if (user && provider) {
-      setSigner();
+      connectToSigner();
     }
   }, [user, provider, EMTMarketPlace]);
 
@@ -249,12 +296,15 @@ export default function useBackend() {
     body: string;
     image?: Blob;
   }) {
+    console.log("writing to blockchain", post);
     const docRef = doc(CONTENTS_COLLECTION);
     const id = ethers.encodeBytes32String(docRef.id);
     try {
-      const tx = await EMTMarketPlaceWithSigner.addContent(id);
-      await tx.wait();
-      console.log("Content added to blockchain");
+      console.log("emtMarketPlaceWithSigner", EMTMarketPlaceWithSigner);
+      const tx = await EMTMarketPlaceWithSigner.addContent(id, {gasLimit: 1000000});
+      const receipt = await tx.wait();
+
+      console.log("Content added to blockchain. Receipt:", receipt );
     } catch (err: any) {
       console.log("Error writing to blockchain. Details: " + err.message);
       throw new Error("Error writing to blockchain. Details: " + err.message);
@@ -263,6 +313,7 @@ export default function useBackend() {
 
     if (post.image) {
       try {
+        console.log("uploading image");
         imageURL = await uploadImage(post.image, docRef.id, "contentImages");
       } catch (err: any) {
         throw new Error("Error uploading image. Details: " + err.message);
@@ -270,6 +321,7 @@ export default function useBackend() {
     }
 
     try {
+      console.log("writing to database")
       await setDoc(docRef, {
         title: post.title,
         body: post.body,
@@ -317,7 +369,7 @@ export default function useBackend() {
     let tx: ContractTransactionResponse;
     try {
       if (voteType === "upvote") {
-        tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId);
+        tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId, {gasLimit: 1000000});
       } else if (voteType === "downvote") {
         tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
       }
