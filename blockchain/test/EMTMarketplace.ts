@@ -89,6 +89,10 @@ describe("EMTMarketplace", function () {
       const memberVotes = await emtMarketplace.connect(member).memberVotes(contentId, member.address);
       expect(memberVotes[0]).to.equal(true);
       expect(memberVotes[1]).to.equal(false);
+      const creatorVotes = await emtMarketplace.creatorVotes(mentor.address)
+      expect(creatorVotes[0]).to.equal(1);
+      expect(creatorVotes[1]).to.equal(0);
+      expect(creatorVotes[2]).to.equal(1);
     });
 
     it("should allow a member to upvote downvoted content", async function () {
@@ -101,6 +105,10 @@ describe("EMTMarketplace", function () {
       const memberVotes = await emtMarketplace.connect(member).memberVotes(contentId, member.address);
       expect(memberVotes[0]).to.equal(true);
       expect(memberVotes[1]).to.equal(false);
+      const creatorVotes = await emtMarketplace.creatorVotes(mentor.address)
+      expect(creatorVotes[0]).to.equal(1);
+      expect(creatorVotes[1]).to.equal(0);
+      expect(creatorVotes[2]).to.equal(1);
     });
 
     it("should fail to upvote content with creator address set to address(0)", async function () {
@@ -150,6 +158,10 @@ describe("EMTMarketplace", function () {
       const memberVotes = await emtMarketplace.connect(member).memberVotes(contentId, member.address);
       expect(memberVotes[0]).to.equal(false);
       expect(memberVotes[1]).to.equal(true);
+      const creatorVotes = await emtMarketplace.creatorVotes(mentor.address)
+      expect(creatorVotes[0]).to.equal(0);
+      expect(creatorVotes[1]).to.equal(1);
+      expect(creatorVotes[2]).to.equal(-1);
     });
 
     it("should allow a member to downvote upvoted content", async function () {
@@ -162,6 +174,10 @@ describe("EMTMarketplace", function () {
       const memberVotes = await emtMarketplace.connect(member).memberVotes(contentId, member.address);
       expect(memberVotes[0]).to.equal(false);
       expect(memberVotes[1]).to.equal(true);
+      const creatorVotes = await emtMarketplace.creatorVotes(mentor.address)
+      expect(creatorVotes[0]).to.equal(0);
+      expect(creatorVotes[1]).to.equal(1);
+      expect(creatorVotes[2]).to.equal(-1);
     });
 
     it("should fail to downvote content with creator address set to address(0)", async function () {
@@ -210,9 +226,11 @@ describe("EMTMarketplace", function () {
 
       await emtMarketplace.connect(mentor).addContent(contentId);
       await emtMarketplace.connect(member).upVoteContent(contentId);
+      expect(await emtMarketplace.unclaimedMent(mentor.address)).to.be.equal(10);
 
       await emtMarketplace.connect(owner).pause();
       await expect(emtMarketplace.connect(mentor).claimMent()).to.be.emit(emtMarketplace, "MentClaimed");
+      expect(await emtMarketplace.unclaimedMent(mentor.address)).to.be.equal(0);
     });
 
     it("should not claim ment if ment token address is zero", async function () {
@@ -244,12 +262,14 @@ describe("EMTMarketplace", function () {
 
       await mentorToken.connect(owner).grantRole(await mentorToken.MINTER_ROLE(), owner.address);
       await mentorToken.connect(owner).mint(mentor.address, 1100);
+      expect(await emtMarketplace.unclaimedExpt(mentor.address, 1)).to.be.equal(50);
       await expect(emtMarketplace.connect(mentor).claimExpt(1)).to.be.emit(emtMarketplace, "ExptClaimed");
       await mentorToken.connect(owner).mint(mentor.address, 2100);
+      expect(await emtMarketplace.unclaimedExpt(mentor.address, 2)).to.be.equal(50);
       await expect(emtMarketplace.connect(mentor).claimExpt(2)).to.be.emit(emtMarketplace, "ExptClaimed");
       await mentorToken.connect(owner).mint(mentor.address, 2500);
+      expect(await emtMarketplace.unclaimedExpt(mentor.address, 3)).to.be.equal(100);
       await expect(emtMarketplace.connect(mentor).claimExpt(3)).to.be.emit(emtMarketplace, "ExptClaimed");
-      // console.log(await expertToken.balanceOf(mentor.address));
     });
 
     it("should not claim expt if expt token address is zero", async function () {
@@ -280,18 +300,19 @@ describe("EMTMarketplace", function () {
     });
   });
 
-  describe("EXPT Deposit & Withdrawal", function () {
-    it("mentor should be able to deposit EXPT to marketplace", async function () {
+  describe("EXPT Offering, Buying & Withdrawal", function () {
+    it("mentor should be able to offer EXPT on marketplace", async function () {
       const { emtMarketplace, expertToken, mentorToken, stableCoin, owner, mentor } = await loadFixture(deployEMTMarketplaceFixture);
       await emtMarketplace.connect(owner).setTokenAddresses(mentorToken.target, expertToken.target);
 
       await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
       await expertToken.connect(owner).mint(mentor.address, 10);
-      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
-        ['address', 'uint256'],
-        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
-      );
-      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+      await expertToken.connect(mentor).setApprovalForAll(emtMarketplace.target, true);
+      await expect(emtMarketplace.connect(mentor).offerExpts(
+        [0],
+        stableCoin.target,
+        ethers.parseUnits("10", await stableCoin.decimals())
+      )).to.be.emit(emtMarketplace, "ExptDeposited");
     });
 
     it("member should be able to buy EXPT from marketplace", async function () {
@@ -301,11 +322,12 @@ describe("EMTMarketplace", function () {
       // Deposit
       await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
       await expertToken.connect(owner).mint(mentor.address, 10);
-      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
-        ['address', 'uint256'],
-        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
-      );
-      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+      await expertToken.connect(mentor).setApprovalForAll(emtMarketplace.target, true);
+      await expect(emtMarketplace.connect(mentor).offerExpts(
+        [0],
+        stableCoin.target,
+        ethers.parseUnits("10", await stableCoin.decimals())
+      )).to.be.emit(emtMarketplace, "ExptDeposited");
 
       // Buy
       const exptOffer = await emtMarketplace.exptOffers(0);
@@ -320,11 +342,12 @@ describe("EMTMarketplace", function () {
       // Deposit
       await expertToken.connect(owner).grantRole(await expertToken.MINTER_ROLE(), owner.address);
       await expertToken.connect(owner).mint(mentor.address, 10);
-      const calldata = ethers.AbiCoder.defaultAbiCoder().encode(
-        ['address', 'uint256'],
-        [stableCoin.target, ethers.parseUnits("10", await stableCoin.decimals())]
-      );
-      await expect(expertToken.connect(mentor)["safeTransferFrom(address,address,uint256,bytes)"](mentor.address, emtMarketplace.target, 0, calldata)).to.be.emit(emtMarketplace, "ExptDeposited");
+      await expertToken.connect(mentor).setApprovalForAll(emtMarketplace.target, true);
+      await expect(emtMarketplace.connect(mentor).offerExpts(
+        [0],
+        stableCoin.target,
+        ethers.parseUnits("10", await stableCoin.decimals())
+      )).to.be.emit(emtMarketplace, "ExptDeposited");
 
       // Withdrawal
       await expect(emtMarketplace.connect(mentor).withdrawExpt(0)).to.be.emit(emtMarketplace, "ExptWithdrawn");
