@@ -66,6 +66,7 @@ const CreatePostForm = () => {
             id: t.id,
             title: "Post published!",
             variant: "success",
+            duration: 1000,
         })
     }
 

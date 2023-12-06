@@ -246,17 +246,14 @@ const Profile = () => {
           <div className="flex justify-start gap-4 items-center w-full py-5">
             <div className="flex items-center text-sm text-accent-3">
               <HiOutlineFire className="w-4 h-4 ml-1" />
-              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">{profile.ment} MENT</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
-              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">{profile.numFollowers} Followers</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
-              {/* TODO: @jovells remove placeholder */}
               <div className="ml-1">{profile.numFollowing} Following</div>
             </div>
           </div>
