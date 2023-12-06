@@ -301,7 +301,7 @@ export default function useBackend() {
     const id = ethers.encodeBytes32String(docRef.id);
     try {
       console.log("emtMarketPlaceWithSigner", EMTMarketPlaceWithSigner);
-      const tx = await EMTMarketPlaceWithSigner.addContent(id, {gasLimit: 1000000});
+      const tx = await EMTMarketPlaceWithSigner.addContent(id);
       const receipt = await tx.wait();
 
       console.log("Content added to blockchain. Receipt:", receipt );
@@ -369,7 +369,7 @@ export default function useBackend() {
     let tx: ContractTransactionResponse;
     try {
       if (voteType === "upvote") {
-        tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId, {gasLimit: 1000000});
+        tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId);
       } else if (voteType === "downvote") {
         tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
       }
