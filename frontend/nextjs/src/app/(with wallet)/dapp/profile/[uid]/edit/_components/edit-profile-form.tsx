@@ -25,6 +25,7 @@ import { useUser } from "@/lib/hooks/user";
 import { isValidFileType, profilePlaceholderImage } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { TAGS } from "@/lib/contants";
+import { PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
 
 const formSchema = z.object({
   displayName: z
@@ -43,23 +44,23 @@ const formSchema = z.object({
     message: "Please enter a valid email address",
   }),
   about: z.string().optional(),
-  profilePicture: z.string().optional().refine((value) =>value? isValidFileType(value) : true, {
+  profilePicture: z.string().optional().refine((value) => value ? isValidFileType(value) : true, {
     message: 'Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.',
-}),
+  }),
   tags: z.array(z.string()).optional(),
 });
 
 const EditProfileForm = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { uid }:{uid: string}   = useParams() ;
+  const { uid }: { uid: string } = useParams();
   const { updateProfile, fetchProfile } = useBackend();
   const { data: profile } = useQuery({
     queryKey: ["profile", uid, user],
     queryFn: () => fetchProfile(uid),
-    select: (data) => {setSelectedTags(data?.tags || []); return data}
+    select: (data) => { setSelectedTags(data?.tags || []); return data }
   });
-  console.log('profile',profile)
+  console.log('profile', profile)
 
   const imageRef = useRef<HTMLInputElement>(null);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -74,10 +75,12 @@ const EditProfileForm = () => {
 
   });
   const [selectedTags, setSelectedTags] = useState(profile?.tags || []);
+  const [isButtonLoading, setButtonLoading] = useState(false)
 
   const { toast } = useToast();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setButtonLoading(true)
     function areArraysEqual(arr1?: Array<string>, arr2?: Array<string>) {
       if (!arr1 || !arr2) return false;
       if (arr1.length !== arr2.length) return false;
@@ -115,13 +118,15 @@ const EditProfileForm = () => {
         title: "Profile updated!",
         variant: "success",
       });
-      router.push("/dapp/profile/" + uid);
+      setButtonLoading(false)
+      router.push(PROFILE_PAGE(uid));
     } catch (err) {
       console.log("err", err);
       toast({
         title: "Error updating profile",
         variant: "destructive",
       });
+      setButtonLoading(false)
     }
   }
 
@@ -236,8 +241,8 @@ const EditProfileForm = () => {
                         setSelectedTags(
                           isSelected
                             ? selectedTags.filter(
-                                (item: string) => item !== tag
-                              )
+                              (item: string) => item !== tag
+                            )
                             : [...selectedTags, tag]
                         );
                       return (
@@ -265,10 +270,11 @@ const EditProfileForm = () => {
           />
 
           <div className="flex justify-end w-full">
-            <Button variant="outline" className="w-[160px] mr-3">
+            {/* FIX: @jovells when i click cancel it shows "profile update" before routing to the profile page, why is that? */}
+            <Button onClick={() => { router.push(PROFILE_PAGE(uid)); }} variant="outline" className="w-[160px] mr-3">
               Cancel
             </Button>
-            <Button type="submit" variant="default" className="w-[160px] ">
+            <Button type="submit" isLoading={isButtonLoading} loadingText='Updating profile' variant="default" className="w-[160px] ">
               Update Profile
             </Button>
           </div>

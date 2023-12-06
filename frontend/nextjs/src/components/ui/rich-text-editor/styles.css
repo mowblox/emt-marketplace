@@ -57,3 +57,23 @@
     color: hsl(var(--text-muted));
     font-style: normal;
 }
+
+.ql-snow .ql-tooltip {
+    background-color: hsl(var(--accent-shade));
+    border: 1px solid;
+    border-color: hsl(var(--stroke) / 0.1);
+    box-shadow: 0px 0px 5px hsl(var(--accent-1));
+    color: hsl(var(--text-muted));
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.ql-snow .ql-tooltip input[type=text] {
+    border: 1px solid;
+    border-color: hsl(var(--stroke) / 0.1);
+    background-color: hsl(var(--accent-1));
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.ql-snow a {
+    color: hsl(var(--accent-3));
+}
