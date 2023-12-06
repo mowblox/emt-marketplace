@@ -44,7 +44,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const signUpDataRef = useRef<SignUpData>({});
   const signUpData = signUpDataRef.current;
 
-  console.log('u');
+  console.log('user provider');
 
   const router = useRouter();
 
@@ -66,7 +66,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       duration: Infinity,
     })
     const data = {...signUpData}
-    delete signUpData.profilePicture
+    delete data.profilePicture
 
     const updateResult = await update({ signUpData: data }) as UserSession;
     console.log('updateResult', updateResult)
@@ -89,6 +89,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = useMemo(() => async function (options?:{redirect?: boolean }) {
+    console.error('signing in', session?.firebaseToken?.substring(0, 4))
     try {
       setIsLoading(true);
       if (session?.firebaseToken) {
@@ -113,7 +114,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session?.firebaseToken])
 
+
   useEffect(() => {
+
     async function _signOut() {
       setIsLoading(true)
       signOut(auth).then(() => {

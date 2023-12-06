@@ -66,6 +66,8 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     const account = useAccount();
     
   const [contracts, setContracts] = useState<ContractContext | null>(null);
+
+
   
   useEffect(() => {
     if (typeof window == "undefined") {
@@ -98,7 +100,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchContracts();
-  }, []);
+  }, [window?.ethereum, chain.id, account?.address]);
 
   if (!contracts) {
     return <div><PageLoading /></div>;

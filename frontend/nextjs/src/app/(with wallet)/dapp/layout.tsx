@@ -26,7 +26,6 @@ type Props = {
 export default async function DappLayout({
   children
 }: Props) {
-  const session = await getServerSession();
 
   return (
     <>

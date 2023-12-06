@@ -233,7 +233,7 @@ export const authOptions: NextAuthOptions = {
           const updated = await firestore
             .collection(USERS_COLLECTION)
             .doc(token.sub)
-            .update(session);
+            .update(session.updates);
           console.log("UPDATEDfire", updated);
         }
       }

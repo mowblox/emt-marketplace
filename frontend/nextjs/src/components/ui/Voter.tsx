@@ -2,14 +2,20 @@ import React from "react";
 import { Button } from "./button";
 import { HiOutlineHandThumbDown, HiOutlineHandThumbUp } from "react-icons/hi2";
 import { Content } from "@/lib/types";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import useBackend from "@/lib/hooks/useBackend";
 import { useQueryClient } from "wagmi";
+import { toast } from "./use-toast";
+import { useUser } from "@/lib/hooks/user";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 
     export default function Voter({post}:{post:Content}) {
         const {voteOnPost} = useBackend();
+        const {user} = useUser();
+        const {openConnectModal} = useConnectModal()
 
-        const { mutateAsync, data: votes  } = useMutation({
+
+        const { mutateAsync, error, data: votes  } = useMutation({
             mutationKey: ["vote", post.metadata.id],
             mutationFn: async (vote: {
               id: string;
@@ -26,6 +32,17 @@ import { useQueryClient } from "wagmi";
           async function handleVote(
             e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
           ) {
+            if(!user){
+              toast({
+                title: "Login",
+                description: "Please login to vote",
+              })
+              return openConnectModal?.();
+            }
+            toast({
+              title: "Voting",
+              description: "Your vote is being processed",
+            })
             const voteType = e.currentTarget.name as "upvote" | "downvote";
             const res = await mutateAsync({
               id: post.metadata.id,
@@ -40,7 +57,7 @@ import { useQueryClient } from "wagmi";
                                 <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
                             </Button>
                             <div className='text-sm text-foreground ml-1'>
-                                {post.metadata.upvotes}
+                                {votes? votes.upvotes : post.metadata.upvotes}
                             </div>
                             
                         </div>
