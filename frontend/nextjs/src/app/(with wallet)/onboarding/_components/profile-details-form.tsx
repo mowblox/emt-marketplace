@@ -22,7 +22,6 @@ import { useUser } from '@/lib/hooks/user'
 import useBackend from '@/lib/hooks/useBackend'
 import { ONBOARDING_PAGE } from '../../_components/page-links'
 
-//TODO: @Jovells a prevent multiple email signups
 const formSchema = z.object({
     displayName: z.string().min(1, {
         message: "Title can't be empty",

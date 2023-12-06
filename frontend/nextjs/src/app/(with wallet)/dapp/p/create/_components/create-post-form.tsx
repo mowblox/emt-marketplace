@@ -53,17 +53,20 @@ const CreatePostForm = () => {
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+       const t = toast({
+            title: "Publishing post...",
+            description: "Mining transaction...",
+            duration: Infinity
+        
+        })
         const image = imageRef.current?.files![0] as File;
-
         const {id, imageURL} = await mutateAsync({title: values.postTitle, body: values.postBody, image})
-
         router.push(POST_PAGE(id));
-
-
-
-        toast({
+        t.update({
+            id: t.id,
             title: "Post published!",
             variant: "success",
+            duration: 1000,
         })
     }
 

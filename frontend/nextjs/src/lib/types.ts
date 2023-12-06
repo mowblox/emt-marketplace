@@ -69,7 +69,10 @@ export type UserProfile ={
   isExpert?: boolean;
   skill?: string;
   level?: number;
-  username?: string
+  username?: string;
+  ment?: number;
+  numFollowers?: number;
+  numFollowing?: number;
   sessionStats?: {
     sessions: number;
     timeSpent: number;

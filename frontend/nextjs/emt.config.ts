@@ -37,11 +37,9 @@ export const toposTestnet = {
   // },
 } as const satisfies Chain 
 
-
-
  const productionChain = toposTestnet
 
- const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain]
+ const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, polygonMumbai]
 
  const { chains, publicClient } = configureChains(
   envChains,

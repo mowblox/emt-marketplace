@@ -134,13 +134,15 @@ const Profile = () => {
   const ready = !!(uid && user?.uid);
   const isCurrentUserProfile = user?.uid === uid 
   
-  const { data: profile } = useQuery({
+  //fetch profile
+  const { data: profile} = useQuery({
     queryKey: ["profile", uid],
     queryFn: () => fetchProfile(uid as string),
     enabled: !!uid,
+    throwOnError: (error)=>{ console.log(error); return false}
   });
 
-
+  //check if following
   const {data: isFollowingUser, } = useQuery({
     queryKey: ["isFollowing", uid],
     queryFn: (v) => checkFollowing(uid as string),
@@ -150,6 +152,7 @@ const Profile = () => {
   console.log('user', user?.uid, 'uidparam', uid, 'isCurrentUserProfile', isCurrentUserProfile, 'isFollowingUser', isFollowingUser,)
   const queryClient = useQueryClient();
 
+  //follow/unfollow user
   const {mutateAsync} = useMutation( {
     mutationFn: ()=>  isFollowingUser? unfollowUser(profile?.uid!) :followUser(profile?.uid!),
     onSuccess: () => {
@@ -172,6 +175,13 @@ const Profile = () => {
     })
 
   }
+
+  //fetch followers
+  const { data: followers } = useQuery({
+    queryKey: ["followers", uid],
+    queryFn: () => fetchProfile(uid as string),
+    enabled: !!uid,
+  })
 
 
   console.log('profile', profile, "ready", ready)
@@ -236,18 +246,15 @@ const Profile = () => {
           <div className="flex justify-start gap-4 items-center w-full py-5">
             <div className="flex items-center text-sm text-accent-3">
               <HiOutlineFire className="w-4 h-4 ml-1" />
-              {/* TODO: @jovells remove placeholder */}
-              <div className="ml-1">245 MENT</div>
+              <div className="ml-1">{profile.ment} MENT</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
-              {/* TODO: @jovells remove placeholder */}
-              <div className="ml-1">5300 Followers</div>
+              <div className="ml-1">{profile.numFollowers} Followers</div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
-              {/* TODO: @jovells remove placeholder */}
-              <div className="ml-1">244 Following</div>
+              <div className="ml-1">{profile.numFollowing} Following</div>
             </div>
           </div>
         </div>

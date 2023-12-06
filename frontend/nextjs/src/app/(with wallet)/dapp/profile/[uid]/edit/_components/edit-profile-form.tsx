@@ -43,34 +43,35 @@ const formSchema = z.object({
     message: "Please enter a valid email address",
   }),
   about: z.string().optional(),
-  profilePicture: z
-    .string()
-    .refine((value) => isValidFileType(value), {
-      message:
-        "Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.",
-    })
-    .optional(),
+  profilePicture: z.string().optional().refine((value) =>value? isValidFileType(value) : true, {
+    message: 'Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.',
+}),
   tags: z.array(z.string()).optional(),
 });
 
 const EditProfileForm = () => {
   const { user } = useUser();
-  console.log("user", user);
   const router = useRouter();
   const { uid }:{uid: string}   = useParams() ;
   const { updateProfile, fetchProfile } = useBackend();
-
   const { data: profile } = useQuery({
-    queryKey: ["profile", uid],
+    queryKey: ["profile", uid, user],
     queryFn: () => fetchProfile(uid),
-    select: (data) => {setSelectedTags(data?.tags || []);  Object.entries(data).forEach(([key, value]:[key:any, value:any])=>form.setValue(key, value)) ; return data} ,
+    select: (data) => {setSelectedTags(data?.tags || []); return data}
   });
   console.log('profile',profile)
 
   const imageRef = useRef<HTMLInputElement>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: profile,
+    values: {
+      displayName: profile?.displayName,
+      username: profile?.username,
+      about: profile?.about,
+      tags: profile?.tags,
+      email: user?.email || "",
+    },
+
   });
   const [selectedTags, setSelectedTags] = useState(profile?.tags || []);
 
@@ -97,6 +98,7 @@ const EditProfileForm = () => {
           changes[key] = newObj[key];
         }
       }
+      console.log("changes", changes)
 
       return changes;
     }
@@ -139,7 +141,7 @@ const EditProfileForm = () => {
                         src={
                           imageRef.current?.files?.[0]
                             ? URL.createObjectURL(imageRef.current?.files?.[0])
-                            : profile?.photoURL || profilePlaceholderImage
+                            : user?.photoURL || profilePlaceholderImage
                         }
                         fill
                         placeholder={profilePlaceholderImage}
