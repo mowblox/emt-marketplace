@@ -21,7 +21,7 @@ import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { POST_PAGE } from '@/app/(with wallet)/_components/page-links'
+import { HOME_PAGE, POST_PAGE } from '@/app/(with wallet)/_components/page-links'
 
 
 const formSchema = z.object({
@@ -128,8 +128,9 @@ const CreatePostForm = () => {
                             </FormItem>
                         )}
                     />
-                    <div className="flex justify-end w-full">
-                        <Button type="submit" variant='gradient' className='w-[160px] '>Post</Button>
+                    <div className="flex justify-end w-full gap-4">
+                        <Button onClick={()=> {router.push(HOME_PAGE);}} variant='outline' className='w-full md:w-[160px] '>Cancel</Button>
+                        <Button type="submit" variant='gradient' className='w-full md:w-[160px] '>Post</Button>
                     </div>
                 </form>
             </Form>
