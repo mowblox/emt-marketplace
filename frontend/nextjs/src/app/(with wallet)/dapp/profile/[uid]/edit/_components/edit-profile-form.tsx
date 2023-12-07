@@ -26,6 +26,7 @@ import { isValidFileType, profilePlaceholderImage } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { TAGS } from "@/lib/contants";
 import { PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
+import { Progress } from "@/components/ui/progress";
 
 const formSchema = z.object({
   displayName: z
@@ -78,6 +79,15 @@ const EditProfileForm = () => {
   const [isButtonLoading, setButtonLoading] = useState(false)
 
   const { toast } = useToast();
+  
+  // TODO INFO: @jovells if you want to create a toast with a progress bar, use the snippet below
+  // toast({
+  //   title: "Profile updated!",
+  //   description: <div>success success success success success
+  //     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
+  //   </div>,
+  //   duration: Infinity
+  // });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setButtonLoading(true)

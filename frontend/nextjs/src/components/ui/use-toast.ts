@@ -1,5 +1,4 @@
 // Inspired by react-hot-toast library
-//TODOO: @od41 add loading toast
 import * as React from "react"
 
 import type {

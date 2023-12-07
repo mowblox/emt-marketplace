@@ -26,7 +26,7 @@ import {
 import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 
-//FIXME: @od41 popover button doesn't always show when sidebar disappears --FIXED
+
 //TODO:  @od41 fix mobile menu layout
 //TODO: @od41 display an 'x' button when the mobile menu is active
 

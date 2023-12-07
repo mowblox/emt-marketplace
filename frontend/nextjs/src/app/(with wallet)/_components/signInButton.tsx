@@ -82,7 +82,8 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                 console.log('not signed up')
                 return (
                   <Button variant={"default"} asChild>
-                    <Link href={ONBOARDING_PAGE()}>Sign Up</Link>
+                    {/* @jovells onboarding should start on the second page. Currently is too many steps */}
+                    <Link href={ONBOARDING_PAGE(2)}>Sign Up</Link>
                   </Button>
                 );
               }
