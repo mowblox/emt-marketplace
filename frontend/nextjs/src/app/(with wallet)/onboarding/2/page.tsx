@@ -11,6 +11,7 @@ const OnboardingPageOne = () => {
         <Image src={String(onboardingPhoto.default.src)} fill className="object-contain" alt="Onboarding photo"/>
       </div>
       <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
+        <h4 className='text-xl md:text-xl font-semibold tracking-wider'>Your identity on MEMM! is essential for building connections.</h4>
         <ProfileDetailsForm />
       </div>
     </div>

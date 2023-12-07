@@ -45,11 +45,19 @@ struct ContentVote {
 
 ```solidity
 struct ExptOffer {
-  address seller;
   address owner;
   uint256 tokenId;
-  address paymentToken;
+  address stablecoin;
   uint256 amount;
+}
+```
+
+### ExptLevel
+
+```solidity
+struct ExptLevel {
+  uint256 requiredMent;
+  uint256 receivableExpt;
 }
 ```
 
@@ -143,6 +151,12 @@ uint256 exptBuyFeePercent
 mapping(uint256 => struct EMTMarketplace.ExptOffer) exptOffers
 ```
 
+### exptLevels
+
+```solidity
+mapping(uint256 => struct EMTMarketplace.ExptLevel) exptLevels
+```
+
 ### _contentVotes
 
 ```solidity
@@ -167,35 +181,63 @@ mapping(address => uint256) _creatorTickets
 constructor(address defaultAdmin) public
 ```
 
+_Grants defaultAdmin & pauser roles._
+
 ### pause
 
 ```solidity
-function pause() public
+function pause() external
 ```
+
+_Pauses marketplace to allow for MENT claiming._
 
 ### unpause
 
 ```solidity
-function unpause() public
+function unpause() external
 ```
+
+_Unpauses marketplace to allow voting._
 
 ### setTokenAddresses
 
 ```solidity
-function setTokenAddresses(address _mentTokenAddress, address _exptTokenAddress) public
+function setTokenAddresses(address _mentTokenAddress, address _exptTokenAddress) external
 ```
+
+_Sets MENT & EXPT token addresses._
 
 ### setUpVoteMultiplier
 
 ```solidity
-function setUpVoteMultiplier(uint256 _upVoteMultiplier) public
+function setUpVoteMultiplier(uint256 _upVoteMultiplier) external
 ```
+
+_Sets the up vote weight._
 
 ### setDownVoteMultiplier
 
 ```solidity
-function setDownVoteMultiplier(uint256 _downVoteMultiplier) public
+function setDownVoteMultiplier(uint256 _downVoteMultiplier) external
 ```
+
+_Sets the down vote weight._
+
+### setExptLevel
+
+```solidity
+function setExptLevel(uint256 _level, uint256 _requiredMent, uint256 _receivableExpt) external
+```
+
+_Sets expt level._
+
+### creatorVotes
+
+```solidity
+function creatorVotes(address _creator) external view returns (uint256, uint256, int256)
+```
+
+_Returns creator's upvotes, downvotes & difference._
 
 ### contentVotes
 
@@ -203,11 +245,31 @@ function setDownVoteMultiplier(uint256 _downVoteMultiplier) public
 function contentVotes(bytes32 _id) public view returns (uint256, uint256, int256)
 ```
 
+_Returns content's upvotes, downvotes & difference._
+
 ### memberVotes
 
 ```solidity
 function memberVotes(bytes32 _id, address _member) public view returns (bool, bool)
 ```
+
+_Returns member upvoted or downvoted status for a particular content id._
+
+### unclaimedMent
+
+```solidity
+function unclaimedMent(address _creator) external view returns (int256)
+```
+
+_Returns unclaimed MENT for a creator._
+
+### unclaimedExpt
+
+```solidity
+function unclaimedExpt(address _creator, uint256 _level) external view returns (uint256)
+```
+
+_Returns unclaimed EXPT for a creator._
 
 ### addContent
 
@@ -215,11 +277,15 @@ function memberVotes(bytes32 _id, address _member) public view returns (bool, bo
 function addContent(bytes32 _id) public
 ```
 
+_Adds content with _id to allow for voting to begin._
+
 ### upVoteContent
 
 ```solidity
 function upVoteContent(bytes32 _id) public
 ```
+
+_Allows upvoting of content with _id._
 
 ### downVoteContent
 
@@ -227,17 +293,31 @@ function upVoteContent(bytes32 _id) public
 function downVoteContent(bytes32 _id) public
 ```
 
+_Allows downvoting of content with _id._
+
 ### claimMent
 
 ```solidity
 function claimMent() public
 ```
 
+_Allows mentor to claim MENT._
+
 ### claimExpt
 
 ```solidity
-function claimExpt(uint256 _quantity) public
+function claimExpt(uint256 _level) public
 ```
+
+_Allows mentor to claim EXPT for a level _level._
+
+### offerExpts
+
+```solidity
+function offerExpts(uint256[] _tokenIds, address _stablecoin, uint256 _amount) external
+```
+
+_Allows mentor to offer their EXPT tokens for sale._
 
 ### buyExpt
 
@@ -245,26 +325,15 @@ function claimExpt(uint256 _quantity) public
 function buyExpt(uint256 _tokenId) public
 ```
 
+_Allows member to buy EXPT._
+
 ### withdrawExpt
 
 ```solidity
 function withdrawExpt(uint256 _tokenId) public
 ```
 
-### onERC721Received
-
-```solidity
-function onERC721Received(address operator, address from, uint256 tokenId, bytes data) external returns (bytes4)
-```
-
-_Whenever an {IERC721} `tokenId` token is transferred to this contract via {IERC721-safeTransferFrom}
-by `operator` from `from`, this function is called.
-
-It must return its Solidity selector to confirm the token transfer.
-If any other value is returned or the interface is not implemented by the recipient, the transfer will be
-reverted.
-
-The selector can be obtained in Solidity with `IERC721Receiver.onERC721Received.selector`._
+_Allows mentor to withdraw EXPT from sale._
 
 ## ExpertToken
 

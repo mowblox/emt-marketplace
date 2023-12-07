@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, {useState} from 'react'
 import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -21,7 +21,7 @@ import useBackend from '@/lib/hooks/useBackend'
 import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { POST_PAGE } from '@/app/(with wallet)/_components/page-links'
+import { HOME_PAGE, POST_PAGE } from '@/app/(with wallet)/_components/page-links'
 
 
 const formSchema = z.object({
@@ -46,13 +46,15 @@ const CreatePostForm = () => {
             postTitle: "",
             postBody: "",
         },
-    })
+    });
     const imageRef = React.useRef<HTMLInputElement>(null);
+    const [isCreatePostLoading, setIsCreatePostLoading] = useState(false)
     
     const { toast } = useToast()
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        setIsCreatePostLoading(true)
        const t = toast({
             title: "Publishing post...",
             description: "Mining transaction...",
@@ -60,14 +62,26 @@ const CreatePostForm = () => {
         
         })
         const image = imageRef.current?.files![0] as File;
-        const {id, imageURL} = await mutateAsync({title: values.postTitle, body: values.postBody, image})
-        router.push(POST_PAGE(id));
-        t.update({
-            id: t.id,
-            title: "Post published!",
-            variant: "success",
-            duration: 1000,
-        })
+        try {
+            const {id, imageURL} = await mutateAsync({title: values.postTitle, body: values.postBody, image})
+            router.push(POST_PAGE(id));
+            t.update({
+                id: t.id,
+                title: "Post published!",
+                variant: "success",
+                duration: 1000,
+            })
+            setIsCreatePostLoading(false)
+        } catch (error: any) {
+            t.update({
+                id: t.id,
+                title: "Something went wrong",
+                description: "Please wait a moment & try again",
+                variant: "destructive",
+                duration: 1000,
+            })
+            setIsCreatePostLoading(false)
+        }
     }
 
     return (
@@ -128,8 +142,9 @@ const CreatePostForm = () => {
                             </FormItem>
                         )}
                     />
-                    <div className="flex justify-end w-full">
-                        <Button type="submit" variant='gradient' className='w-[160px] '>Post</Button>
+                    <div className="flex justify-end w-full gap-4">
+                        <Button onClick={()=> {router.push(HOME_PAGE);}} variant='outline' className='w-full md:w-[160px] '>Cancel</Button>
+                        <Button type="submit" isLoading={isCreatePostLoading} loadingText='Creating post' disabled={isCreatePostLoading || !form.formState.isValid} variant='gradient' className='w-full md:w-[160px]'>Post</Button>
                     </div>
                 </form>
             </Form>

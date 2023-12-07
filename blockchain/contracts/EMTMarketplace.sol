@@ -3,13 +3,12 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./MentorToken.sol";
 import "./ExpertToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
+contract EMTMarketplace is Pausable, AccessControl {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     struct MemberVote {
         bool upVoted;
@@ -30,10 +29,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         mapping(address => MemberVote) memberVotes;
     }
     struct ExptOffer {
-        address seller;
         address owner;
         uint256 tokenId;
-        address paymentToken;
+        address stablecoin;
         uint256 amount;
     }
     struct ExptLevel {
@@ -65,46 +63,65 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
     mapping(address => CreatorVote) _creatorVotes;
     mapping(address => uint256) _creatorTickets;
 
-    // Constructor
+    /**
+     * @dev Grants defaultAdmin & pauser roles.
+     */
     constructor(address defaultAdmin) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(PAUSER_ROLE, defaultAdmin);
     }
 
-    // Function Definitions
-    function pause() public onlyRole(PAUSER_ROLE) {
+    /**
+     * @dev Pauses marketplace to allow for MENT claiming.
+     */
+    function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    /**
+     * @dev Unpauses marketplace to allow voting.
+     */
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
+    /**
+     * @dev Sets MENT & EXPT token addresses.
+     */
     function setTokenAddresses(
         address _mentTokenAddress,
         address _exptTokenAddress
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         mentTokenAddress = _mentTokenAddress;
         exptTokenAddress = _exptTokenAddress;
     }
 
+    /**
+     * @dev Sets the up vote weight.
+     */
     function setUpVoteMultiplier(
         uint256 _upVoteMultiplier
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         upVoteMultiplier = _upVoteMultiplier;
     }
 
+    /**
+     * @dev Sets the down vote weight.
+     */
     function setDownVoteMultiplier(
         uint256 _downVoteMultiplier
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         downVoteMultiplier = _downVoteMultiplier;
     }
 
+    /**
+     * @dev Sets expt level.
+     */
     function setExptLevel(
         uint256 _level,
         uint256 _requiredMent,
         uint256 _receivableExpt
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         // Retrieve Expt Level
         ExptLevel storage _exptLevel = exptLevels[_level];
         // Update fields
@@ -112,7 +129,23 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         _exptLevel.receivableExpt = _receivableExpt;
     }
 
-    // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
+    /**
+     * @dev Returns creator's upvotes, downvotes & difference.
+     */
+    function creatorVotes(
+        address _creator
+    ) external view returns (uint256, uint256, int256) {
+        return (
+            _creatorVotes[_creator].upVotes,
+            _creatorVotes[_creator].downVotes,
+            int256(_creatorVotes[_creator].upVotes) -
+                int256(_creatorVotes[_creator].downVotes)
+        );
+    }
+
+    /**
+     * @dev Returns content's upvotes, downvotes & difference.
+     */
     function contentVotes(
         bytes32 _id
     ) public view returns (uint256, uint256, int256) {
@@ -124,7 +157,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         );
     }
 
-    // For a particular content with _id it returns bool for both if _member has upvoted or downvoted the content
+    /**
+     * @dev Returns member upvoted or downvoted status for a particular content id.
+     */
     function memberVotes(
         bytes32 _id,
         address _member
@@ -135,6 +170,54 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         );
     }
 
+    /**
+     * @dev Returns unclaimed MENT for a creator.
+     */
+    function unclaimedMent(address _creator) external view returns (int256) {
+        // Retrieve Creator Vote
+        CreatorVote storage _creatorVote = _creatorVotes[_creator];
+        // Compute unclaimed MENT
+        return
+            ((int256(_creatorVote.upVotes) -
+                int256(_creatorVote.lastClaimedUpVotes)) *
+                int256(upVoteMultiplier)) -
+            ((int256(_creatorVote.downVotes) -
+                int256(_creatorVote.lastClaimedDownVotes)) *
+                int256(downVoteMultiplier));
+    }
+
+    /**
+     * @dev Returns unclaimed EXPT for a creator.
+     */
+    function unclaimedExpt(
+        address _creator,
+        uint256 _level
+    ) external view returns (uint256) {
+        // Retrieve Expt Level
+        ExptLevel storage _exptLevel = exptLevels[_level];
+        // Check if expt level exists
+        require(_exptLevel.requiredMent > 0, "Expt Level does not exists!");
+        // Get _creator MENT balance
+        uint256 _mentBalance = MentorToken(mentTokenAddress).balanceOf(
+            _creator
+        );
+        // check if _creator is qualified for the level
+        require(
+            _mentBalance >= _exptLevel.requiredMent,
+            "Not qualified for level!"
+        );
+        // check if there is a difference in EXPT to be claimed
+        require(
+            _exptLevel.receivableExpt > _creatorTickets[_creator],
+            "Level has already been claimed!"
+        );
+        // Calculate remaining quantity to receive
+        return _exptLevel.receivableExpt - _creatorTickets[_creator];
+    }
+
+    /**
+     * @dev Adds content with _id to allow for voting to begin.
+     */
     function addContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -146,6 +229,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit ContentAdded(msg.sender, _id);
     }
 
+    /**
+     * @dev Allows upvoting of content with _id.
+     */
     function upVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -188,6 +274,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
+    /**
+     * @dev Allows downvoting of content with _id.
+     */
     function downVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -230,6 +319,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit ContentDownVoted(_id, _contentVote.downVotes);
     }
 
+    /**
+     * @dev Allows mentor to claim MENT.
+     */
     function claimMent() public whenPaused {
         // Ensure mentTokenAddress is not the zero address
         require(mentTokenAddress != address(0), "MENT claiming is disabled!");
@@ -254,6 +346,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit MentClaimed(msg.sender, uint256(_claimableMent));
     }
 
+    /**
+     * @dev Allows mentor to claim EXPT for a level _level.
+     */
     function claimExpt(uint256 _level) public {
         // Check If exptTokenAddress is not address(0)
         require(exptTokenAddress != address(0), "EXPT claiming is disabled!");
@@ -286,6 +381,44 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         emit ExptClaimed(msg.sender, _quantity);
     }
 
+    /**
+     * @dev Allows mentor to offer their EXPT tokens for sale.
+     */
+    function offerExpts(
+        uint256[] memory _tokenIds,
+        address _stablecoin,
+        uint256 _amount
+    ) external {
+        // Require this isApproval for all EXPTs
+        require(
+            ExpertToken(exptTokenAddress).isApprovedForAll(
+                msg.sender,
+                address(this)
+            ),
+            "Marketplace Is Not Approval For All!"
+        );
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            // Transfer _tokenIds[i] to this
+            ExpertToken(exptTokenAddress).transferFrom(
+                msg.sender,
+                address(this),
+                _tokenIds[i]
+            );
+            // Add _tokenIds[i] to marketplace offers
+            exptOffers[_tokenIds[i]] = ExptOffer(
+                msg.sender,
+                _tokenIds[i],
+                _stablecoin,
+                _amount
+            );
+            // Emit event
+            emit ExptDeposited(msg.sender, _tokenIds[i]);
+        }
+    }
+
+    /**
+     * @dev Allows member to buy EXPT.
+     */
     function buyExpt(uint256 _tokenId) public {
         try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
             address _owner
@@ -296,7 +429,7 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
             ExptOffer storage _exptOffer = exptOffers[_tokenId];
             // Check if msg.sender has approved amount of payment token to this
             require(
-                ERC20(_exptOffer.paymentToken).allowance(
+                ERC20(_exptOffer.stablecoin).allowance(
                     msg.sender,
                     address(this)
                 ) >= _exptOffer.amount,
@@ -304,15 +437,15 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
             );
             // Deduct Fees for EMT Marketplace @ 2%
             uint256 _fees = (_exptOffer.amount * exptBuyFeePercent) / 100;
-            ERC20(_exptOffer.paymentToken).transferFrom(
+            ERC20(_exptOffer.stablecoin).transferFrom(
                 msg.sender,
                 address(this),
                 _fees
             );
             // Transfer payment token to seller
-            ERC20(_exptOffer.paymentToken).transferFrom(
+            ERC20(_exptOffer.stablecoin).transferFrom(
                 msg.sender,
-                _exptOffer.seller,
+                _exptOffer.owner,
                 _exptOffer.amount - _fees
             );
             // Transfer expt token to buyer
@@ -328,6 +461,9 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         }
     }
 
+    /**
+     * @dev Allows mentor to withdraw EXPT from sale.
+     */
     function withdrawExpt(uint256 _tokenId) public {
         try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
             address _owner
@@ -337,8 +473,7 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
             ExptOffer storage _exptOffer = exptOffers[_tokenId];
             // check if msg.sender is seller or owner
             require(
-                msg.sender == _exptOffer.seller ||
-                    msg.sender == _exptOffer.owner,
+                msg.sender == _exptOffer.owner,
                 "Not eligible to withdraw EXPT!"
             );
             // transfer expt back to msg.sender
@@ -352,34 +487,5 @@ contract EMTMarketplace is Pausable, AccessControl, IERC721Receiver {
         } catch Error(string memory reason) {
             revert(reason);
         }
-    }
-
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 tokenId,
-        bytes calldata data
-    ) external override returns (bytes4) {
-        try ExpertToken(exptTokenAddress).ownerOf(tokenId) returns (address) {
-            // Require data exists
-            require(data.length != 0, "Data is required for EXPT deposit!");
-            // Decode data
-            (address paymentToken, uint256 amount) = abi.decode(
-                data,
-                (address, uint256)
-            );
-            // Add tokeId to marketplace offers
-            exptOffers[tokenId] = ExptOffer(
-                operator,
-                from,
-                tokenId,
-                paymentToken,
-                amount
-            );
-            // Emit event
-            emit ExptDeposited(operator, tokenId);
-        } catch {}
-        // Return to satisfy specification
-        return this.onERC721Received.selector;
     }
 }
