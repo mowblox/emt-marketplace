@@ -324,12 +324,13 @@ describe("EMTMarketplace", function () {
       await expertToken.connect(owner).mint(mentor.address, 10);
       await expertToken.connect(mentor).setApprovalForAll(emtMarketplace.target, true);
       await expect(emtMarketplace.connect(mentor).offerExpts(
-        [0],
+        Object.values(await expertToken.tokensOfOwner(mentor.address)),
         stableCoin.target,
         ethers.parseUnits("10", await stableCoin.decimals())
       )).to.be.emit(emtMarketplace, "ExptDeposited");
 
       // Buy
+      // console.log(await Promise.all((await expertToken.tokensOfOwner(emtMarketplace.target)).map(tokenId => emtMarketplace.exptOffers(tokenId))));
       const exptOffer = await emtMarketplace.exptOffers(0);
       await stableCoin.connect(member).approve(emtMarketplace.target, exptOffer.amount);
       await expect(emtMarketplace.connect(member).buyExpt(0)).to.be.emit(emtMarketplace, "ExptBought");

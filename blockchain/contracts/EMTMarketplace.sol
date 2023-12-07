@@ -63,21 +63,31 @@ contract EMTMarketplace is Pausable, AccessControl {
     mapping(address => CreatorVote) _creatorVotes;
     mapping(address => uint256) _creatorTickets;
 
-    // Constructor
+    /**
+     * @dev Grants defaultAdmin & pauser roles.
+     */
     constructor(address defaultAdmin) {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(PAUSER_ROLE, defaultAdmin);
     }
 
-    // Function Definitions
+    /**
+     * @dev Pauses marketplace to allow for MENT claiming.
+     */
     function pause() external onlyRole(PAUSER_ROLE) {
         _pause();
     }
 
+    /**
+     * @dev Unpauses marketplace to allow voting.
+     */
     function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
+    /**
+     * @dev Sets MENT & EXPT token addresses.
+     */
     function setTokenAddresses(
         address _mentTokenAddress,
         address _exptTokenAddress
@@ -86,18 +96,27 @@ contract EMTMarketplace is Pausable, AccessControl {
         exptTokenAddress = _exptTokenAddress;
     }
 
+    /**
+     * @dev Sets the up vote weight.
+     */
     function setUpVoteMultiplier(
         uint256 _upVoteMultiplier
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         upVoteMultiplier = _upVoteMultiplier;
     }
 
+    /**
+     * @dev Sets the down vote weight.
+     */
     function setDownVoteMultiplier(
         uint256 _downVoteMultiplier
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         downVoteMultiplier = _downVoteMultiplier;
     }
 
+    /**
+     * @dev Sets expt level.
+     */
     function setExptLevel(
         uint256 _level,
         uint256 _requiredMent,
@@ -110,6 +129,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         _exptLevel.receivableExpt = _receivableExpt;
     }
 
+    /**
+     * @dev Returns creator's upvotes, downvotes & difference.
+     */
     function creatorVotes(
         address _creator
     ) external view returns (uint256, uint256, int256) {
@@ -121,7 +143,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
     }
 
-    // For a particular content with _id it return 3 bools for upvotes, downvotes and net votes
+    /**
+     * @dev Returns content's upvotes, downvotes & difference.
+     */
     function contentVotes(
         bytes32 _id
     ) public view returns (uint256, uint256, int256) {
@@ -133,7 +157,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
     }
 
-    // For a particular content with _id it returns bool for both if _member has upvoted or downvoted the content
+    /**
+     * @dev Returns member upvoted or downvoted status for a particular content id.
+     */
     function memberVotes(
         bytes32 _id,
         address _member
@@ -144,6 +170,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         );
     }
 
+    /**
+     * @dev Returns unclaimed MENT for a creator.
+     */
     function unclaimedMent(address _creator) external view returns (int256) {
         // Retrieve Creator Vote
         CreatorVote storage _creatorVote = _creatorVotes[_creator];
@@ -157,6 +186,9 @@ contract EMTMarketplace is Pausable, AccessControl {
                 int256(downVoteMultiplier));
     }
 
+    /**
+     * @dev Returns unclaimed EXPT for a creator.
+     */
     function unclaimedExpt(
         address _creator,
         uint256 _level
@@ -183,6 +215,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         return _exptLevel.receivableExpt - _creatorTickets[_creator];
     }
 
+    /**
+     * @dev Adds content with _id to allow for voting to begin.
+     */
     function addContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -194,6 +229,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentAdded(msg.sender, _id);
     }
 
+    /**
+     * @dev Allows upvoting of content with _id.
+     */
     function upVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -236,6 +274,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentUpVoted(_id, _contentVote.upVotes);
     }
 
+    /**
+     * @dev Allows downvoting of content with _id.
+     */
     function downVoteContent(bytes32 _id) public whenNotPaused {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
@@ -278,6 +319,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ContentDownVoted(_id, _contentVote.downVotes);
     }
 
+    /**
+     * @dev Allows mentor to claim MENT.
+     */
     function claimMent() public whenPaused {
         // Ensure mentTokenAddress is not the zero address
         require(mentTokenAddress != address(0), "MENT claiming is disabled!");
@@ -302,6 +346,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit MentClaimed(msg.sender, uint256(_claimableMent));
     }
 
+    /**
+     * @dev Allows mentor to claim EXPT for a level _level.
+     */
     function claimExpt(uint256 _level) public {
         // Check If exptTokenAddress is not address(0)
         require(exptTokenAddress != address(0), "EXPT claiming is disabled!");
@@ -334,6 +381,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         emit ExptClaimed(msg.sender, _quantity);
     }
 
+    /**
+     * @dev Allows mentor to offer their EXPT tokens for sale.
+     */
     function offerExpts(
         uint256[] memory _tokenIds,
         address _stablecoin,
@@ -348,13 +398,13 @@ contract EMTMarketplace is Pausable, AccessControl {
             "Marketplace Is Not Approval For All!"
         );
         for (uint256 i = 0; i < _tokenIds.length; i++) {
-            // Transfer _tokenId to this
+            // Transfer _tokenIds[i] to this
             ExpertToken(exptTokenAddress).transferFrom(
                 msg.sender,
                 address(this),
                 _tokenIds[i]
             );
-            // Add tokeId to marketplace offers
+            // Add _tokenIds[i] to marketplace offers
             exptOffers[_tokenIds[i]] = ExptOffer(
                 msg.sender,
                 _tokenIds[i],
@@ -366,6 +416,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         }
     }
 
+    /**
+     * @dev Allows member to buy EXPT.
+     */
     function buyExpt(uint256 _tokenId) public {
         try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
             address _owner
@@ -408,6 +461,9 @@ contract EMTMarketplace is Pausable, AccessControl {
         }
     }
 
+    /**
+     * @dev Allows mentor to withdraw EXPT from sale.
+     */
     function withdrawExpt(uint256 _tokenId) public {
         try ExpertToken(exptTokenAddress).ownerOf(_tokenId) returns (
             address _owner
