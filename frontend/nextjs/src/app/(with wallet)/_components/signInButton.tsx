@@ -82,7 +82,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                 console.log('not signed up')
                 return (
                   <Button variant={"default"} asChild>
-                    {/* @jovells onboarding should start on the second page. Currently is too many steps */}
+                    {/* TODO INFO: @jovells onboarding should start on the second page. The reason is that current flow has too many steps */}
                     <Link href={ONBOARDING_PAGE(2)}>Sign Up</Link>
                   </Button>
                 );

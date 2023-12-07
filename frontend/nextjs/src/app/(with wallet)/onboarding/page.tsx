@@ -14,8 +14,8 @@ const OnboardingPage = async () => {
       </div>
       <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
         <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
-        <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>In sed in velit lacus at. Ultricies morbi morbi pharetra nulla eget eget.</h4>
-        <p className='text-muted text-center'>Ut accumsan accumsan molestie aliquam feugiat urna quisque eu. Sagittis adipiscing pellentesque massa vulputate curabitur scelerisque.</p>
+        <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>Your Personalized Mentorship Journey Begins Here</h4>
+        <p className='text-muted text-center'>A community-driven space designed to connect mentors and learners, fostering a culture of growth and collaboration. Trust is built on genuine connections, and your reputation is yours to proudly nurture.</p>
         <div className="w-full lg:w-2/3 space-y-5 mb-20 md:mb-0">
           <ButtonToShow />
         </div>

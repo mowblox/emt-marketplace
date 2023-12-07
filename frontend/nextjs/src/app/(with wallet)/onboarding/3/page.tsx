@@ -12,7 +12,8 @@ const OnboardingPageOne = () => {
         <Image src={String(onboardingPhoto.default.src)} fill className="object-contain" alt="Onboarding photo"/>
       </div>
       <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
-        <h4 className='text-xl md:text-3xl font-semibold tracking-wider'>In sed in velit lacus at. Ultricies morbi morbi pharetra nulla eget eget.</h4>
+        <h4 className='text-xl font-semibold tracking-wider'>Now, let's highlight your areas of expertise. This will help us connect you with mentors and learners who align with your interests.</h4>
+        <p className='text-muted'>Select the fields in which you excel or have knowledge to share. </p>
         <FavouriteTopicsForm />
       </div>
     </div>

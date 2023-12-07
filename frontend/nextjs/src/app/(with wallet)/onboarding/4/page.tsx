@@ -27,9 +27,11 @@ const OnboardingPage = () => {
         <Image src={String(onboardingPhoto.default.src)} fill className="object-contain" alt="Onboarding photo"/>
       </div>
       <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
-        <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>In sed in velit lacus at. Ultricies morbi morbi pharetra nulla eget eget.</h4>
-        <p className='text-muted text-center'>Ut accumsan accumsan molestie aliquam feugiat urna quisque eu. Sagittis adipiscing pellentesque massa vulputate curabitur scelerisque.</p>
+        <h4 className='text-xl md:text-3xl text-center font-semibold tracking-wider'>Connecting Your Wallet to Get Started</h4>
+        <p className='text-muted text-center'> MEMM! leverages blockchain for secure identity verification and transactions</p>
         <div className="w-full flex  justify-center lg:w-2/3 space-y-5 mb-20 md:mb-0">
+          {/* QUESTION @jovells, is this step necessary? This button can be moved to onboarding step 3 IMO.  */}
+          {/* TODO I've looked at the function in step3, I think it can be moved. i.e signup should happen and reroute to home page */}
           <Button onClick={()=>signUp()}> Sign up </Button>
         </div>
       </div>
