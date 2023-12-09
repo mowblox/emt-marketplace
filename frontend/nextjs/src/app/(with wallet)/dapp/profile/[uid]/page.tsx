@@ -291,7 +291,7 @@ const Profile = () => {
                   <Button size="sm">Claim MENT</Button>
                 </div>
 
-                <ClaimExptCard />
+                <ClaimExptCard profile={profile} />
 
                 <h4 className="text-md text-foreground font-bold mb-5">
                   Claim History

@@ -164,8 +164,8 @@ const ExptBookingsHistory = ({ ownedExpt }: Props) => {
                             </DialogTrigger>
 
                             <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
-                                <div className="grid grid-cols-[35%_60%]">
-                                    <ScrollArea className="h-[90vh]">
+                                <div className="grid grid-cols-1 md:grid-cols-[35%_60%]">
+                                    <ScrollArea className="hidden md:block h-[90vh]">
                                         <div className="border-r pr-6 py-6">
                                             <DialogHeader className='mb-6'>
                                                 <DialogTitle>Token Id: <span className='text-muted font-normal'>EXPT002</span></DialogTitle>
@@ -182,7 +182,7 @@ const ExptBookingsHistory = ({ ownedExpt }: Props) => {
                                             </div>
                                         </div>
                                     </ScrollArea>
-                                    <ScrollArea className='h-[90vh] p-6'>
+                                    <ScrollArea className='h-[90vh] pt-6 md:p-6'>
                                         <SessionReviewForm />
                                     </ScrollArea>
                                 </div>

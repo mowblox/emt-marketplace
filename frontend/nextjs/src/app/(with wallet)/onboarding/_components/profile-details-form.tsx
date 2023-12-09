@@ -48,9 +48,9 @@ const ProfileDetailsForm = () => {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            displayName: displayName || "Naval Ravikant",
-            username: username || "naval",
-            email: email || "naval@ravikant.io",
+            displayName: displayName || "",
+            username: username || "",
+            email: email || "",
         },
     })
 
