@@ -6,6 +6,8 @@ import useBackend from '@/lib/hooks/useBackend'
 import { BuiltNotification, NotificationData, NotificationFilters } from '@/lib/types'
 import { Timestamp } from 'firebase/firestore'
 import { useUser } from '@/lib/hooks/user';
+import DataLoading from '@/components/ui/data-loading';
+import NoData from '@/components/ui/no-data';
 
 const Notifications = () => {
     const {user} = useUser();
@@ -41,7 +43,7 @@ const Notifications = () => {
     ]
     const {fetchNotifications} = useBackend()
 
-    const {data: notifications, error}=useQuery({
+    const {data: notifications, isLoading, error}=useQuery({
         queryKey: ['notifications', user],
         queryFn:  async (): Promise<BuiltNotification[]> =>{
             const lastDocTimeStamp: Timestamp | undefined = notifications?.[notifications.length - 1]?.timestamp;
@@ -55,15 +57,19 @@ const Notifications = () => {
 
     console.log("notifications", notifications, error);
 
-
-
+    if(!notifications && isLoading){
+        return<DataLoading/>
+    }
+    if(!notifications){
+        return<NoData message='No Notifications'/>
+    }
     return (
         <>
             <h4 className='text-xl text-foreground font-bold mb-5'>Notifications</h4>
             <div className='space-y-5'>
-                {notifications?(notifications || dummyNotifications).map((notification, key) => (
+               {notifications.map((notification, key) => (
                     <NotificationItem notification={notification as BuiltNotification} key={`notification-${key}`} />
-                )):"no notifications"}
+                ))}
             </div>
         </>
     )

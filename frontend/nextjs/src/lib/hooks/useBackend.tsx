@@ -1,45 +1,21 @@
 "use client";
-import { useContracts } from "./contracts";
-import { useUser } from "./user";
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  doc,
-  setDoc,
-  getDocs,
-  query,
-  where,
-  updateDoc,
-  orderBy,
-  limit,
-  startAfter,
-  QueryDocumentSnapshot,
-  getDoc,
-  endBefore,
-  Timestamp,
-  deleteDoc,
-  getCountFromServer,
-  collectionGroup,
-  Firestore,
-  documentId,
-  DocumentReference,
+import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
+import { BuiltNotification, ClaimHistoryItem, Content, NotificationData, PostFilters, UserProfile } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistance } from 'date-fns';
+import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
+import { QueryDocumentSnapshot, Timestamp, collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, startAfter, where
 } from "firebase/firestore";
-import { firestore, storage } from "../firebase";
-import { toast } from "@/components/ui/use-toast";
 import {
   getDownloadURL,
   ref,
-  uploadBytes,
-  uploadBytesResumable,
+  uploadBytes
 } from "firebase/storage";
 import { useEffect, useState } from "react";
-import { ContractTransactionResponse, ethers } from "ethers6";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { BuiltNotification, Content, NotificationData, NotificationFilters, PostFilters, User, UserProfile } from "@/lib/types";
-import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
-import { formatDistance } from 'date-fns';
-import { CONTENTS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
+import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
+import { firestore, storage } from "../firebase";
+import { useContracts } from "./contracts";
+import { useUser } from "./user";
 
 
 /**
@@ -63,9 +39,49 @@ export async function uploadImage(image: Blob, name: string, subpath?: string) {
  * @returns An object containing functions for creating posts, updating profiles, fetching user posts, fetching posts, and voting on posts.
 */
 export default function useBackend() {
-  const { EMTMarketPlace, provider } = useContracts();
+  const { EMTMarketPlace,MentorToken, ExpertToken, provider } = useContracts();
   const { user, updateUser } = useUser();
   const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] = useState(EMTMarketPlace);
+
+  //for admin
+  async function togglePause(){
+    try {
+
+      const tx = await EMTMarketPlaceWithSigner.pause().catch(err=>{
+        console.log("Error pausing contract. Details: " + err);
+        return EMTMarketPlaceWithSigner.unpause();
+      }
+        );
+      await tx!.wait();
+      console.log("contract paused")
+    } catch (err) {
+      console.log("Error unpausing contract. Details: " + err);
+    }
+  }
+
+  //queries
+
+  //TODO: @Jovells FIX THIS
+  const {data: exptLevels} = useQuery({
+    queryKey: ['exptlevels'],
+    queryFn: ()=>{
+      const levels = {1: {requiredMent: 10,
+                          receivableExpt: 10},
+                        2: {requiredMent: 20,
+                        receivableExpt: 20},
+                        3: {requiredMent: 30,
+                          receivableExpt: 30}
+                        }
+                        return levels
+    }
+  })
+
+  const {data: ment} = useQuery({
+    queryKey: ['ment', user?.uid],
+    queryFn: () =>fetchMent(),
+    enabled: !!user?.uid,
+  })
+
   
   async function createNotification(data: Partial<NotificationData>){
     console.log("createNotification", data);
@@ -78,6 +94,89 @@ export default function useBackend() {
     data.sender = data.sender || user.uid;
     const docRef = doc(NOTIFICATIONS_COLLECTION);
     await setDoc(docRef, data);
+  }
+  async function saveClaimHistoryItemToFirestore(item: ClaimHistoryItem){ 
+    try {
+      const docRef = doc(CLAIM_HISTORY_COLLECTION);
+      await setDoc(docRef, item);
+    }
+    catch (err: any) {
+      console.log(`Error saving ${item.type} claim history item to firestore. Message: ` +err);
+      throw new Error("Error saving claim history item to firestore. Message: " + err.message);
+    }
+
+  }
+  async function claimMent(){
+    function getMentClaimed(receipt: ContractTransactionReceipt){
+      const filter = EMTMarketPlace.filters.MentClaimed().fragment
+      let mentClaimed: number
+      console.log('addess', )
+      // console.log(receipt?.logs)
+      receipt?.logs.some(log => {const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
+      console.log('l',d)
+      mentClaimed = Number(d[1])
+      return false
+      })
+      console.log('mentClaimed', ment!);
+    }
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    try {
+      const tx = await EMTMarketPlaceWithSigner.claimMent();
+      const receipt = await tx!.wait();
+      console.log("claimed ment");
+      const mentClaimed = receipt && getMentClaimed(receipt)
+      const historyItem: ClaimHistoryItem = {
+        type: "ment",
+        amount: ment!,
+        timestamp: serverTimestamp(),
+        uid: user.uid
+      }
+      await saveClaimHistoryItemToFirestore(historyItem);
+      return mentClaimed;
+    } catch (err: any) {
+      console.log(err);
+      throw new Error("Error claiming ment. Message: " + err.message);
+    }
+  }
+
+  function getLevel(uid=user?.uid){
+    const level = exptLevels ? Object.entries(exptLevels).find(([key, level])=> (ment || 0) >level.requiredMent )?.[0]  : 1
+    return Number(level) || 1
+  }
+
+
+
+  async function claimExpt(){
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    try {
+      const level = getLevel()
+
+      if(!level){
+        throw new Error('Not qualified for expt')
+      }
+      const tx = await EMTMarketPlaceWithSigner.claimExpt(level)
+      await tx!.wait();
+      const val = await ExpertToken.balanceOf(user.uid);
+      const expt = Number(val);
+      
+      const historyItem: ClaimHistoryItem = {
+        type: "expt",
+        amount: expt,
+        level: level,
+        timestamp: serverTimestamp(),
+        uid: user.uid
+      }
+      await saveClaimHistoryItemToFirestore(historyItem)
+      console.log("claimed expt. New expt: ", expt);
+      return expt;
+    } catch (err: any) {
+      console.log(err);
+      throw new Error("Error claiming ment. Message: " + err.message);
+    }
   }
 
   async function fetchVotesAndUsernames(notifications : BuiltNotification[]) {
@@ -216,9 +315,57 @@ export default function useBackend() {
     return data;
   }
 
-  async function fetchMent(address: string){
-    //TODO: @Jovells fetch from contract
-    return 200
+
+
+  async function fetchMent(address= user?.uid){
+
+    try {
+      const val = await MentorToken.balanceOf(address!)
+      const ment = Number(val);
+      console.log('ment:', ment)
+      return ment;
+    } catch (err:any) {
+      console.log("Error fetching ment. Details: " + err);
+      throw new Error(err);
+    }
+  }
+  async function fetchUnclaimedMent(){
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    try {
+      console.log('unclaimed ment fetching');
+      const val = await EMTMarketPlace.unclaimedMent(user.uid);
+      console.log('unclaimed ment:', val);
+      const unclaimedMent = Number(val);
+      return unclaimedMent;
+    } catch (err:any) {
+      console.log("Error fetching unclaimed ment. Details: " + err);
+      throw new Error(err);
+    }
+  }
+
+  async function fetchUnclaimedExpt() {
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    try {
+      console.log('fetching unclaimed expt')
+      const level = getLevel()
+      const val = await EMTMarketPlace.unclaimedExpt(user.uid, level);
+      const unclaimedExpt = Number(val);
+      console.log('unclaimed expt:', unclaimedExpt)
+      return unclaimedExpt;
+    } catch (err:any) {
+      if(err.message.includes("Not qualified for level") || err.message.includes('Level has already been claimed')){
+        return 0
+      }else
+      {
+        console.log("Error fetching expt. Details: " + err);
+        throw new Error(err);
+      }
+    }
+    
   }
 
   async function fetchProfile(id: string) {
@@ -456,7 +603,24 @@ export default function useBackend() {
       return false;
   }
 
+  async function fetchClaimHistory(uid=user?.uid){
+    try {
+      const historySnap = await getDocs(query(CLAIM_HISTORY_COLLECTION, where('uid', '==', uid), orderBy('timestamp', 'desc')));
+      const history = historySnap.docs.map(doc=>{
+        const data = doc.data();
+        data.dateClaimed = formatDistance(data.timestamp.toDate(), new Date(), { addSuffix: true })
+        return data
+      } 
+      )
+      return history as ClaimHistoryItem[]
+    } catch (err) {
+      console.log("error fetching claim history. ", err )
+    }
+  }
+
+  const profileReady = exptLevels !== undefined && ment !== undefined 
+
   
 
-  return { createPost, updateProfile, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
+  return { createPost, fetchClaimHistory, profileReady, togglePause, updateProfile, fetchUnclaimedExpt, fetchUnclaimedMent, fetchMent, claimMent, claimExpt, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
 }

@@ -1,4 +1,5 @@
 "use client";
+import MyWallet from './_components/my-wallet';
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import ClaimExptCard from "./_components/claim-expt-card";
 import { Switch } from "@/components/ui/switch";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
 import { ExpertTicket, UserProfile } from "@/lib/types";
+import { Progress } from "@/components/ui/progress";
 
 const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
 { type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
@@ -123,15 +125,12 @@ const dummyOtherExperts: ExpertTicket[] = [
   }
 ]
 
-
-
 const Profile = () => {
   const { uid } = useParams();
   const { user } = useUser();
-  const { fetchProfile, followUser, unfollowUser, checkFollowing } = useBackend();
+  const { fetchProfile, followUser, fetchUnclaimedMent, claimMent, unfollowUser, checkFollowing } = useBackend();
   const router = useRouter();
 
-  const ready = !!(uid && user?.uid);
   const isCurrentUserProfile = user?.uid === uid 
   
   //fetch profile
@@ -146,7 +145,7 @@ const Profile = () => {
   const {data: isFollowingUser, } = useQuery({
     queryKey: ["isFollowing", uid],
     queryFn: (v) => checkFollowing(uid as string),
-    enabled: !isCurrentUserProfile && ready,
+    enabled: !isCurrentUserProfile && !!user?.uid,
   })
   
   console.log('user', user?.uid, 'uidparam', uid, 'isCurrentUserProfile', isCurrentUserProfile, 'isFollowingUser', isFollowingUser,)
@@ -175,6 +174,7 @@ const Profile = () => {
     })
 
   }
+  
 
   //fetch followers
   const { data: followers } = useQuery({
@@ -183,15 +183,17 @@ const Profile = () => {
     enabled: !!uid,
   })
 
+  
+  console.log('profile', profile)
 
-  console.log('profile', profile, "ready", ready)
-
-  if (!profile || !ready) {
+  if (!profile) {
     return (<div className="h-screen">
         <DataLoading />
       </div>)
   }
   console.log('profile', profile, user)
+
+
 
   return (
     <div className="">
@@ -280,27 +282,7 @@ const Profile = () => {
               <Posts filters={{ owner: profile.uid }} />
             </TabsContent>
             <TabsContent value="wallet">
-              <div className="flex flex-col gap-y-4 mt-5">
-                <div className="flex p-4 items-center justify-between bg-accent-shade rounded-md">
-                  <div className="flex items-center">
-                    <div className="flex items-center text-sm">
-                      <HiOutlineFire className="w-4 h-4 ml-1 text-accent-3" />
-                      <div className="ml-1 flex items-center text-muted">Unclaimed MENT: <span className="ml-1 text-foreground">1200</span></div>
-                    </div>
-                  </div>
-                  <Button size="sm">Claim MENT</Button>
-                </div>
-
-                <ClaimExptCard profile={profile} />
-
-                <h4 className="text-md text-foreground font-bold mb-5">
-                  Claim History
-                </h4>
-
-                <div className="flex flex-col gap-7">
-                  {claimHistory.map((claimItem, key) => (<ClaimHistoryItem key={`claim-item-${claimItem.type}-${key}`} claimItem={claimItem} />))}
-                </div>
-              </div>
+             <MyWallet profile={profile}/>
             </TabsContent>
             <TabsContent value="status">
               <div className="flex flex-col gap-y-4 mt-5">

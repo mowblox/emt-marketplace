@@ -55,7 +55,8 @@ const EditProfileForm = () => {
   const { user } = useUser();
   const router = useRouter();
   const { uid }: { uid: string } = useParams();
-  const { updateProfile, fetchProfile } = useBackend();
+  const { updateProfile, fetchProfile, togglePause } = useBackend();
+  
   const { data: profile } = useQuery({
     queryKey: ["profile", uid, user],
     queryFn: () => fetchProfile(uid),
@@ -127,6 +128,8 @@ const EditProfileForm = () => {
       toast({
         title: "Profile updated!",
         variant: "success",
+        description: <div>success success success success success
+        <Progress value={100} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" /></div>,
       });
       setButtonLoading(false)
       router.push(PROFILE_PAGE(uid));
@@ -142,6 +145,7 @@ const EditProfileForm = () => {
 
   return (
     <div>
+      <Button onClick={()=>togglePause()}>togglePause</Button>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -281,7 +285,7 @@ const EditProfileForm = () => {
 
           <div className="flex justify-end w-full">
             {/* FIX: @jovells when i click cancel it shows "profile update" before routing to the profile page, why is that? */}
-            <Button onClick={() => { router.push(PROFILE_PAGE(uid)); }} variant="outline" className="w-[160px] mr-3">
+            <Button onClick={(e) => {e.preventDefault(); router.push(PROFILE_PAGE(uid)); }} variant="outline" className="w-[160px] mr-3">
               Cancel
             </Button>
             <Button type="submit" isLoading={isButtonLoading} loadingText='Updating profile' variant="default" className="w-[160px] ">
