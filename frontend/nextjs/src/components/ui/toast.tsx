@@ -5,6 +5,8 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { HiCheckCircle, HiMiniExclamationTriangle, HiOutlineBellAlert } from "react-icons/hi2"
+import { Progress } from "@/components/ui/progress";
+
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -43,7 +45,7 @@ const toastVariants = cva(
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
-    VariantProps<typeof toastVariants>
+    VariantProps<typeof toastVariants> 
 >(({ className, variant, children, ...props }, ref) => {
   return (
     <ToastPrimitives.Root

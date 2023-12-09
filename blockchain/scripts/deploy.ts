@@ -48,6 +48,19 @@ async function main() {
   console.log("Done Setting EXPT Level 3!");
 
   const chainId = (await ethers.provider.getNetwork()).chainId;
+  if (chainId === 31337n) {
+    //set lower expt level requirements for local testing
+    console.log("resetting EXPT Level 1!");
+    await (await emtMarketplace.setExptLevel(1, 10, 50)).wait();
+    console.log("Done resetting EXPT Level 1!");
+    console.log("resetting EXPT Level 2!");
+    await (await emtMarketplace.setExptLevel(2, 20, 100)).wait();
+    console.log("Done resetting EXPT Level 2!");
+    console.log("resetting EXPT Level 3!");
+    await (await emtMarketplace.setExptLevel(3, 30, 200)).wait();
+    console.log("Done resetting EXPT Level 3!");
+
+  }
   //Generate files containining Abis and contract addresses for use in frontend
   generateAbis(chainId, {
     EMTMarketplace: emtMarketplace.target,

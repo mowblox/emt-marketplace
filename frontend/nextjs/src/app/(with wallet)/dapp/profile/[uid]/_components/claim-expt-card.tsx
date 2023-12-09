@@ -46,6 +46,9 @@ import {
 } from "@/components/ui/popover"
 import { format } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import useBackend from '@/lib/hooks/useBackend'
+import { useParams } from 'next/navigation'
 
 
 const FormSchema = z.object({
@@ -96,8 +99,52 @@ const ClaimExptCard = ({profile}: any) => {
     }
 
     const imageRef = useRef<HTMLInputElement>(null);
+    const {claimExpt, profileReady, fetchUnclaimedExpt} = useBackend();
+    const {uid} = useParams();
+    const queryClient = useQueryClient();
+
+ 
+    const { data: unclaimedExpt } = useQuery({
+        queryKey: ["unclaimedExpt", uid],
+        queryFn: ()=>fetchUnclaimedExpt(),
+        enabled: profileReady
+    });
+
 
     console.log('watch', form.watch())
+
+
+
+
+    const {mutateAsync: handleClaimExpt} = useMutation({
+        mutationFn: claimExpt,
+        onSuccess: () => {
+            queryClient.setQueryData(["unclaimedExpt", uid], ()=>{
+              return 0;
+            })
+            toast({
+              title: 'Claimed',
+              description: 'You have claimed your Expt',
+              variant: 'success',
+              loadProgress: 100,
+            })
+          },
+          onMutate:()=>{
+            toast({
+              title: 'Claiming..',
+              description: 'Mining Transaction',
+              duration: Infinity,
+              loadProgress: 10,
+            })
+      
+          },
+          onError: (e: any) => {
+            // Handle error state here
+            console.error("oops!", e.message)
+          },
+        
+    })
+
 
     const defaultUser: UserProfile = {
         uid: "string",
@@ -402,10 +449,10 @@ const ClaimExptCard = ({profile}: any) => {
         <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
             <div className="flex items-center text-sm">
                 <HiOutlineTicket className="w-4 h-4 ml-1 text-accent-3" />
-                <div className="ml-1 flex items-center text-muted">Unclaimed EXPT: <span className="ml-1 text-foreground">50</span></div>
+                <div className="ml-1 flex items-center text-muted">Unclaimed EXPT: <span className="ml-1 text-foreground">{unclaimedExpt}</span></div>
             </div>
             <div className="flex items-center gap-4 w-full md:w-auto">
-                <Button size="sm" className="w-full md:w-auto px-5">Claim EXPT</Button>
+                <Button size="sm" onClick={()=>handleClaimExpt()} className="w-full md:w-auto px-5">Claim EXPT</Button>
                 <Dialog>
                     <DialogTrigger>
                         <Button size="sm" variant="gradient" className="w-full md:w-auto px-5">List EXPT</Button>
