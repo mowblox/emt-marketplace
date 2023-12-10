@@ -10,25 +10,26 @@ import { Badge } from '@/components/ui/badge'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend';
 import DataLoading from '@/components/ui/data-loading';
-import { Content, ExpertTicket, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
+import { Content, ExpertTicket, ExptListing, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
 import ExpertHubCard from '@/components/ui/expert-hub-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { profilePlaceholderImage } from "@/lib/utils";
 import { ReviewItem } from './_components/review-item';
+import NoData from '@/components/ui/no-data';
 
 
 
 const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
-  const { fetchSinglePost } = useBackend();
+  const { fetchSingleListing } = useBackend();
 
-  const cachedPosts = queryClient.getQueryData(["posts"]) as { pages: [][] }
+  const cachedListings = queryClient.getQueryData(["exptListings"]) as { pages: ExptListing[][] } | undefined
 
-  let post: Content | undefined;
+  let listing: ExptListing | undefined;
 
-  if (cachedPosts) {
-    cachedPosts.pages.find((page: Content[]) => {
-      post = page.find((post) => { post.metadata.id === params.slug })
+  if (cachedListings) {
+    cachedListings.pages.find((page: ExptListing[]) => {
+      listing = page.find((item) => { item.id === params.slug })
     })
   }
 
@@ -163,14 +164,22 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   ]
 
   const { isLoading } = useQuery({
-    queryKey: ["post", params.slug],
-    queryFn: () => fetchSinglePost(params.slug),
-    enabled: !post,
+    queryKey: ["", params.slug],
+    queryFn: () => fetchSingleListing(params.slug),
     select(data) {
-      post = data
+      listing = data
       return data
     },
+    enabled: !listing,
   });
+
+  if (isLoading && !listing) {
+    return <DataLoading />
+  }
+
+  if (!listing) {
+    return <NoData message='No Listings Available'/>
+  }
 
   return (
     <div className="col-span-4">
@@ -225,7 +234,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
               </Tabs>
             </div>
             <div className="order-first md:order-last col-span-1 md:col-span-2 lg:col-span-2  border-3">
-              <ExpertHubCard data={dummyData} disableLink={true} />
+              <ExpertHubCard data={listing} disableLink={true} />
               <Button className='w-full mt-5'>Buy EXPT</Button>
             </div>
           </div>
@@ -236,7 +245,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
             Similar Expert Profiles
           </h3>
           <div className="w-full flex flex-wrap gap-4 flex-grow">
-            {dummyOtherExperts.map((expert, key) => {
+            {cachedListings?.pages[0].map((expert, key) => {
               if (key >= 4) return
               return <ExpertHubCard key={`expertsss-${key}`} data={expert} />
             })}

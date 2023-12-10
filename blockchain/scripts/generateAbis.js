@@ -9,6 +9,7 @@ const generateAbis = (chainId, contractAddresses) => {
     fs.readdirSync(contractsDirectory).forEach((contractFolderName) => {
         const contractFilePath = path.join(contractsDirectory, contractFolderName);
         const contractName = contractFolderName.replace(".sol", "");
+        if(!(contractName in contractAddresses)) return;
 
         if (fs.statSync(contractFilePath).isDirectory()) {
 
