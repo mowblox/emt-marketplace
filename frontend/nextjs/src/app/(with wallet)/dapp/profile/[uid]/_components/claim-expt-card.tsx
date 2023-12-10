@@ -28,7 +28,7 @@ import { CalendarIcon } from "@radix-ui/react-icons"
 
 import { Textarea } from '@/components/ui/textarea'
 import { cn, isValidFileType } from "@/lib/utils"
-import { ExpertTicket, UserProfile } from '@/lib/types';
+import { ExpertTicket, ExptListing, UserProfile } from '@/lib/types';
 import Image from 'next/image'
 import { placeholderImage } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -48,12 +48,14 @@ import { format } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { useUser } from '@/lib/hooks/user'
+import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links'
+import { serverTimestamp } from 'firebase/firestore'
 
 
 const FormSchema = z.object({
-    coverImage: z
-        .string()
+    coverImage: z.any()
         .refine((value) => isValidFileType(value), {
             message:
                 "Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.",
@@ -78,6 +80,9 @@ const FormSchema = z.object({
 })
 
 const ClaimExptCard = ({profile}: any) => {
+    const {user}= useUser()
+    const {listExpts} = useBackend();
+    const router = useRouter();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
     })
@@ -87,7 +92,26 @@ const ClaimExptCard = ({profile}: any) => {
 
     const currentTimezone = "UTC Time (10:00)"
 
-    function onSubmit(data: z.infer<typeof FormSchema>) {
+    async function onSubmit(data?: z.infer<typeof FormSchema>) {
+        const listing: Omit<ExptListing, 'id'> = {
+            collectionName: "Juno",
+            collectionSize: 5,
+            price: 9,
+            paymentCurrency: "USDT",
+            tokenIds: [1, 2, 3, 4],
+            imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            title: "Juno",
+            description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+            sessionCount: 482,
+            sessionDuration: 42,
+            author: user?.uid!,
+            timestamp: serverTimestamp()
+          }
+        const res = await listExpts(listing)
+        router.push(EXPERT_TICKET_PAGE(res))
+
+        console.log("submiting Listing", listing);
+
         toast({
             title: "You submitted the following values:",
             description: (
@@ -98,7 +122,7 @@ const ClaimExptCard = ({profile}: any) => {
         })
     }
 
-    const imageRef = useRef<HTMLInputElement>(null);
+    const [image, setImage] = useState<File>()
     const {claimExpt, profileReady, fetchUnclaimedExpt} = useBackend();
     const {uid} = useParams();
     const queryClient = useQueryClient();
@@ -179,21 +203,21 @@ const ClaimExptCard = ({profile}: any) => {
 
 
     // useEffect(() => {
-        const previewExptData = {
-            price: watchForm.price ? watchForm.price : 0,
+        const previewExptData : ExptListing = {
+            id: "1",
+            collectionName: "Juno",
+            collectionSize: 10,
+            price: 9,
             paymentCurrency: "USDT",
-            metadata: {
-                id: "eiwoi2424", // the id of the token to be minted
-                imageURL: imageRef.current?.files?.[0]
-                    ? URL.createObjectURL(imageRef.current?.files?.[0])
-                    : placeholderImage,
-                title: watchForm.collectionName ? watchForm.collectionName : "",
-                description: watchForm.description ? watchForm.description : "",
-                sessionCount: watchForm.sessionCount ? watchForm.sessionCount : 1,
-                sessionDuration: watchForm.availableDuration ? watchForm.availableDuration : 30,
-            },
-            author: profile, // TODO @jovells include the mentor's level in the profile object
-        }
+            tokenIds: [1, 2, 3, 4, 5],
+            imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            title: "Juno",
+            description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+            sessionCount: 482,
+            sessionDuration: 42,
+            author: user?.uid!,
+            timestamp: serverTimestamp()
+          }
     // }, [imageRef])
     
 
@@ -219,27 +243,14 @@ const ClaimExptCard = ({profile}: any) => {
                             <FormItem>
                                 <FormControl className="mb-3">
                                     <div className="flex items-center justify-center border rounded-md p-4">
-                                        {/* <div className="w-20 h-20 rounded-full relative">
-                                            <Image
-                                                src={
-                                                    imageRef.current?.files?.[0]
-                                                        ? URL.createObjectURL(imageRef.current?.files?.[0])
-                                                        : placeholderImage
-                                                }
-                                                fill
-                                                placeholder={placeholderImage}
-                                                className="object-cover rounded-full"
-                                                alt={`Preview your profile picture`}
-                                            />
-                                        </div> */}
-
+                                        
                                         <Input
+                                            key='file'
                                             placeholder="⇪ Upload Image"
                                             className="mb-4 w-1/2 rounded-full"
                                             type="file"
-                                            {...field}
-                                            ref={imageRef}
-                                        />
+                                            onChange={(e)=>setImage(e.target.files?.[0])}
+                                              />
                                         <div className="mb-4"></div>
                                     </div>
                                 </FormControl>
@@ -438,7 +449,7 @@ const ClaimExptCard = ({profile}: any) => {
 
                     <div className="w-full flex justify-end mb-[240px] gap-4">
                         <Button className='w-[160px]' variant="outline" onClick={()=> setFormSteps(0)}>Back</Button>
-                        <Button type="submit" className='w-[160px]'>Save &amp; List</Button>
+                        <Button onClick={()=>onSubmit()} type="submit" className='w-[160px]'>Save &amp; List</Button>
                     </div>
                 </>}
             </form>
@@ -468,12 +479,12 @@ const ClaimExptCard = ({profile}: any) => {
                                     <ExpertHubCard data={previewExptData} disableLink={true} />
                                     <div className="my-5">
                                         <div className="text-sm mb-2">Session Duration</div>
-                                        <div className="text-xs text-muted">{previewExptData.metadata.sessionCount} session(s) x {previewExptData.metadata.sessionDuration} minutes</div>
+                                        <div className="text-xs text-muted">{previewExptData.sessionCount} session(s) x {previewExptData.sessionDuration} minutes</div>
                                     </div>
 
                                     <div className="my-5">
                                         <div className="text-sm mb-2">Description</div>
-                                        <div className="text-xs text-muted">{previewExptData.metadata.description}</div>
+                                        <div className="text-xs text-muted">{previewExptData.description}</div>
                                     </div>
                                 </div>
                             </ScrollArea>

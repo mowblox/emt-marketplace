@@ -11,6 +11,7 @@ import { chain } from "../../../emt.config";
 import {EMTMarketplace} from "../../../../../blockchain/typechain-types/contracts/EMTMarketplace";
 import {ExpertToken} from "../../../../../blockchain/typechain-types/contracts/ExpertToken";
 import {MentorToken} from "../../../../../blockchain/typechain-types/contracts/MentorToken";
+import {StableCoin} from "../../../../../blockchain/typechain-types/contracts/StableCoin";
 import {
     useConnectModal,
     useAccountModal,
@@ -26,6 +27,7 @@ interface ContractContext {
   EMTMarketPlace: EMTMarketplace;
   ExpertToken: ExpertToken;
   MentorToken: MentorToken;
+  StableCoin: StableCoin;
   provider: ethers.BrowserProvider | ethers.JsonRpcProvider;
 }
 
@@ -86,15 +88,17 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
       const EMTMarketPlace_ = require(`@/deployments/${chain.id}/EMTMarketplace.js`).default;
       const ExpertToken_ = require(`@/deployments/${chain.id}/ExpertToken.js`).default;
       const MentorToken_ = require(`@/deployments/${chain.id}/MentorToken.js`).default;
+      const StableCoin_ = require(`@/deployments/${chain.id}/StableCoin.js`).default;
 
       const EMTMarketPlace = new ethers.Contract(EMTMarketPlace_.address, EMTMarketPlace_.abi, provider) as unknown as EMTMarketplace ;
       const ExpertToken = new ethers.Contract(ExpertToken_.address, ExpertToken_.abi, provider)  as unknown as ExpertToken ;
       const MentorToken = new ethers.Contract(MentorToken_.address, MentorToken_.abi, provider)  as unknown as MentorToken;
-
+      const StableCoin = new ethers.Contract(StableCoin_.address, StableCoin_.abi, provider)  as unknown as StableCoin;
       setContracts({
         EMTMarketPlace,
         ExpertToken,
         MentorToken,
+        StableCoin,
         provider,
       });
     }

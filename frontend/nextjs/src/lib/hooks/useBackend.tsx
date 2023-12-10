@@ -1,6 +1,6 @@
 "use client";
 import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
-import { BuiltNotification, ClaimHistoryItem, Content, NotificationData, PostFilters, UserProfile } from "@/lib/types";
+import { BuiltNotification, ClaimHistoryItem, Content, ExptListing, NotificationData, PostFilters, UserProfile } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistance } from 'date-fns';
 import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
@@ -12,7 +12,7 @@ import {
   uploadBytes
 } from "firebase/storage";
 import { useEffect, useState } from "react";
-import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
+import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, EXPT_LISTINGS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
 import { firestore, storage } from "../firebase";
 import { useContracts } from "./contracts";
 import { useUser } from "./user";
@@ -39,9 +39,10 @@ export async function uploadImage(image: Blob, name: string, subpath?: string) {
  * @returns An object containing functions for creating posts, updating profiles, fetching user posts, fetching posts, and voting on posts.
 */
 export default function useBackend() {
-  const { EMTMarketPlace,MentorToken, ExpertToken, provider } = useContracts();
+  const { EMTMarketPlace, MentorToken, ExpertToken, StableCoin, provider } = useContracts();
   const { user, updateUser } = useUser();
   const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] = useState(EMTMarketPlace);
+  const[signer, setSigner] = useState<ethers.Signer>();
 
   //for admin
   async function togglePause(){
@@ -76,7 +77,7 @@ export default function useBackend() {
     }
   })
 
-  const {data: ment} = useQuery({
+  const {data: currentUserMent} = useQuery({
     queryKey: ['ment', user?.uid],
     queryFn: () =>fetchMent(),
     enabled: !!user?.uid,
@@ -117,7 +118,7 @@ export default function useBackend() {
       mentClaimed = Number(d[1])
       return false
       })
-      console.log('mentClaimed', ment!);
+      console.log('mentClaimed', currentUserMent!);
     }
     if (!user?.uid) {
       throw new Error("User not logged in");
@@ -129,7 +130,7 @@ export default function useBackend() {
       const mentClaimed = receipt && getMentClaimed(receipt)
       const historyItem: ClaimHistoryItem = {
         type: "ment",
-        amount: ment!,
+        amount: currentUserMent!,
         timestamp: serverTimestamp(),
         uid: user.uid
       }
@@ -141,7 +142,12 @@ export default function useBackend() {
     }
   }
 
-  function getLevel(uid=user?.uid){
+  async function getLevel(uid=user?.uid){
+    console.log('getLevel', uid)
+    let ment = currentUserMent
+    if (uid !== user?.uid){
+       ment = await fetchMent(uid)
+    }
     const level = exptLevels ? Object.entries(exptLevels).find(([key, level])=> (ment || 0) >level.requiredMent )?.[0]  : 1
     return Number(level) || 1
   }
@@ -153,7 +159,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      const level = getLevel()
+      const level = await getLevel()
 
       if(!level){
         throw new Error('Not qualified for expt')
@@ -290,6 +296,16 @@ export default function useBackend() {
       throw new Error("No such document!");
     }
   }
+  async function fetchSingleListing(id: string) {
+    const docRef = doc(EXPT_LISTINGS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      const listing = docSnap.data() as ExptListing;
+      return listing;
+    } else {
+      throw new Error("Error Fetching Listing "+ id);
+    }
+  }
 
   async function fetchNumFollowers(id: string) {
     const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
@@ -308,17 +324,19 @@ export default function useBackend() {
   }
 
   async function fetchUserDoc(id: string) {
+    console.log('fetching user doc', id)
     const userDocRef = doc(USERS_COLLECTION, id);
     const userDoc = await getDoc(userDocRef);
     const data = userDoc.data() as UserProfile;
     data && (data.uid = id);
+    console.log('fetched user doc')
     return data;
   }
 
 
 
   async function fetchMent(address= user?.uid){
-
+    console.log('fetching ment', address)
     try {
       const val = await MentorToken.balanceOf(address!)
       const ment = Number(val);
@@ -351,7 +369,7 @@ export default function useBackend() {
     }
     try {
       console.log('fetching unclaimed expt')
-      const level = getLevel()
+      const level = await getLevel()
       const val = await EMTMarketPlace.unclaimedExpt(user.uid, level);
       const unclaimedExpt = Number(val);
       console.log('unclaimed expt:', unclaimedExpt)
@@ -368,18 +386,20 @@ export default function useBackend() {
     
   }
 
-  async function fetchProfile(id: string) {
+  async function fetchProfile(uid: string) {
     try {
-      const userDocRef = doc(USERS_COLLECTION, id);
-      const [user, numFollowers, numFollowing, ment] = await  Promise.all(
-        [fetchUserDoc(id),
-        fetchNumFollowers(id),
-        fetchNumFollowing(id),
-        fetchMent(id)]
+      const [user, numFollowers, numFollowing, ment, level] = await  Promise.all(
+        [fetchUserDoc(uid),
+        fetchNumFollowers(uid),
+        fetchNumFollowing(uid),
+        //TODO: @Jovells update to use already fetched meant if iscurrent user profile
+        fetchMent(uid),
+        getLevel(uid)
+      ]
         );
-      const profile : UserProfile = {...user, numFollowers, numFollowing, ment};
+      const profile : UserProfile = {...user, level, numFollowers, numFollowing, ment};
      
-      console.log('fetched Profile', profile)
+      console.log('fetched Profile', profile.uid)
       return profile;
     } catch (err: any) {
       console.log("Error fetching profile. Details: " + err);
@@ -424,8 +444,9 @@ export default function useBackend() {
 
   useEffect(() => {
     async function connectToSigner() {
-      const signer = await provider.getSigner();
-      setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(signer));
+      const _signer = await provider.getSigner();
+      setSigner(_signer);
+      setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
     }
     if (user && provider) {
       connectToSigner();
@@ -567,6 +588,63 @@ export default function useBackend() {
       throw new Error("Error unfollowing user. Message: " + err.message);
     }
   }
+  async function listExpts(listing: Omit<ExptListing, 'id'>){
+
+    async function saveExptListingToFirestore(listing: Omit<ExptListing, 'id'>){
+      try {
+        const docRef = doc(EXPT_LISTINGS_COLLECTION);
+        await setDoc(docRef, listing);
+        console.log("saved expt listing to firestore")
+        return docRef.id;
+      } catch (err: any) {
+        console.log(`Error saving expt listing to firestore. Message: ` +err);
+        throw new Error("Error saving expt listing to firestore. Message: " + err.message);
+      }
+    }
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    try {
+      // await ExpertToken.connect(signer).setApprovalForAll(EMTMarketPlace.target, true)
+      // console.log("listing expts in contract")
+      // const tx = await EMTMarketPlaceWithSigner.offerExpts(listing.tokenIds, StableCoin.target, listing.price )
+      // await tx!.wait();
+      // console.log("listed expts in contract");
+      const id = await saveExptListingToFirestore(listing);
+      return id;
+    } catch (err: any) {
+      console.log(err);
+      throw new Error("Error listing expts. Message: " + err.message);
+    }
+  }
+
+  async function fetchExptListings(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<ExptListing[]> {
+    let q = query(EXPT_LISTINGS_COLLECTION, orderBy("timestamp", "desc"), limit(size))
+
+    if(lastDocTimeStamp){
+      q = query(q, startAfter(lastDocTimeStamp))
+    }
+    if (filters?.tags) {
+        q = query(q, where("tags", "array-contains-any", filters.tags));
+    } 
+    if (filters?.owner) {
+        q = query(q, where("owner", "==", filters.owner));
+    }
+    if (filters?.isFollowing) {
+        q = query(q, where("owner", "in", filters.isFollowing));
+    }
+
+    console.log("postFilters", filters)
+    
+    const querySnapshot = await getDocs(q);
+
+  const listings = querySnapshot.docs.map( (doc) => {
+      const listing = doc.data() as ExptListing;
+      listing.id = doc.id
+      return listing
+    })
+    return listings;
+  }
 
   /**
    * Updates the user profile.
@@ -618,9 +696,9 @@ export default function useBackend() {
     }
   }
 
-  const profileReady = exptLevels !== undefined && ment !== undefined 
+  const profileReady = exptLevels !== undefined && currentUserMent !== undefined 
 
   
 
-  return { createPost, fetchClaimHistory, profileReady, togglePause, updateProfile, fetchUnclaimedExpt, fetchUnclaimedMent, fetchMent, claimMent, claimExpt, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
+  return { createPost, fetchClaimHistory, fetchExptListings, fetchSingleListing, listExpts, profileReady, togglePause, updateProfile, fetchUnclaimedExpt, fetchUnclaimedMent, fetchMent, claimMent, claimExpt, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
 }
