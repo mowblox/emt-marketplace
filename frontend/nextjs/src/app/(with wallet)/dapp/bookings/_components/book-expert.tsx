@@ -8,7 +8,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import ExpertHubCard from '@/components/ui/expert-hub-card'
-import { ExpertTicket } from '@/lib/types'
+import { ExpertTicket, ExptListing } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CalendarIcon } from "@radix-ui/react-icons"
@@ -36,6 +36,10 @@ import {
 import { toast } from "@/components/ui/use-toast"
 import { Globe2Icon } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
+import { useQuery } from '@tanstack/react-query'
+import DataLoading from '@/components/ui/data-loading'
+import NoData from '@/components/ui/no-data'
+import BookExpertDialogue from './book-expert-dialogue'
 
 
 
@@ -147,47 +151,18 @@ export function BookingCalendarForm() {
 }
 
 type Props = {
-    ownedExpt: ExpertTicket[]
+    ownedExpt: ExptListing[]
 }
 
+
 const BookExpert = ({ ownedExpt }: Props) => {
+
     return (
         <>
             <div className="w-full flex flex-wrap gap-4 flex-grow">
                 {ownedExpt.map((expert, key) => {
-                    const { author, metadata } = expert
-                    return <>
-                        <Dialog key={`book-modal-${key}-${author.uid}`}>
-                            <DialogTrigger>
-                                <ExpertHubCard data={expert} type="modal" />
-                            </DialogTrigger>
-
-                            <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
-                                <div className="grid grid-cols-[35%_60%]">
-                                    <ScrollArea className="h-[90vh]">
-                                        <div className="border-r pr-6 py-6">
-                                            <DialogHeader className='mb-6'>
-                                                <DialogTitle>Book a Session with {author.displayName}</DialogTitle>
-                                            </DialogHeader>
-                                            <ExpertHubCard data={expert} disableLink={true} />
-                                            <div className="my-5">
-                                                <div className="text-sm mb-2">Session Duration</div>
-                                                <div className="text-xs text-muted">{metadata.sessionCount} session(s) x {metadata.sessionDuration} minutes</div>
-                                            </div>
-
-                                            <div className="">
-                                                <div className="text-sm mb-2">Description</div>
-                                                <div className="text-xs text-muted">{metadata.description}</div>
-                                            </div>
-                                        </div>
-                                    </ScrollArea>
-                                    <ScrollArea className='h-[90vh] p-6'>
-                                        <BookingCalendarForm />
-                                    </ScrollArea>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </>
+                    return <BookExpertDialogue expt={expert}/>
+                        
                 })}
             </div>
         </>

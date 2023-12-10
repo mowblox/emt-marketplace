@@ -93,6 +93,23 @@ export type ClaimHistoryItem ={
   uid?: string,
 }
 
+export type ExptListing = {
+  id: string;
+  price: number;
+  paymentCurrency: string;
+  collectionName: string;
+  message?: string;
+  collectionSize: number;
+  tokenIds: number[];
+  imageURL: string;
+  title: string;
+  description: string;
+  sessionCount: number;
+  sessionDuration: number;
+  timestamp: Timestamp | FieldValue;
+  author: string;
+}
+
 export type NotificationData = {
   recipients: [string],
   sender: string,
