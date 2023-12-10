@@ -3,7 +3,7 @@ import {getDefaultWallets} from "@rainbow-me/rainbowkit";
 import { LucideImport } from "lucide-react";
   import { configureChains, createConfig } from 'wagmi';
   import {
-  hardhat, mainnet, polygonMumbai
+  hardhat,
   } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
@@ -39,7 +39,7 @@ export const toposTestnet = {
 
  const productionChain = toposTestnet
 
- const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain, polygonMumbai]
+ const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain]
 
  const { chains, publicClient } = configureChains(
   envChains,
@@ -68,6 +68,7 @@ export const toposTestnet = {
 
   export const USERS_COLLECTION = collection(firestore, 'users');
   export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'notifications');
+  export const CLAIM_HISTORY_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'claimHistory') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'claimHistory');
   export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'contents');
 
 

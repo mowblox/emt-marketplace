@@ -85,6 +85,14 @@ export type PostFilters = {
   isFollowing?: boolean
 }
 
+export type ClaimHistoryItem ={
+  type: 'ment' | 'expt',
+  timestamp: Timestamp | FieldValue,
+  amount: number,
+  level?: number,
+  uid?: string,
+}
+
 export type NotificationData = {
   recipients: [string],
   sender: string,
