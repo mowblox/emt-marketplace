@@ -1,3 +1,4 @@
+"use client";
 import React from 'react'
 import {
     Card,
@@ -9,33 +10,21 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiOutlineFire } from "react-icons/hi2";
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links';
-import { ExpertTicket, ExptListing } from "@/lib/types";
+import {  ExptListingWithAuthorProfile } from "@/lib/types";
 import { Badge } from './badge';
-import useBackend from '@/lib/hooks/useBackend';
-import { useQuery } from '@tanstack/react-query';
-import DataLoading from './data-loading';
+
 
 type Props = {
-    data: ExptListing,
+    data: ExptListingWithAuthorProfile,
     disableLink?: boolean;
     type?: "link" | "modal";
 }
 
 
 const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
-    const {fetchProfile}= useBackend()
-    const { price, paymentCurrency, imageURL, title, id, author } = data
-    console.log('author', author)
+    const { price, imageURL, collectionName, id, authorProfile } = data
 
-    const {data: authorProfile, isLoading}=useQuery({
-        queryKey: [author],
-        queryFn: ()=>fetchProfile(author),        
-    })
-
-    const CardTemplate = () =>!authorProfile?
-    <DataLoading/>
-    :
-    (<Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
+    const CardTemplate = () => (<Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
 
         <CardHeader className='px-0 pt-0'>
             <div className="w-full h-[177px] relative">
@@ -44,7 +33,7 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
                     src={imageURL as string}
                     className='rounded-md object-cover'
                     loading="lazy"
-                    alt={`${title} cover photo`}
+                    alt={`${collectionName} cover photo`}
                 />
             </div>
         </CardHeader>

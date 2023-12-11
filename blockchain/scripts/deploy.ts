@@ -75,6 +75,12 @@ async function main() {
     MentorToken: mentorToken.target,
     ExpertToken: expertToken.target,
   })
+
+  if(chainId === 31337n){
+    const deployStablecoin = require('./deployStablecoin');
+    await deployStablecoin()
+    
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
