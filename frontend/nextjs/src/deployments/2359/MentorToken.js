@@ -1,19 +1,8 @@
 export default {
-address: "0x3e5213A1924b00f7aaAb88fBDF034a9910386FF1",
+address: "0xa9daB686576ca111B300FE9562796d6D40443eC0",
 abi: [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "defaultAdmin",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "minter",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -125,6 +114,16 @@ abi: [
     "type": "error"
   },
   {
+    "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
+    "type": "error"
+  },
+  {
     "anonymous": false,
     "inputs": [
       {
@@ -147,6 +146,19 @@ abi: [
       }
     ],
     "name": "Approval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
     "type": "event"
   },
   {
@@ -463,6 +475,24 @@ abi: [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "defaultAdmin",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "minter",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

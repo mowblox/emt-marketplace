@@ -4,6 +4,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import dotenv from "dotenv";
 import "hardhat-log-remover";
 import "solidity-docgen";
+import "@openzeppelin/hardhat-upgrades";
 
 dotenv.config();
 
