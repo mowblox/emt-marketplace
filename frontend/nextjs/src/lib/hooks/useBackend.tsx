@@ -172,6 +172,7 @@ export default function useBackend() {
       const tx = await EMTMarketPlaceWithSigner.claimMent();
       const receipt = await tx!.wait();
       console.log("claimed ment");
+      // @ts-ignore
       const mentClaimed = receipt && getMentClaimed(receipt);
       const historyItem: ClaimHistoryItem = {
         type: "ment",
@@ -551,6 +552,7 @@ export default function useBackend() {
     async function connectToSigner() {
       const _signer = await provider.getSigner();
       setSigner(_signer);
+        // @ts-ignore
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
       //TODO: INFO @Jovells @od41 @mickeymond INFO: This is for testing purposes only
       //can be used to mint stablecoins from browser console
@@ -661,8 +663,10 @@ export default function useBackend() {
     let tx: ContractTransactionResponse;
     try {
       if (voteType === "upvote") {
+        // @ts-ignore
         tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId);
       } else if (voteType === "downvote") {
+        // @ts-ignore
         tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
       }
       await tx!.wait();
@@ -770,6 +774,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
+        // @ts-ignore
       await ExpertToken.connect(signer).setApprovalForAll(
         EMTMarketPlace.target,
         true
@@ -982,6 +987,7 @@ export default function useBackend() {
     }
     try {
       console.log("approving stableCoin transfer in contract");
+      // @ts-ignore
       const tx = await StableCoin.connect(signer).approve(
         EMTMarketPlace.target,
         listing.price * 10 ** 6

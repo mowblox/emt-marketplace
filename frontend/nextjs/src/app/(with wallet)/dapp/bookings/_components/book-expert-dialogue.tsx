@@ -14,9 +14,9 @@ import DataLoading from '@/components/ui/data-loading'
 import NoData from '@/components/ui/no-data'
 import useBackend from '@/lib/hooks/useBackend'
 import { BookingCalendarForm } from './book-expert'
-import { ExptListing } from '@/lib/types'
+import { ExptListing, ExptListingWithAuthorProfile } from '@/lib/types'
 
-export default function BookExpertDialogue({data}: {data: ExptListing}){
+export default function BookExpertDialogue({data}: {data: ExptListingWithAuthorProfile}){
     const {fetchProfile} = useBackend()
         
     const {data: author, isLoading}= useQuery({

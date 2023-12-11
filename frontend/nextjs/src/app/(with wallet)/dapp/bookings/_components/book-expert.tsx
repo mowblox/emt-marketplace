@@ -165,7 +165,7 @@ const BookExpert = () => {
         return lastPage[lastPage.length - 1]?.timestamp;
       }}
       queryKey={["ownedExpt"]}
-      filters={{mentee: user?.uid}}
+      filters={{mentee: user?.uid, key: 'djsj'}}
       fetcher={fetchExptListings}
       className="w-full flex flex-wrap gap-4 flex-grow"
     />
