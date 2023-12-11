@@ -30,7 +30,7 @@ describe("ExpertToken", function () {
       const { expertToken, owner, minter } = await loadFixture(deployExpertTokenFixture);
       await expertToken.connect(minter).mint(owner.address, 10);
       expect(await expertToken.balanceOf(owner.address)).to.equal(10);
-      expect(await expertToken.tokenURI(1)).to.be.equal("https://mowblox.com/1");
+      expect(await expertToken.tokenURI(1)).to.be.equal("https://emt-marketplace.vercel.app/api/metadatas/1");
     });
 
     it("should not allow an address without the MINTER_ROLE to mint tokens", async function () {

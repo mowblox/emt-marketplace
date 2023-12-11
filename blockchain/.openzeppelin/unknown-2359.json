@@ -85,7 +85,7 @@
             "label": "exptOffers",
             "offset": 0,
             "slot": "6",
-            "type": "t_mapping(t_uint256,t_struct(ExptOffer)2318_storage)",
+            "type": "t_mapping(t_uint256,t_struct(ExptOffer)2513_storage)",
             "contract": "EMTMarketplace",
             "src": "contracts\\EMTMarketplace.sol:60"
           },
@@ -93,7 +93,7 @@
             "label": "exptLevels",
             "offset": 0,
             "slot": "7",
-            "type": "t_mapping(t_uint256,t_struct(ExptLevel)2323_storage)",
+            "type": "t_mapping(t_uint256,t_struct(ExptLevel)2518_storage)",
             "contract": "EMTMarketplace",
             "src": "contracts\\EMTMarketplace.sol:61"
           },
@@ -101,7 +101,7 @@
             "label": "_contentVotes",
             "offset": 0,
             "slot": "8",
-            "type": "t_mapping(t_bytes32,t_struct(ContentVote)2309_storage)",
+            "type": "t_mapping(t_bytes32,t_struct(ContentVote)2504_storage)",
             "contract": "EMTMarketplace",
             "src": "contracts\\EMTMarketplace.sol:63"
           },
@@ -109,7 +109,7 @@
             "label": "_creatorVotes",
             "offset": 0,
             "slot": "9",
-            "type": "t_mapping(t_address,t_struct(CreatorVote)2297_storage)",
+            "type": "t_mapping(t_address,t_struct(CreatorVote)2492_storage)",
             "contract": "EMTMarketplace",
             "src": "contracts\\EMTMarketplace.sol:64"
           },
@@ -163,7 +163,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(InitializableStorage)93_storage": {
+          "t_struct(InitializableStorage)147_storage": {
             "label": "struct Initializable.InitializableStorage",
             "members": [
               {
@@ -203,11 +203,11 @@
             "label": "uint64",
             "numberOfBytes": "8"
           },
-          "t_mapping(t_address,t_struct(CreatorVote)2297_storage)": {
+          "t_mapping(t_address,t_struct(CreatorVote)2492_storage)": {
             "label": "mapping(address => struct EMTMarketplace.CreatorVote)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_struct(MemberVote)2286_storage)": {
+          "t_mapping(t_address,t_struct(MemberVote)2481_storage)": {
             "label": "mapping(address => struct EMTMarketplace.MemberVote)",
             "numberOfBytes": "32"
           },
@@ -215,19 +215,19 @@
             "label": "mapping(address => uint256)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_bytes32,t_struct(ContentVote)2309_storage)": {
+          "t_mapping(t_bytes32,t_struct(ContentVote)2504_storage)": {
             "label": "mapping(bytes32 => struct EMTMarketplace.ContentVote)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(ExptLevel)2323_storage)": {
+          "t_mapping(t_uint256,t_struct(ExptLevel)2518_storage)": {
             "label": "mapping(uint256 => struct EMTMarketplace.ExptLevel)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(ExptOffer)2318_storage)": {
+          "t_mapping(t_uint256,t_struct(ExptOffer)2513_storage)": {
             "label": "mapping(uint256 => struct EMTMarketplace.ExptOffer)",
             "numberOfBytes": "32"
           },
-          "t_struct(ContentVote)2309_storage": {
+          "t_struct(ContentVote)2504_storage": {
             "label": "struct EMTMarketplace.ContentVote",
             "members": [
               {
@@ -250,14 +250,14 @@
               },
               {
                 "label": "memberVotes",
-                "type": "t_mapping(t_address,t_struct(MemberVote)2286_storage)",
+                "type": "t_mapping(t_address,t_struct(MemberVote)2481_storage)",
                 "offset": 0,
                 "slot": "3"
               }
             ],
             "numberOfBytes": "128"
           },
-          "t_struct(CreatorVote)2297_storage": {
+          "t_struct(CreatorVote)2492_storage": {
             "label": "struct EMTMarketplace.CreatorVote",
             "members": [
               {
@@ -293,7 +293,7 @@
             ],
             "numberOfBytes": "160"
           },
-          "t_struct(ExptLevel)2323_storage": {
+          "t_struct(ExptLevel)2518_storage": {
             "label": "struct EMTMarketplace.ExptLevel",
             "members": [
               {
@@ -311,7 +311,7 @@
             ],
             "numberOfBytes": "64"
           },
-          "t_struct(ExptOffer)2318_storage": {
+          "t_struct(ExptOffer)2513_storage": {
             "label": "struct EMTMarketplace.ExptOffer",
             "members": [
               {
@@ -341,7 +341,7 @@
             ],
             "numberOfBytes": "128"
           },
-          "t_struct(MemberVote)2286_storage": {
+          "t_struct(MemberVote)2481_storage": {
             "label": "struct EMTMarketplace.MemberVote",
             "members": [
               {
@@ -453,7 +453,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(ERC20Storage)173_storage": {
+          "t_struct(ERC20Storage)227_storage": {
             "label": "struct ERC20Upgradeable.ERC20Storage",
             "members": [
               {
@@ -489,7 +489,7 @@
             ],
             "numberOfBytes": "160"
           },
-          "t_struct(InitializableStorage)93_storage": {
+          "t_struct(InitializableStorage)147_storage": {
             "label": "struct Initializable.InitializableStorage",
             "members": [
               {
@@ -873,6 +873,118 @@
               "src": "@openzeppelin\\contracts-upgradeable\\token\\ERC20\\ERC20Upgradeable.sol:45",
               "offset": 0,
               "slot": "4"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "606d7fbf3b981036df3f4d60acb0959a9f7f587ddb55e0f0c73ba47693322ee1": {
+      "address": "0xc7f8f4308cEeF93e3233c75a8097ba9d840d6C61",
+      "txHash": "0x34f174a2dd3fa41532e916a3226e8cd04144fdb355dbff6de24cf6a0bef00bae",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)25_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessControlStorage)34_storage": {
+            "label": "struct AccessControlUpgradeable.AccessControlStorage",
+            "members": [
+              {
+                "label": "_roles",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)147_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)25_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)25_storage)",
+              "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61",
+              "offset": 0,
+              "slot": "0"
             }
           ],
           "erc7201:openzeppelin.storage.Initializable": [

@@ -32,7 +32,7 @@ contract ExpertToken is
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://mowblox.com/";
+        return "https://emt-marketplace.vercel.app/api/metadatas/";
     }
 
     function mint(address to, uint256 quantity) public onlyRole(MINTER_ROLE) {
