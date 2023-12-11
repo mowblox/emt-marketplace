@@ -624,7 +624,8 @@ export default function useBackend() {
     }
     try {
       // action: list tokens in contract
-      // TODO @jovells or od41 set approval for tokens
+      // TODO @jovells set approval for tokens
+      
       // await ExpertToken.connect(signer).setApprovalForAll(EMTMarketPlace.target, true)
       // console.log("listing expts in contract")
       // const tx = await EMTMarketPlaceWithSigner.offerExpts(listing.tokenIds, StableCoin.target, listing.price )

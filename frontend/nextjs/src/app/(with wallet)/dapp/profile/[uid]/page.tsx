@@ -31,6 +31,7 @@ import { Switch } from "@/components/ui/switch";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
 import { ExpertTicket, UserProfile } from "@/lib/types";
 import { Progress } from "@/components/ui/progress";
+import SetAvailabilityStatus from './_components/set-availability-status';
 
 const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
 { type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
@@ -286,14 +287,7 @@ const Profile = () => {
             </TabsContent>
             <TabsContent value="status">
               <div className="flex flex-col gap-y-4 mt-5">
-                <div className="flex p-4 items-center justify-between bg-accent-shade rounded-md">
-                  <div className="flex items-center">
-                    <div className="flex items-center text-sm">
-                      <div className="ml-1 flex items-center text-muted">Are you available for mentoring?</div>
-                    </div>
-                  </div>
-                  <Switch />
-                </div>
+                  <SetAvailabilityStatus />
               </div>
             </TabsContent>
 
