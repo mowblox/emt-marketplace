@@ -100,7 +100,7 @@ export type ExptListing = {
   collectionName: string;
   message?: string;
   collectionSize: number;
-  tokenIds: number[];
+  tokenIds?: number[];
   imageURL: string;
   title: string;
   description: string;
@@ -109,6 +109,8 @@ export type ExptListing = {
   timestamp: Timestamp | FieldValue;
   author: string;
 }
+
+export type NewExptListing = Omit<ExptListing, 'id' | 'title' |'imageURL' | 'author'> & {coverImage: File}
 
 export type NotificationData = {
   recipients: [string],

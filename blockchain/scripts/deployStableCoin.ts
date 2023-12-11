@@ -5,6 +5,8 @@ const generateAbis = require('./generateAbis');
 
 dotenv.config();
 
+// TODO @jovells update deploy script to include this action
+
 async function main() {
   const [owner] = await ethers.getSigners();
   const defaultAdmin = process.env.TOKEN_DEFAULT_ADMIN || owner.address;
