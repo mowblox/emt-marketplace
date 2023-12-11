@@ -94,6 +94,7 @@ export default function useBackend() {
       // @ts-ignore
       const tx = await EMTMarketPlaceWithSigner.pause().catch((err) => {
         console.log("Error pausing contract. Details: " + err);
+        // @ts-ignore
         return EMTMarketPlaceWithSigner.unpause();
       });
       await tx!.wait();
