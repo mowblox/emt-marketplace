@@ -1,14 +1,8 @@
 export default {
-address: "0x4494b1e9Af1591D4d1E93AA154ded3EB0E7f8f99",
+address: "0x6043DFca8ee0CDD60028e7262f08c1b59f256231",
 abi: [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "defaultAdmin",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
@@ -35,12 +29,12 @@ abi: [
   },
   {
     "inputs": [],
-    "name": "EnforcedPause",
+    "name": "InvalidInitialization",
     "type": "error"
   },
   {
     "inputs": [],
-    "name": "ExpectedPause",
+    "name": "NotInitializing",
     "type": "error"
   },
   {
@@ -180,6 +174,19 @@ abi: [
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "",
@@ -193,19 +200,6 @@ abi: [
       }
     ],
     "name": "MentClaimed",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "Paused",
     "type": "event"
   },
   {
@@ -281,19 +275,6 @@ abi: [
       }
     ],
     "name": "RoleRevoked",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "account",
-        "type": "address"
-      }
-    ],
-    "name": "Unpaused",
     "type": "event"
   },
   {
@@ -613,6 +594,38 @@ abi: [
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "defaultAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_stablecoin",
+        "type": "address"
+      }
+    ],
+    "name": "isAcceptableStablecoin",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "_id",
         "type": "bytes32"
@@ -676,26 +689,6 @@ abi: [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "pause",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "paused",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -727,6 +720,24 @@ abi: [
       }
     ],
     "name": "revokeRole",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_stablecoin",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isAcceptable",
+        "type": "bool"
+      }
+    ],
+    "name": "setAcceptableStablecoin",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -858,13 +869,6 @@ abi: [
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "unpause",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("ExpertToken", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -11,7 +11,7 @@ describe("ExpertToken", function () {
     const [owner, minter, nonMinter] = await ethers.getSigners();
 
     const ExpertToken = await ethers.getContractFactory("ExpertToken");
-    const expertToken = await ExpertToken.deploy(owner.address, minter.address);
+    const expertToken = await upgrades.deployProxy(ExpertToken, [owner.address, minter.address]);
 
     return { expertToken, owner, minter, nonMinter };
   }
@@ -30,7 +30,7 @@ describe("ExpertToken", function () {
       const { expertToken, owner, minter } = await loadFixture(deployExpertTokenFixture);
       await expertToken.connect(minter).mint(owner.address, 10);
       expect(await expertToken.balanceOf(owner.address)).to.equal(10);
-      expect(await expertToken.tokenURI(1)).to.be.equal("https://mowblox.com/1");
+      expect(await expertToken.tokenURI(1)).to.be.equal("https://emt-marketplace.vercel.app/api/metadatas/1");
     });
 
     it("should not allow an address without the MINTER_ROLE to mint tokens", async function () {

@@ -9,6 +9,10 @@ typechain-types
 cache
 artifacts
 
+# OpenZeppelin
+.openzeppelin/dev-*.json
+.openzeppelin/.session
+
 # Miscellaneous
 package-lock.json
 yarn.lock

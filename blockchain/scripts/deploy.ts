@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import dotenv from "dotenv";
 
 const generateAbis = require('./generateAbis');
@@ -10,27 +10,30 @@ async function main() {
   const defaultAdmin = process.env.TOKEN_DEFAULT_ADMIN || owner.address;
 
   // Deploy Marketplace Contract
-  const emtMarketplace = await ethers.deployContract("EMTMarketplace", [defaultAdmin]);
-  emtMarketplace.waitForDeployment();
+  const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
+  const emtMarketplace = await upgrades.deployProxy(EMTMarketplace, [defaultAdmin]);
+  await emtMarketplace.waitForDeployment();
   console.log("EMT Marketplace deployed at: ", emtMarketplace.target);
 
   const minter = process.env.TOKEN_MINTER || emtMarketplace.target;
 
   // Deploy Mentor Token
-  const mentorToken = await ethers.deployContract("MentorToken", [
-    defaultAdmin,
-    minter
-  ]);
+  const MentorToken = await ethers.getContractFactory("MentorToken");
+  const mentorToken = await upgrades.deployProxy(MentorToken, [defaultAdmin, minter]);
   await mentorToken.waitForDeployment();
   console.log("Mentor Token deployed at: ", mentorToken.target);
 
   // Deploy Expert Token
-  const expertToken = await ethers.deployContract("ExpertToken", [
-    defaultAdmin,
-    minter
-  ]);
+  const ExpertToken = await ethers.getContractFactory("ExpertToken");
+  const expertToken = await upgrades.deployProxy(ExpertToken, [defaultAdmin, minter]);
   await expertToken.waitForDeployment();
   console.log("Expert Token deployed at: ", expertToken.target);
+
+  // Deploy Stablecoin
+  const StableCoin = await ethers.getContractFactory("StableCoin");
+  const stableCoin = await upgrades.deployProxy(StableCoin, ["StableCoin", "SBC", defaultAdmin]);
+  await stableCoin.waitForDeployment();
+  console.log("Stablecoin deployed at: ", stableCoin.target);
 
   // Set MENT & EXPT token addresses
   console.log("Setting MENT & EXPT Token Addresses!");
@@ -46,6 +49,11 @@ async function main() {
   console.log("Setting EXPT Level 3!");
   await (await emtMarketplace.setExptLevel(3, 5000, 200)).wait();
   console.log("Done Setting EXPT Level 3!");
+  // Set Acceptable Stable Coin
+  console.log("Setting Acceptable Stable Coin!");
+  await (await emtMarketplace.setAcceptableStablecoin(stableCoin.target, true)).wait();
+  console.log("Done Setting Acceptable Stable Coin!");
+
 
   const chainId = (await ethers.provider.getNetwork()).chainId;
   if (chainId === 31337n) {
