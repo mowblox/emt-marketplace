@@ -1,6 +1,7 @@
 import { FirebaseError } from "firebase-admin";
 import { UserCredential } from "firebase/auth";
 import { Timestamp, FieldValue } from "firebase/firestore";
+import { Type } from "lucide-react";
 import { Session } from "next-auth";
 
 export type SignUpData =
@@ -71,6 +72,7 @@ export type UserProfile ={
   level?: number;
   username?: string;
   ment?: number;
+  ownedExptIds?: number[];
   numFollowers?: number;
   numFollowing?: number;
   sessionStats?: {
@@ -82,8 +84,8 @@ export type UserProfile ={
 export type ExptFilters = {
   //TODO: @Jovells refine this
   tags?: string[],
-  owner?: string,
-  isFollowing?: boolean,
+  author?: string,
+  mentee?: string,
   tokenIds?: number[],
 }
 
@@ -111,7 +113,6 @@ export type ExptListing = {
   tokenIds: number[];
   remainingTokenIds: number[];
   imageURL: string;
-  title: string;
   description: string;
   sessionCount: number;
   sessionDuration: number;
@@ -123,7 +124,32 @@ export type ExptListingWithAuthorProfile = ExptListing & {
   tokensOfCurrentUser?: number[];
 }
 
-export type NewExptListing = Omit<ExptListing, 'id' | 'title' |'imageURL' | 'author'> & {coverImage: File}
+export type Booking ={
+  id: string;
+  timestamp: Timestamp | FieldValue;
+  message?: string;
+  mentor: string;
+  mentee: string;
+  sessionTimestamp: string;
+  sessionCount: number;
+  exptListing?: ExptListingWithAuthorProfile;
+  exptListingId: string;
+  exptTokenId: string;
+  isCompleted: boolean;
+}
+
+export type BookingFilters ={
+  mentee?: string,
+  mentor?: string,
+  exptListingId?: string,
+  exptTokenId?: string,
+  isPast?: boolean,
+  isUpcoming?: boolean,
+  isCompleted?: boolean,
+  tags?: string[],
+}
+
+export type NewExptListing = Omit<ExptListing, 'id' |'imageURL' | 'author' | 'remainingTokenIds'> & {coverImage?: File}
 
 export type NotificationData = {
   recipients: [string],

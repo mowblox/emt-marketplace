@@ -77,7 +77,7 @@ const FormSchema = z.object({
 
 // Component
 
-const ClaimExptCard = ({profile}: any) => {
+const ClaimExptCard = ({profile}: {profile: UserProfile}) => {
     const {user}= useUser()
     const {listExpts} = useBackend();
     const router = useRouter();
@@ -109,8 +109,8 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
             sessionDuration: Number(sessionDuration),
             timestamp: serverTimestamp(),
             coverImage: coverImage,
-            tokenIds: [1, 2, 3] // TODO @jovells we need a function to get a list of claimed EXPT, then based on the collectionSize, we list the first N EXPT to a maximum of collectionSize
-          }
+            tokenIds: profile.ownedExptIds!
+        }
           
         const res = await listExpts(listing)
         router.push(EXPERT_TICKET_PAGE(res))
@@ -167,6 +167,7 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
         
     })
 
+
     return (
         <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
             <div className="flex items-center text-sm">
@@ -194,14 +195,15 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                                         price: form.watch().price,
                                         paymentCurrency: "USDT",
                                         tokenIds: [1, 2, 3, 4, 5],
+                                        remainingTokenIds: [],
                                         imageURL: coverPhotoPreview ? coverPhotoPreview : String(PLACEHOLDER_COVER_PHOTO.default.src),
-                                        title: "Juno",
                                         description: form.watch().description!,
                                         sessionCount: Number(form.watch().sessionCount),
                                         sessionDuration: Number(form.watch().sessionDuration),
                                         author: user?.uid!,
+                                        authorProfile: profile,
                                         timestamp: serverTimestamp()
-                                    }} disableLink={true} />
+                                    } } disableLink={true} />
                                     <div className="my-5">
                                         <div className="text-sm mb-2">Session Duration</div>
                                         <div className="text-xs text-muted">{form.watch().sessionCount} session(s) x {form.watch().sessionDuration} minutes</div>

@@ -25,14 +25,9 @@ import { toast } from "@/components/ui/use-toast";
 import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
-import ClaimHistoryItem from "./_components/claim-history-item";
-import ClaimExptCard from "./_components/claim-expt-card";
-import { Switch } from "@/components/ui/switch";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
 import { ExpertTicket, UserProfile } from "@/lib/types";
-import { Progress } from "@/components/ui/progress";
 import SetAvailabilityStatus from './_components/set-availability-status';
-
 const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
 { type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
 { type: 'expt', amount: 5, dateClaimed: "4 hours ago" },
@@ -293,7 +288,7 @@ const Profile = () => {
 
             <TabsContent value="history">
               <div className="flex flex-col gap-y-4 mt-5">
-                <ExptBookingsHistory ownedExpt={dummyOtherExperts} />
+                <ExptBookingsHistory/>
               </div>
             </TabsContent>
           </Tabs>

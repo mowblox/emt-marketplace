@@ -145,8 +145,6 @@ const EditProfileForm = () => {
 
   return (
     <div>
-      {/* // TODO @od41 @jovells rembmer to remove this button */}
-      <Button onClick={()=>togglePause()}>togglePause</Button>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend';
 import DataLoading from '@/components/ui/data-loading';
-import { Content, ExpertTicket, ExptListing, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
+import { Content, ExpertTicket, ExptListing, ExptListingWithAuthorProfile, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
 import ExpertHubCard from '@/components/ui/expert-hub-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { profilePlaceholderImage } from "@/lib/utils";
@@ -26,66 +26,22 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   const { fetchSingleListing, buyExpt } = useBackend();
   const router = useRouter();
 
-  const cachedListings = queryClient.getQueryData(["exptListings"]) as { pages: ExptListing[][] } | undefined
+  const cachedListings = queryClient.getQueryData(["exptListings"]) as { pages: ExptListingWithAuthorProfile[][] } | undefined
 
-  let listing: ExptListing | undefined;
+  let listing: ExptListingWithAuthorProfile | undefined;
 
   if (cachedListings) {
-    cachedListings.pages.find((page: ExptListing[]) => {
+    cachedListings.pages.find((page: ExptListingWithAuthorProfile[]) => {
       listing = page.find((item) => { item.id === params.slug })
     })
   }
 
-  const dummyUser: UserProfile = {
-    uid: "string",
-    displayName: "Lisa Brumm",
-    tags: ["react", "ruby", "AI"],
-    about: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-    isExpert: true,
-    skill: "Ruby",
-    level: 3,
-    username: "@lisabrum",
-    sessionStats: {
-      sessions: 900,
-      timeSpent: 4924,
-    }
-  }
 
-  const dummyReviews: ReviewItemProps[] = [
-    {
-      user: dummyUser,
-      content: {
-        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-        datePublished: '10 November, 2023'
-      }
-    },
-    {
-      user: dummyUser,
-      content: {
-        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-        datePublished: '10 November, 2023'
-      }
-    },
-    {
-      user: dummyUser,
-      content: {
-        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-        datePublished: '10 November, 2023'
-      }
-    },
-    {
-      user: dummyUser,
-      content: {
-        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-        datePublished: '10 November, 2023'
-      }
-    },
-  ]
-
+ 
   async function handleBuyExpt() {
     const successful = await buyExpt(listing!);
     if(successful){
-      router.push(BOOKINGS_PAGE)
+      // router.push(BOOKINGS_PAGE)
     }
   }
 
@@ -106,6 +62,37 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   if (!listing) {
     return <NoData message='No Listings Available'/>
   }
+  const dummyReviews: ReviewItemProps[] = [
+    {
+      user: listing.authorProfile,
+      content: {
+        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+        datePublished: '10 November, 2023'
+      }
+    },
+    {
+      user: listing.authorProfile,
+      content: {
+        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+        datePublished: '10 November, 2023'
+      }
+    },
+    {
+      user: listing.authorProfile,
+      content: {
+        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+        datePublished: '10 November, 2023'
+      }
+    },
+    {
+      user: listing.authorProfile,
+      content: {
+        body: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
+        datePublished: '10 November, 2023'
+      }
+    },
+  ]
+
 
   return (
     <div className="col-span-4">
@@ -115,14 +102,14 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
             <div className="col-span-1 md:col-span-3 lg:col-span-5 border-3">
               <div className="flex items-end gap-10">
                 <h3 className="text-2xl">
-                  Bruno
+                  {listing.authorProfile.displayName}
                 </h3>
                 <p className="text-sm">
-                  @bruno1
+                  @{listing.authorProfile.username}
                 </p>
                 <div className="flex items-center text-sm text-accent-3">
                   <HiOutlineFire className="w-4 h-4 ml-1" />
-                  <div className="ml-1">245 MENT</div>
+                  <div className="ml-1">{listing.authorProfile.ment} MENT</div>
                 </div>
               </div>
 
@@ -133,7 +120,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                 </TabsList>
                 <TabsContent value="overview" className='pt-2'>
                   <p className="text-foreground text-sm leading-loose">
-                    Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.
+                    {listing.description}
                   </p>
 
                   <div className="mt-4">
@@ -141,7 +128,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                       Expertise
                     </h4>
                     <div className="flex gap-2 flex-wrap mt-2 capitalize">
-                      {dummyUser.tags?.map((skill, key) => (<Badge variant="secondary" className='px-3' key={`${dummyUser.uid}-${key}`}>{skill}</Badge>))}
+                      {listing.authorProfile.tags?.map((skill, key) => (<Badge variant="secondary" className='px-3' key={`${listing?.authorProfile.uid}-${key}`}>{skill}</Badge>))}
                     </div>
                   </div>
                   <div className="mt-4">
@@ -149,8 +136,8 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                       Session Stats
                     </h4>
                     <div className="flex gap-2 flex-wrap mt-2 capitalize">
-                      <Badge variant="secondary" className='px-3'>{dummyUser.sessionStats?.timeSpent} mins</Badge>
-                      <Badge variant="secondary" className='px-3'>{dummyUser.sessionStats?.sessions} sessions</Badge>
+                      <Badge variant="secondary" className='px-3'>{listing.authorProfile.sessionStats?.timeSpent || 0} mins</Badge>
+                      <Badge variant="secondary" className='px-3'>{listing.authorProfile.sessionStats?.sessions || 0} sessions</Badge>
                     </div>
                   </div>
                 </TabsContent>

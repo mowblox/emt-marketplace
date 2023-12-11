@@ -155,7 +155,7 @@ export function BookingCalendarForm() {
 
 
 const BookExpert = () => {
-  const { fetchUserExpts } = useBackend();
+  const { fetchExptListings } = useBackend();
   const {user} = useUser();
 
   return (
@@ -164,10 +164,9 @@ const BookExpert = () => {
       getNextPageParam={(lastPage) => {
         return lastPage[lastPage.length - 1]?.timestamp;
       }}
-      queryKey={["ownedExpt", user?.uid || ""]}
-      fetcher={(pageParam, size, filters) =>
-        fetchUserExpts({ lastDocTimestamp: pageParam, size, filters })
-      }
+      queryKey={["ownedExpt"]}
+      filters={{mentee: user?.uid}}
+      fetcher={fetchExptListings}
       className="w-full flex flex-wrap gap-4 flex-grow"
     />
   );

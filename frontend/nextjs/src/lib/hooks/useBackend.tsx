@@ -1,32 +1,65 @@
 "use client";
-import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
-<<<<<<< Updated upstream
-import { BuiltNotification, ClaimHistoryItem, Content, ExptListing, NewExptListing, NotificationData, PostFilters, UserProfile } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
-import { formatDistance } from 'date-fns';
-import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
 import {
-  QueryDocumentSnapshot, Timestamp, collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, startAfter, where
-=======
-import { BuiltNotification, ClaimHistoryItem, Content, ExptFilters, ExptListing, NotificationData, PostFilters, UserProfile } from "@/lib/types";
+  POST_PAGE,
+  PROFILE_PAGE,
+} from "@/app/(with wallet)/_components/page-links";
+import {
+  Booking,
+  BookingFilters,
+  BuiltNotification,
+  ClaimHistoryItem,
+  Content,
+  ExptFilters,
+  ExptListing,
+  ExptListingWithAuthorProfile,
+  NewExptListing,
+  NotificationData,
+  PostFilters,
+  UserProfile,
+} from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { formatDistance } from 'date-fns';
-import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
-import { increment, arrayRemove, QueryDocumentSnapshot, Timestamp, collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, startAfter, updateDoc, where
->>>>>>> Stashed changes
+import { formatDistance } from "date-fns";
+import {
+  ContractTransactionReceipt,
+  ContractTransactionResponse,
+  ethers,
+} from "ethers6";
+import {
+  increment,
+  arrayRemove,
+  QueryDocumentSnapshot,
+  Timestamp,
+  collection,
+  collectionGroup,
+  deleteDoc,
+  doc,
+  getCountFromServer,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  setDoc,
+  startAfter,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 
-import {
-  getDownloadURL,
-  ref,
-  uploadBytes
-} from "firebase/storage";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useState } from "react";
-import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, EXPT_LISTINGS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION, exptLevelKeys } from "../../../emt.config";
+import {
+  BOOKINGS_COLLECTION,
+  CLAIM_HISTORY_COLLECTION,
+  CONTENTS_COLLECTION,
+  EXPT_LISTINGS_COLLECTION,
+  NOTIFICATIONS_COLLECTION,
+  USERS_COLLECTION,
+  exptLevelKeys,
+} from "../../../emt.config";
 import { firestore, storage } from "../firebase";
 import { useContracts } from "./contracts";
 import { useUser } from "./user";
-
 
 /**
  * Uploads an image to Firebase Storage.
@@ -43,28 +76,27 @@ export async function uploadImage(image: Blob, name: string, subpath?: string) {
   return imageURL;
 }
 
-
 /**
  * Custom hook for backend operations.
  * @returns An object containing functions for creating posts, updating profiles, fetching user posts, fetching posts, and voting on posts.
-*/
+ */
 export default function useBackend() {
-  const { EMTMarketPlace, MentorToken, ExpertToken, StableCoin, provider } = useContracts();
+  const { EMTMarketPlace, MentorToken, ExpertToken, StableCoin, provider } =
+    useContracts();
   const { user, updateUser } = useUser();
-  const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] = useState(EMTMarketPlace);
+  const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] =
+    useState(EMTMarketPlace);
   const [signer, setSigner] = useState<ethers.Signer>();
 
   //for admin
   async function togglePause() {
     try {
-
-      const tx = await EMTMarketPlaceWithSigner.pause().catch(err => {
+      const tx = await EMTMarketPlaceWithSigner.pause().catch((err) => {
         console.log("Error pausing contract. Details: " + err);
         return EMTMarketPlaceWithSigner.unpause();
-      }
-      );
+      });
       await tx!.wait();
-      console.log("contract paused")
+      console.log("contract paused");
     } catch (err) {
       console.log("Error unpausing contract. Details: " + err);
     }
@@ -72,45 +104,26 @@ export default function useBackend() {
 
   //queries
 
-<<<<<<< Updated upstream
-  //TODO: @Jovells FIX THIS
   const { data: exptLevels } = useQuery({
-    queryKey: ['exptlevels'],
-    queryFn: () => {
-      const levels = {
-        1: {
-          requiredMent: 10,
-          receivableExpt: 10
-        },
-        2: {
-          requiredMent: 20,
-          receivableExpt: 20
-        },
-        3: {
-          requiredMent: 30,
-          receivableExpt: 30
-        }
-      }
-      return levels
-    }
-=======
-  const {data: exptLevels} = useQuery({
-    queryKey: ['exptlevels'],
-    queryFn: async ()=>{
-      const levelsPromises = exptLevelKeys.map(key => EMTMarketPlace.exptLevels(key));
+    queryKey: ["exptlevels"],
+    queryFn: async () => {
+      const levelsPromises = exptLevelKeys.map((key) =>
+        EMTMarketPlace.exptLevels(key)
+      );
       const levels = await Promise.all(levelsPromises);
       return levels;
     },
-    throwOnError:(error)=>{console.log('error fetching Levels ', error); return true}
->>>>>>> Stashed changes
-  })
+    throwOnError: (error) => {
+      console.log("error fetching Levels ", error);
+      return true;
+    },
+  });
 
   const { data: currentUserMent } = useQuery({
-    queryKey: ['ment', user?.uid],
+    queryKey: ["ment", user?.uid],
     queryFn: () => fetchMent(),
     enabled: !!user?.uid,
-  })
-
+  });
 
   async function createNotification(data: Partial<NotificationData>) {
     console.log("createNotification", data);
@@ -128,26 +141,29 @@ export default function useBackend() {
     try {
       const docRef = doc(CLAIM_HISTORY_COLLECTION);
       await setDoc(docRef, item);
+    } catch (err: any) {
+      console.log(
+        `Error saving ${item.type} claim history item to firestore. Message: ` +
+          err
+      );
+      throw new Error(
+        "Error saving claim history item to firestore. Message: " + err.message
+      );
     }
-    catch (err: any) {
-      console.log(`Error saving ${item.type} claim history item to firestore. Message: ` + err);
-      throw new Error("Error saving claim history item to firestore. Message: " + err.message);
-    }
-
   }
   async function claimMent() {
     function getMentClaimed(receipt: ContractTransactionReceipt) {
-      const filter = EMTMarketPlace.filters.MentClaimed().fragment
-      let mentClaimed: number
-      console.log('addess',)
+      const filter = EMTMarketPlace.filters.MentClaimed().fragment;
+      let mentClaimed: number;
+      console.log("addess");
       // console.log(receipt?.logs)
-      receipt?.logs.some(log => {
+      receipt?.logs.some((log) => {
         const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
-        console.log('l', d)
-        mentClaimed = Number(d[1])
-        return false
-      })
-      console.log('mentClaimed', currentUserMent!);
+        console.log("l", d);
+        mentClaimed = Number(d[1]);
+        return false;
+      });
+      console.log("mentClaimed", currentUserMent!);
     }
     if (!user?.uid) {
       throw new Error("User not logged in");
@@ -156,13 +172,13 @@ export default function useBackend() {
       const tx = await EMTMarketPlaceWithSigner.claimMent();
       const receipt = await tx!.wait();
       console.log("claimed ment");
-      const mentClaimed = receipt && getMentClaimed(receipt)
+      const mentClaimed = receipt && getMentClaimed(receipt);
       const historyItem: ClaimHistoryItem = {
         type: "ment",
         amount: currentUserMent!,
         timestamp: serverTimestamp(),
-        uid: user.uid
-      }
+        uid: user.uid,
+      };
       await saveClaimHistoryItemToFirestore(historyItem);
       return mentClaimed;
     } catch (err: any) {
@@ -172,28 +188,30 @@ export default function useBackend() {
   }
 
   async function getLevel(uid = user?.uid) {
-    console.log('getLevel', uid)
-    let ment = currentUserMent
+    console.log("getLevel", uid);
+    let ment = currentUserMent;
     if (uid !== user?.uid) {
-      ment = await fetchMent(uid)
+      ment = await fetchMent(uid);
     }
-    const level = exptLevels ? Object.entries(exptLevels).find(([key, level]) => (ment || 0) > level.requiredMent)?.[0] : 1
-    return Number(level) || 1
+    const level = exptLevels
+      ? Object.entries(exptLevels).find(
+          ([key, level]) => (ment || 0) > level.requiredMent
+        )?.[0]
+      : 1;
+    return Number(level) || 1;
   }
-
-
 
   async function claimExpt() {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
     try {
-      const level = await getLevel()
+      const level = await getLevel();
 
       if (!level) {
-        throw new Error('Not qualified for expt')
+        throw new Error("Not qualified for expt");
       }
-      const tx = await EMTMarketPlaceWithSigner.claimExpt(level)
+      const tx = await EMTMarketPlaceWithSigner.claimExpt(level);
       await tx!.wait();
       const val = await ExpertToken.balanceOf(user.uid);
       const expt = Number(val);
@@ -203,9 +221,9 @@ export default function useBackend() {
         amount: expt,
         level: level,
         timestamp: serverTimestamp(),
-        uid: user.uid
-      }
-      await saveClaimHistoryItemToFirestore(historyItem)
+        uid: user.uid,
+      };
+      await saveClaimHistoryItemToFirestore(historyItem);
       console.log("claimed expt. New expt: ", expt);
       return expt;
     } catch (err: any) {
@@ -215,7 +233,7 @@ export default function useBackend() {
   }
 
   async function fetchVotesAndUsernames(notifications: BuiltNotification[]) {
-    console.log('fetchVotesAndUsernames', notifications)
+    console.log("fetchVotesAndUsernames", notifications);
     const fetchPromises = notifications.map(async (notification) => {
       if (!notification.isNew) return notification;
 
@@ -231,67 +249,97 @@ export default function useBackend() {
         const content = contentDoc.data() as Content["post"];
         notification.message = content.title;
 
-        const [upvotes, downvotes, netVotes] = await EMTMarketPlace.contentVotes(ethers.encodeBytes32String(notification.contentId!));
-        notification.votes = Number(notification.type === "upvote" ? upvotes : downvotes);
+        const [upvotes, downvotes, netVotes] =
+          await EMTMarketPlace.contentVotes(
+            ethers.encodeBytes32String(notification.contentId!)
+          );
+        notification.votes = Number(
+          notification.type === "upvote" ? upvotes : downvotes
+        );
       }
       return notification;
     });
 
     const finalNotifications = await Promise.all(fetchPromises);
     return finalNotifications;
-
-
   }
 
-
-  async function buildNotifications(notifications: QueryDocumentSnapshot[], oldNotifications?: BuiltNotification[]) {
-    console.log('buildNotifications', notifications)
+  async function buildNotifications(
+    notifications: QueryDocumentSnapshot[],
+    oldNotifications?: BuiltNotification[]
+  ) {
+    console.log("buildNotifications", notifications);
     const newNofications = notifications.reduce((acc, doc) => {
       const notification = doc.data() as BuiltNotification;
-      let notifToBuildIndex = acc.findIndex(notif => notif.type === notification.type && notif.contentId === notification.contentId)
+      let notifToBuildIndex = acc.findIndex(
+        (notif) =>
+          notif.type === notification.type &&
+          notif.contentId === notification.contentId
+      );
 
-
-      let notifToBuild = notifToBuildIndex > -1 ? { ...acc[notifToBuildIndex] } : notification
-      console.log('notitob:', notifToBuild)
+      let notifToBuild =
+        notifToBuildIndex > -1 ? { ...acc[notifToBuildIndex] } : notification;
+      console.log("notitob:", notifToBuild);
       if (notifToBuildIndex > -1) {
         notifToBuild.others++;
-        notifToBuild.datePublished = formatDistance(notifToBuild.timestamp.toDate(), new Date(), { addSuffix: false })
-        notifToBuild.ids.push(doc.id)
-      }
-      else {
+        notifToBuild.datePublished = formatDistance(
+          notifToBuild.timestamp.toDate(),
+          new Date(),
+          { addSuffix: false }
+        );
+        notifToBuild.ids.push(doc.id);
+      } else {
         notifToBuild = notification;
         notifToBuild.others = 0;
         notifToBuild.ids = [doc.id];
-        notifToBuild.href = notification.contentId ? POST_PAGE(notification.contentId) : PROFILE_PAGE(notification.sender)
+        notifToBuild.href = notification.contentId
+          ? POST_PAGE(notification.contentId)
+          : PROFILE_PAGE(notification.sender);
       }
 
       if (notifToBuild.type === "follow") {
-        notifToBuild.summary = ` ${notifToBuild.others ? "and " + notifToBuild.others + " others" : ""} started following you`;
+        notifToBuild.summary = ` ${
+          notifToBuild.others ? "and " + notifToBuild.others + " others" : ""
+        } started following you`;
       }
       if (notifToBuild.type === "upvote" || notifToBuild.type === "downvote") {
-        notifToBuild.summary = ` ${notifToBuild.others ? "and " + notifToBuild.others + " others" : ""}  ${notifToBuild.type}d your post`;
+        notifToBuild.summary = ` ${
+          notifToBuild.others ? "and " + notifToBuild.others + " others" : ""
+        }  ${notifToBuild.type}d your post`;
       }
       notifToBuild.isNew = true;
-      acc[notifToBuildIndex > -1 ? notifToBuildIndex : acc.length] = notifToBuild;
+      acc[notifToBuildIndex > -1 ? notifToBuildIndex : acc.length] =
+        notifToBuild;
       return acc;
-    }, oldNotifications || [])
+    }, oldNotifications || []);
 
     return await fetchVotesAndUsernames(newNofications);
   }
 
-  async function fetchNotifications(lastDocTimeStamp?: Timestamp, size = 1, oldNotifications?: BuiltNotification[]): Promise<BuiltNotification[]> {
+  async function fetchNotifications(
+    lastDocTimeStamp?: Timestamp,
+    size = 1,
+    oldNotifications?: BuiltNotification[]
+  ): Promise<BuiltNotification[]> {
     if (user?.uid === undefined) return [];
     // fetch notifications from firestore
-    let q = query(NOTIFICATIONS_COLLECTION, orderBy("timestamp", "desc"), where("recipients", "array-contains-any", [user?.uid, "all"]), limit(size));
+    let q = query(
+      NOTIFICATIONS_COLLECTION,
+      orderBy("timestamp", "desc"),
+      where("recipients", "array-contains-any", [user?.uid, "all"]),
+      limit(size)
+    );
     if (lastDocTimeStamp) {
-      q = query(q, startAfter(lastDocTimeStamp))
+      q = query(q, startAfter(lastDocTimeStamp));
     }
     const querySnapshot = await getDocs(q);
 
-    const notifications = await buildNotifications(querySnapshot.docs, oldNotifications)
+    const notifications = await buildNotifications(
+      querySnapshot.docs,
+      oldNotifications
+    );
 
     return notifications;
-
   }
   /**
    * Fetches the metadata of a post.
@@ -309,9 +357,16 @@ export default function useBackend() {
       [_upvotes, _downvotes] = await EMTMarketPlace.contentVotes(contentId);
     } catch (e) {
       [_upvotes, _downvotes] = [0, 0];
-      console.log("error fetching post votes", e)
+      console.log("error fetching post votes", e);
     }
-    return { author, metadata: { upvotes: Number(_upvotes), downvotes: Number(_downvotes), id } };
+    return {
+      author,
+      metadata: {
+        upvotes: Number(_upvotes),
+        downvotes: Number(_downvotes),
+        id,
+      },
+    };
   }
 
   async function fetchSinglePost(id: string) {
@@ -319,7 +374,10 @@ export default function useBackend() {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const post = docSnap.data() as Content["post"];
-      const { author, metadata } = await fetchPostMetadata(post.owner, docSnap.id);
+      const { author, metadata } = await fetchPostMetadata(
+        post.owner,
+        docSnap.id
+      );
       return { post, author, metadata };
     } else {
       throw new Error("No such document!");
@@ -329,8 +387,9 @@ export default function useBackend() {
     const docRef = doc(EXPT_LISTINGS_COLLECTION, id);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const listing = docSnap.data() as ExptListing;
+      const listing = docSnap.data() as ExptListingWithAuthorProfile;
       listing.id = docSnap.id;
+      listing.authorProfile = await fetchProfile(listing.author);
       return listing;
     } else {
       throw new Error("Error Fetching Listing " + id);
@@ -341,36 +400,37 @@ export default function useBackend() {
     const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
     const querySnapshot = await getCountFromServer(query(userFollowersRef));
     const count = querySnapshot.data().count;
-    console.log('fetchNumFollowers', count)
+    console.log("fetchNumFollowers", count);
     return count;
   }
 
   async function fetchNumFollowing(id: string) {
-    const q = query(collectionGroup(firestore, 'followers'), where('uid', "==", id));
+    const q = query(
+      collectionGroup(firestore, "followers"),
+      where("uid", "==", id)
+    );
     const querySnapshot = await getCountFromServer(q);
     const count = querySnapshot.data().count;
-    console.log('fetchNumFollowing', count)
+    console.log("fetchNumFollowing", count);
     return count;
   }
 
   async function fetchUserDoc(id: string) {
-    console.log('fetching user doc', id)
+    console.log("fetching user doc", id);
     const userDocRef = doc(USERS_COLLECTION, id);
     const userDoc = await getDoc(userDocRef);
     const data = userDoc.data() as UserProfile;
     data && (data.uid = id);
-    console.log('fetched user doc')
+    console.log("fetched user doc");
     return data;
   }
 
-
-
   async function fetchMent(address = user?.uid) {
-    console.log('fetching ment', address)
+    console.log("fetching ment", address);
     try {
-      const val = await MentorToken.balanceOf(address!)
+      const val = await MentorToken.balanceOf(address!);
       const ment = Number(val);
-      console.log('ment:', ment)
+      console.log("ment:", ment);
       return ment;
     } catch (err: any) {
       console.log("Error fetching ment. Details: " + err);
@@ -382,9 +442,9 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      console.log('unclaimed ment fetching');
+      console.log("unclaimed ment fetching");
       const val = await EMTMarketPlace.unclaimedMent(user.uid);
-      console.log('unclaimed ment:', val);
+      console.log("unclaimed ment:", val);
       const unclaimedMent = Number(val);
       return unclaimedMent;
     } catch (err: any) {
@@ -398,37 +458,45 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      console.log('fetching unclaimed expt')
-      const level = await getLevel()
+      console.log("fetching unclaimed expt");
+      const level = await getLevel();
       const val = await EMTMarketPlace.unclaimedExpt(user.uid, level);
       const unclaimedExpt = Number(val);
-      console.log('unclaimed expt:', unclaimedExpt)
+      console.log("unclaimed expt:", unclaimedExpt);
       return unclaimedExpt;
     } catch (err: any) {
-      if (err.message.includes("Not qualified for level") || err.message.includes('Level has already been claimed')) {
-        return 0
+      if (
+        err.message.includes("Not qualified for level") ||
+        err.message.includes("Level has already been claimed")
+      ) {
+        return 0;
       } else {
         console.log("Error fetching expt. Details: " + err);
         throw new Error(err);
       }
     }
-
   }
 
-  async function fetchProfile(uid: string) {
+  async function fetchProfile(uid: string, exclude?:{followers?:boolean, following?:boolean, ownedExptIds?:boolean}) {
     try {
-      const [user, numFollowers, numFollowing, ment, level] = await Promise.all(
-        [fetchUserDoc(uid),
-        fetchNumFollowers(uid),
-        fetchNumFollowing(uid),
-        //TODO: @Jovells update to use already fetched meant if iscurrent user profile
-        fetchMent(uid),
-        getLevel(uid)
-        ]
-      );
-      const profile: UserProfile = { ...user, level, numFollowers, numFollowing, ment };
+      const promises:Promise<any>[] = [fetchUserDoc(uid), getLevel(uid), fetchMent(uid)]
+      if(!exclude?.followers) promises.push(fetchNumFollowers(uid))
+      if(!exclude?.following) promises.push(fetchNumFollowing(uid))
+      if(!exclude?.ownedExptIds) promises.push(fetchOwnedExptIds(uid))
 
-      console.log('fetched Profile', profile.uid)
+      const [user, numFollowers, numFollowing, ment, level, ownedExptIds] =
+      await Promise.all(promises);
+      
+      const profile: UserProfile = {
+        ...user,
+        level,
+        numFollowers,
+        numFollowing,
+        ownedExptIds,
+        ment,
+      };
+
+      console.log("fetched Profile", profile.uid);
       return profile;
     } catch (err: any) {
       console.log("Error fetching profile. Details: " + err);
@@ -442,11 +510,19 @@ export default function useBackend() {
    * @param size - The number of posts to fetch.
    * @returns An array of fetched posts.
    */
-  async function fetchPosts(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<Content[]> {
-    let q = query(CONTENTS_COLLECTION, orderBy("timestamp", "desc"), limit(size))
+  async function fetchPosts(
+    lastDocTimeStamp?: Timestamp,
+    size = 1,
+    filters?: PostFilters
+  ): Promise<Content[]> {
+    let q = query(
+      CONTENTS_COLLECTION,
+      orderBy("timestamp", "desc"),
+      limit(size)
+    );
 
     if (lastDocTimeStamp) {
-      q = query(q, startAfter(lastDocTimeStamp))
+      q = query(q, startAfter(lastDocTimeStamp));
     }
     if (filters?.tags) {
       q = query(q, where("tags", "array-contains-any", filters.tags));
@@ -458,7 +534,7 @@ export default function useBackend() {
       q = query(q, where("owner", "in", filters.isFollowing));
     }
 
-    console.log("postFilters", filters)
+    console.log("postFilters", filters);
 
     const querySnapshot = await getDocs(q);
 
@@ -466,7 +542,7 @@ export default function useBackend() {
       const post = doc.data() as Content["post"];
       const { author, metadata } = await fetchPostMetadata(post.owner, doc.id);
       return { post, author, metadata };
-    })
+    });
     const posts: Content[] = await Promise.all(promises);
     return posts;
   }
@@ -476,11 +552,19 @@ export default function useBackend() {
       const _signer = await provider.getSigner();
       setSigner(_signer);
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
-      //TODO: @Jovells REMOVE THIS
+      //TODO: INFO @Jovells @od41 @mickeymond INFO: This is for testing purposes only
+      //can be used to mint stablecoins from browser console
+      //MUST be removed when we go live
       //@ts-ignore
       window.signer = signer;
       //@ts-ignore
-      window.stableCoin = StableCoin; 
+      window.stableCoin = StableCoin;
+      //@ts-ignore
+      window.EMTMarketPlace = EMTMarketPlace;
+      //@ts-ignore
+      window.ExpertToken = ExpertToken;
+      //@ts-ignore
+      window.MentorToken = MentorToken;
     }
     if (user && provider) {
       connectToSigner();
@@ -523,7 +607,7 @@ export default function useBackend() {
     }
 
     try {
-      console.log("writing to database")
+      console.log("writing to database");
       await setDoc(docRef, {
         title: post.title,
         body: post.body,
@@ -547,7 +631,9 @@ export default function useBackend() {
     if (!user) {
       return [];
     }
-    const querySnapshot = await getDocs(query(CONTENTS_COLLECTION, where("owner", "==", user.uid)));
+    const querySnapshot = await getDocs(
+      query(CONTENTS_COLLECTION, where("owner", "==", user.uid))
+    );
     const _posts = querySnapshot.docs.map((doc) => {
       return { ...doc.data(), id: doc.id };
     });
@@ -563,7 +649,11 @@ export default function useBackend() {
    * @throws Error if there is an error voting on the content.
    * @fires createNotification
    */
-  async function voteOnPost(id: string, voteType: "upvote" | "downvote", owner: string) {
+  async function voteOnPost(
+    id: string,
+    voteType: "upvote" | "downvote",
+    owner: string
+  ) {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
@@ -576,17 +666,24 @@ export default function useBackend() {
         tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
       }
       await tx!.wait();
-      const [_upvotes, _downvotes] = await EMTMarketPlace.contentVotes(contentId);
-      console.log("voted. New votes: ", { upvotes: _upvotes, downvotes: _downvotes });
+      const [_upvotes, _downvotes] =
+        await EMTMarketPlace.contentVotes(contentId);
+      console.log("voted. New votes: ", {
+        upvotes: _upvotes,
+        downvotes: _downvotes,
+      });
 
-      createNotification({ type: voteType, contentId: id, recipients: [user.uid], })
+      createNotification({
+        type: voteType,
+        contentId: id,
+        recipients: [user.uid],
+      });
 
       return { upvotes: Number(_upvotes), downvotes: Number(_downvotes) };
     } catch (err: any) {
       console.log(err);
       throw new Error("Error voting on content. Message: " + err.message);
     }
-
   }
 
   async function followUser(id: string) {
@@ -594,14 +691,19 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
+      const userFollowersRef = doc(
+        USERS_COLLECTION,
+        id,
+        "followers",
+        user?.uid!
+      );
       //check if is already following
       //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
       if (await checkFollowing(id)) return false;
 
       await setDoc(userFollowersRef, { timestamp: serverTimestamp() });
 
-      createNotification({ type: "follow", recipients: [id], })
+      createNotification({ type: "follow", recipients: [id] });
 
       return true;
     } catch (err: any) {
@@ -611,62 +713,75 @@ export default function useBackend() {
 
   async function unfollowUser(id: string) {
     try {
-      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
+      const userFollowersRef = doc(
+        USERS_COLLECTION,
+        id,
+        "followers",
+        user?.uid!
+      );
       //check if is already following
       //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
       if (await checkFollowing(id)) return false;
 
-      await deleteDoc(userFollowersRef)
+      await deleteDoc(userFollowersRef);
       return true;
     } catch (err: any) {
       throw new Error("Error unfollowing user. Message: " + err.message);
     }
   }
   async function listExpts(listing: NewExptListing) {
-
     async function saveExptListingToFirestore(listing: NewExptListing) {
-      const _updates: { [key: string]: string | File | any } = { ...listing };
+      const withImage: NewExptListing & {imageURL: string,} = { ...listing, imageURL: "" };
       if (listing.coverImage) {
         try {
-          const imageURL = await uploadImage(listing.coverImage, user?.uid!, "exptCoverImage");
-          _updates.imageURL = imageURL;
-          delete _updates.coverImage;
+          const imageURL = await uploadImage(
+            listing.coverImage,
+            user?.uid!,
+            "exptCoverImage"
+          );
+          withImage.imageURL = imageURL;
+          delete withImage.coverImage;
         } catch (err: any) {
-          throw new Error("Error uploading cover photo. Details: " + err.message);
+          throw new Error(
+            "Error uploading cover photo. Details: " + err.message
+          );
         }
       }
+      const docRef = doc(EXPT_LISTINGS_COLLECTION);
+      const fullListing: Omit<ExptListing, 'id'> = {
+        ...withImage,
+        author: user?.uid!,
+        timestamp: serverTimestamp(),
+        remainingTokenIds: withImage.tokenIds,
+      };
+      
       try {
-        const docRef = doc(EXPT_LISTINGS_COLLECTION);
-        await setDoc(docRef, _updates);
-        console.log("saved expt listing to firestore")
+        await setDoc(docRef, fullListing);
+        console.log("saved expt listing to firestore");
         return docRef.id;
       } catch (err: any) {
         console.log(`Error saving expt listing to firestore. Message: ` + err);
-        throw new Error("Error saving expt listing to firestore. Message: " + err.message);
+        throw new Error(
+          "Error saving expt listing to firestore. Message: " + err.message
+        );
       }
     }
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
     try {
-<<<<<<< Updated upstream
-      // action: list tokens in contract
-      // TODO @jovells set approval for tokens
-      
-      // await ExpertToken.connect(signer).setApprovalForAll(EMTMarketPlace.target, true)
-      // console.log("listing expts in contract")
-      // const tx = await EMTMarketPlaceWithSigner.offerExpts(listing.tokenIds, StableCoin.target, listing.price )
-      // await tx!.wait();
-      // console.log("listed expts in contract");
-
-      // action: save metadata to firestore
-=======
-      await ExpertToken.connect(signer).setApprovalForAll(EMTMarketPlace.target, true)
-      console.log("listing expts in contract")
-      const tx = await EMTMarketPlaceWithSigner.offerExpts(listing.tokenIds, StableCoin.target, listing.price )
+      await ExpertToken.connect(signer).setApprovalForAll(
+        EMTMarketPlace.target,
+        true
+      );
+      console.log("listing expts in contract");
+      const tx = await EMTMarketPlaceWithSigner.offerExpts(
+        listing.tokenIds,
+        StableCoin.target,
+        listing.price
+      );
       await tx!.wait();
       console.log("listed expts in contract");
->>>>>>> Stashed changes
       const id = await saveExptListingToFirestore(listing);
       return id;
     } catch (err: any) {
@@ -675,74 +790,102 @@ export default function useBackend() {
     }
   }
 
-<<<<<<< Updated upstream
-  async function fetchExptListings(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<ExptListing[]> {
-    let q = query(EXPT_LISTINGS_COLLECTION, orderBy("timestamp", "desc"), limit(size))
-
-    if (lastDocTimeStamp) {
-      q = query(q, startAfter(lastDocTimeStamp))
-    }
-    if (filters?.tags) {
-      q = query(q, where("tags", "array-contains-any", filters.tags));
-    }
-    if (filters?.owner) {
-      q = query(q, where("owner", "==", filters.owner));
-    }
-    if (filters?.isFollowing) {
-      q = query(q, where("owner", "in", filters.isFollowing));
-    }
-
-    console.log("postFilters", filters)
-
-    const querySnapshot = await getDocs(q);
-
-    const listings = querySnapshot.docs.map((doc) => {
-      const listing = doc.data() as ExptListing;
-      listing.id = doc.id
-      return listing
-    })
-=======
-  async function fetchExptListings(lastDocTimeStamp?: Timestamp, size = 1, filters?: ExptFilters): Promise<ExptListing[]> {
+  async function fetchExptListings(
+    lastDocTimeStamp?: Timestamp,
+    size = 1,
+    filters?: ExptFilters
+  ): Promise<ExptListingWithAuthorProfile[]> {
     // Split the tokenIds array into chunks of 30 because of firebase array-contains limit
-    const tokenIdsChunks = filters?.tokenIds ? chunkArray(filters.tokenIds, 30) : [[]];
-  
+    if (filters?.mentee) {
+      const ownedExpts = await fetchOwnedExptIds(filters.mentee);
+      filters.tokenIds = ownedExpts;
+    }
+    const tokenIdsChunks = filters?.tokenIds
+      ? chunkArray(filters.tokenIds, 30)
+      : [[]];
+
     const listingPromises = tokenIdsChunks.map(async (tokenIds) => {
-      let q = query(EXPT_LISTINGS_COLLECTION, orderBy("timestamp", "desc"), limit(size));
-  
+      let q = query(
+        EXPT_LISTINGS_COLLECTION,
+        orderBy("timestamp", "desc"),
+        limit(size)
+      );
+
       if (lastDocTimeStamp) {
         q = query(q, startAfter(lastDocTimeStamp));
       }
       if (filters?.tags) {
         q = query(q, where("tags", "array-contains-any", filters.tags));
       }
-      if (filters?.owner) {
-        q = query(q, where("owner", "==", filters.owner));
-      }
-      if (filters?.isFollowing) {
-        q = query(q, where("owner", "in", filters.isFollowing));
+      if (filters?.author) {
+        q = query(q, where("owner", "==", filters.author));
       }
       if (tokenIds.length > 0) {
         q = query(q, where("tokenIds", "array-contains-any", tokenIds));
       }
-  
+
       const querySnapshot = await getDocs(q);
-  
-      return querySnapshot.docs.map((doc) => {
-        const listing = doc.data() as ExptListing;
+      if (querySnapshot.empty) return [];
+
+      const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
+        const listing = doc.data() as ExptListingWithAuthorProfile;
         listing.id = doc.id;
+        console.log('listing', listing)
+        listing.authorProfile = await fetchProfile(listing.author);
         return listing;
       });
+      return await Promise.all(withAuthorPromises);
     });
-  
+
     const listingsArrays = await Promise.all(listingPromises);
-  
+
     // Flatten the array of arrays into a single array
     const listings = listingsArrays.flat();
-  
->>>>>>> Stashed changes
+
     return listings;
   }
-  
+  async function fetchBookings(
+    lastDocTimeStamp?: Timestamp,
+    size = 1,
+    filters?: BookingFilters
+  ): Promise<Booking[]> {
+    let q = query(
+      BOOKINGS_COLLECTION,
+      orderBy("timestamp", "desc"),
+      limit(size)
+    );
+
+    if (lastDocTimeStamp) {
+      q = query(q, startAfter(lastDocTimeStamp));
+    }
+    if (filters?.tags) {
+      q = query(q, where("tags", "array-contains-any", filters.tags));
+    }
+    if (filters?.mentee) {
+      q = query(q, where("mentee", "==", filters.mentee));
+    }
+    if (filters?.mentor) {
+      q = query(q, where("mentor", "==", filters.mentor));
+    }
+    if (filters?.isPast) {
+      q = query(q, where("timestamp", "<", serverTimestamp()));
+    }
+    if (filters?.isUpcoming) {
+      q = query(q, where("timestamp", ">", serverTimestamp()));
+    }
+
+    const querySnapshot = await getDocs(q);
+
+    const bookingPromises = querySnapshot.docs.map(async (doc) => {
+      const booking = doc.data() as Booking;
+      booking.id = doc.id;
+      booking.exptListing = await fetchSingleListing(booking.exptListingId);
+      return booking;
+    });
+    const bookings = await Promise.all(bookingPromises);
+    return bookings;
+  }
+
   // Helper function to split an array into chunks
   function chunkArray<T>(array: T[], chunkSize: number): T[][] {
     return Array(Math.ceil(array.length / chunkSize))
@@ -756,11 +899,21 @@ export default function useBackend() {
    * @param updates - The profile updates.
    * @throws Error if there is an error updating the user profile.
    */
-  async function updateProfile(updates: { displayName?: string; profilePicture?: File; about?: string; username?: string; email?: string }) {
+  async function updateProfile(updates: {
+    displayName?: string;
+    profilePicture?: File;
+    about?: string;
+    username?: string;
+    email?: string;
+  }) {
     const _updates: { [key: string]: string | File } = { ...updates };
     if (updates.profilePicture) {
       try {
-        const imageURL = await uploadImage(updates.profilePicture, user?.uid!, "profilePictures");
+        const imageURL = await uploadImage(
+          updates.profilePicture,
+          user?.uid!,
+          "profilePictures"
+        );
         _updates.photoURL = imageURL;
         delete _updates.profilePicture;
       } catch (err: any) {
@@ -777,7 +930,12 @@ export default function useBackend() {
 
   async function checkFollowing(id: string) {
     try {
-      const userFollowersRef = doc(USERS_COLLECTION, id, "followers", user?.uid!);
+      const userFollowersRef = doc(
+        USERS_COLLECTION,
+        id,
+        "followers",
+        user?.uid!
+      );
       const userFollowersSnap = await getDoc(userFollowersRef);
       return !!userFollowersSnap.exists();
     } catch (err: any) {
@@ -788,114 +946,116 @@ export default function useBackend() {
 
   async function fetchClaimHistory(uid = user?.uid) {
     try {
-      const historySnap = await getDocs(query(CLAIM_HISTORY_COLLECTION, where('uid', '==', uid), orderBy('timestamp', 'desc')));
-      const history = historySnap.docs.map(doc => {
+      const historySnap = await getDocs(
+        query(
+          CLAIM_HISTORY_COLLECTION,
+          where("uid", "==", uid),
+          orderBy("timestamp", "desc")
+        )
+      );
+      const history = historySnap.docs.map((doc) => {
         const data = doc.data();
-        data.dateClaimed = formatDistance(data.timestamp.toDate(), new Date(), { addSuffix: true })
-        return data
-      }
-      )
-      return history as ClaimHistoryItem[]
+        data.dateClaimed = formatDistance(data.timestamp.toDate(), new Date(), {
+          addSuffix: true,
+        });
+        return data;
+      });
+      return history as ClaimHistoryItem[];
     } catch (err) {
-      console.log("error fetching claim history. ", err)
+      console.log("error fetching claim history. ", err);
     }
   }
 
-<<<<<<< Updated upstream
-  const profileReady = exptLevels !== undefined && currentUserMent !== undefined
-
-
-
-  return {
-    createPost,
-    fetchClaimHistory, fetchExptListings, 
-    fetchSingleListing, 
-    listExpts, 
-    profileReady, 
-    togglePause, 
-    updateProfile, 
-    fetchUnclaimedExpt, 
-    fetchUnclaimedMent, 
-    fetchMent, 
-    claimMent, 
-    claimExpt, 
-    fetchNotifications, 
-    fetchUserPosts, 
-    uploadImage, 
-    followUser, 
-    unfollowUser, 
-    fetchPosts, 
-    fetchProfile, 
-    checkFollowing, 
-    voteOnPost, 
-    fetchSinglePost
-  };
-=======
-  async function buyExpt(listing: ExptListing){
+  async function buyExpt(listing: ExptListing) {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
-    async function updateListingInFireStore(boughtTokenId: number){
+    async function updateListingInFireStore(boughtTokenId: number) {
       try {
         updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
           remainingTokenIds: arrayRemove(boughtTokenId),
-          collectionSize: increment(-1)
-        })
+          collectionSize: increment(-1),
+        });
       } catch (error) {
-        console.log('error Updating Token listing ', error)
+        console.log("error Updating Token listing ", error);
       }
     }
     try {
       console.log("approving stableCoin transfer in contract");
-      await StableCoin.connect(signer).approve(EMTMarketPlace.target, listing.price * 10 ** 6);
+      const tx = await StableCoin.connect(signer).approve(
+        EMTMarketPlace.target,
+        listing.price * 10 ** 6
+      );
+      const receipt  = await tx.wait();
+      console.log(receipt)
       console.log("buying expts in contract");
-      let exptToBuyIndex = listing.remainingTokenIds.length-1
-      
+      let exptToBuyIndex = listing.remainingTokenIds.length - 1;
+
       //this loop is here because the chosen expt to buy might have been bought already before this user completes the purchase
-      while (exptToBuyIndex >= 0){
-        const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex]
+      while (exptToBuyIndex >= 0) {
+        const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
         try {
-          console.log('tokenToBuyId', tokenToBuyId, listing)
-          const tx = await EMTMarketPlaceWithSigner.buyExpt(tokenToBuyId)
+          console.log("tokenToBuyId", tokenToBuyId, listing);
+          const tx = await EMTMarketPlaceWithSigner.buyExpt(tokenToBuyId);
           await tx!.wait();
           console.log("bought expts in contract");
           await updateListingInFireStore(tokenToBuyId);
           return true;
-        } catch (err:any) {
-          if(err.message.includes("No deposit yet for token id")){
+        } catch (err: any) {
+          if (err.message.includes("No deposit yet for token id")) {
             console.log("this expt has probably been bought. Trying the next");
-            exptToBuyIndex = exptToBuyIndex -1;
-          }else throw new Error(err)
+            exptToBuyIndex = exptToBuyIndex - 1;
+          } else throw new Error(err);
         }
       }
     } catch (err: any) {
       console.log("Error buying expts. Message: " + err.message);
-      return false
+      return false;
     }
   }
 
-
-
-  async function fetchUserExpts({lastDocTimestamp, size=10, filters}:{lastDocTimestamp?: Timestamp, size?: number, filters?:ExptFilters}, uid=user?.uid){
-    //TODO @Jovells update this to fetch metadata instead afte token uri endpoint is ready
-    //currently this will only fect the listing once of the user owns two listings from the same collection
-    if(!uid) return []
+  async function fetchOwnedExptIds(uid = user?.uid) {
+    if (!uid) return [];
     try {
-      console.log('fetching tokens of user')
+      console.log("fetching tokens of user");
       const val = await ExpertToken.tokensOfOwner(uid);
-      const tokenIds = val.map(id=>Number(id));
-      console.log("tokens of owner", tokenIds)
-      const listings = await fetchExptListings(lastDocTimestamp, size, {tokenIds, ...filters})
-      return listings
-    } catch (err:any) {
-      console.log("error fetching user expts. ", err );
-      throw new Error(err)
+      const tokenIds = val.map((id) => Number(id));
+      console.log("tokens of owner", tokenIds);
+      return tokenIds;
+    } catch (err: any) {
+      console.log("error fetching owned expts ids ", err);
+      throw new Error(err);
     }
   }
 
-  const profileReady = exptLevels !== undefined && currentUserMent !== undefined 
+  const profileReady =
+    exptLevels !== undefined && currentUserMent !== undefined;
 
-
-  return { createPost, fetchClaimHistory, fetchUserExpts, buyExpt, fetchExptListings, fetchSingleListing, listExpts, profileReady, togglePause, updateProfile, fetchUnclaimedExpt, fetchUnclaimedMent, fetchMent, claimMent, claimExpt, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
->>>>>>> Stashed changes
+  return {
+    createPost,
+    fetchClaimHistory,
+    fetchBookings,
+    buyExpt,
+    fetchExptListings,
+    fetchSingleListing,
+    listExpts,
+    profileReady,
+    togglePause,
+    updateProfile,
+    fetchUnclaimedExpt,
+    fetchUnclaimedMent,
+    fetchMent,
+    claimMent,
+    claimExpt,
+    fetchNotifications,
+    fetchUserPosts,
+    uploadImage,
+    followUser,
+    unfollowUser,
+    fetchPosts,
+    fetchProfile,
+    checkFollowing,
+    voteOnPost,
+    fetchSinglePost,
+  };
 }

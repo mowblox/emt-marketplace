@@ -5,11 +5,6 @@ import React from "react";
 import { HiMiniAdjustmentsVertical } from "react-icons/hi2";
 import { ExpertTicket, ExptListing, UserProfile } from "@/lib/types";
 import ExpertHubCard from "@/components/ui/expert-hub-card";
-import { Timestamp } from "firebase/firestore";
-import { useIntersection } from "@mantine/hooks";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import DataLoading from "@/components/ui/data-loading";
-import NoData from "@/components/ui/no-data";
 import useBackend from "@/lib/hooks/useBackend";
 import InfiniteScroll from "@/components/ui/infinite-scroller";
 

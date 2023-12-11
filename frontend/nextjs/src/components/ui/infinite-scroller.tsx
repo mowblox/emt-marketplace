@@ -22,7 +22,7 @@ type Props = {
     fetcher: (pageParam: any, size: number, filters?: Record<string, any>)=>Promise<any>,
     queryKey: string[],
     size?: number,
-    getNextPageParam: (lastpage: any)=>any
+    getNextPageParam?: (lastpage: any)=>any
     ItemComponent: React.FunctionComponent<{data: any}>
     itemKey?:(data: any)=>string
 } & React.HtmlHTMLAttributes<HTMLDivElement>
@@ -46,8 +46,10 @@ export default function InfiniteScroll ({filters, fetcher, size=1, queryKey, Ite
         const contents = await fetcher(pageParam, size, filters);
         return contents;
       },
-      initialPageParam : undefined,
-      getNextPageParam,
+      initialPageParam : undefined as any,
+      getNextPageParam : getNextPageParam || ((lastPage) => {
+        return lastPage[lastPage.length - 1]?.timestamp;
+      }),
       select:(data)=>{
         return {
           pages:data.pages.flat(),
@@ -79,7 +81,7 @@ export default function InfiniteScroll ({filters, fetcher, size=1, queryKey, Ite
       </div>)
   }
 
-  console.log('contendData', contentPages)
+  console.log(queryKey, contentPages)
   
   return (
     <>

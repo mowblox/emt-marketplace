@@ -10,11 +10,9 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiOutlineFire } from "react-icons/hi2";
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links';
-import { ExpertTicket, ExptListing, ExptListingWithAuthorProfile } from "@/lib/types";
+import {  ExptListingWithAuthorProfile } from "@/lib/types";
 import { Badge } from './badge';
-import useBackend from '@/lib/hooks/useBackend';
-import { useQuery } from '@tanstack/react-query';
-import DataLoading from './data-loading';
+
 
 type Props = {
     data: ExptListingWithAuthorProfile,
@@ -24,9 +22,7 @@ type Props = {
 
 
 const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
-    const {fetchProfile}= useBackend()
-    const { price, paymentCurrency, imageURL, title, id, author } = data
-    const {authorProfile} = data
+    const { price, imageURL, collectionName, id, authorProfile } = data
 
     const CardTemplate = () => (<Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
 
@@ -37,7 +33,7 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
                     src={imageURL as string}
                     className='rounded-md object-cover'
                     loading="lazy"
-                    alt={`${title} cover photo`}
+                    alt={`${collectionName} cover photo`}
                 />
             </div>
         </CardHeader>
