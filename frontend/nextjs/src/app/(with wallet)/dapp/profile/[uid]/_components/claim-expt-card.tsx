@@ -20,7 +20,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import * as z from "zod"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "@/components/ui/use-toast"
 import { Globe2Icon } from 'lucide-react'
@@ -28,7 +28,7 @@ import { CalendarIcon } from "@radix-ui/react-icons"
 
 import { Textarea } from '@/components/ui/textarea'
 import { cn, isValidFileType } from "@/lib/utils"
-import { ExpertTicket, ExptListing, UserProfile } from '@/lib/types';
+import { ExpertTicket, ExptListing, NewExptListing, UserProfile } from '@/lib/types';
 import Image from 'next/image'
 import { placeholderImage } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -52,32 +52,30 @@ import { useParams, useRouter } from 'next/navigation'
 import { useUser } from '@/lib/hooks/user'
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links'
 import { serverTimestamp } from 'firebase/firestore'
+const PLACEHOLDER_COVER_PHOTO = require('@/assets/default-photo.png')
 
+
+// Form Schema
+
+const SESSION_COUNT = ["1", "2", "3", "4", "5"] as const;
+const SESSION_DURATIONS = ["15", "30"] as const;
 
 const FormSchema = z.object({
-    coverImage: z.any()
-        .refine((value) => isValidFileType(value), {
-            message:
-                "Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.",
-        })
-        .optional(),
-    tokenIds: z.any(),
+    coverImage: z
+        .custom<File>((v) => v instanceof File, {
+            message: 'Only images allowed e.g JPG, JPEG or PNG are allowed.',
+        }),
+    collectionSize: z.coerce.number(), // the tokenIds that are meant to be minted
     collectionName: z.string(),
-    price: z.number().min(1, {
-        message: "Please add a price",
-    }),
-    availableDate: z.date({
-        required_error: "A date is required.",
-    }),
-    availableTime: z.string({
-        required_error: "A time is required.",
-    }),
-    sessionCount: z.number().max(5, {
-        message: "Can't have more than 4 sessions in a ticket"
-    }),
-    availableDuration: z.number().optional(),
+    price: z.coerce.number().gte(1, {
+        message: "Price is required",
+    }).positive(),
+    sessionCount: z.enum(SESSION_COUNT),
+    sessionDuration: z.enum(SESSION_DURATIONS),
     description: z.string().optional()
-})
+});
+
+// Component
 
 const ClaimExptCard = ({profile}: any) => {
     const {user}= useUser()
@@ -85,44 +83,50 @@ const ClaimExptCard = ({profile}: any) => {
     const router = useRouter();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
+        defaultValues: {
+                collectionName: "",
+                collectionSize: 1,
+                coverImage: undefined,
+                description: "",
+                sessionCount: SESSION_COUNT[0],
+                sessionDuration: SESSION_DURATIONS[0],
+            }
     })
-    const watchForm = form.watch() // returns an array where you index according to the order of the watched data
-    const MAX_STEPS = 2
-    const [formSteps, setFormSteps] = useState(0);
+    
+    const [isListExptLoading, setIsListExptLoading] = useState(false)
+    const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
 
-    const currentTimezone = "UTC Time (10:00)"
-
-    async function onSubmit(data?: z.infer<typeof FormSchema>) {
-        const listing: Omit<ExptListing, 'id'> = {
-            collectionName: "Juno",
-            collectionSize: 5,
-            price: 9,
+    async function onSubmit(data: z.infer<typeof FormSchema>) {
+        setIsListExptLoading(true)
+        const {coverImage, collectionName, collectionSize, price, description, sessionCount, sessionDuration} = data
+        const listing: NewExptListing = {
+            collectionName: collectionName,
+            collectionSize: collectionSize,
+            price: price,
             paymentCurrency: "USDT",
-            tokenIds: [1, 2, 3, 4],
-            imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            title: "Juno",
-            description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-            sessionCount: 482,
-            sessionDuration: 42,
-            author: user?.uid!,
-            timestamp: serverTimestamp()
+            description: description || "",
+            sessionCount: Number(sessionCount),
+            sessionDuration: Number(sessionDuration),
+            timestamp: serverTimestamp(),
+            coverImage: coverImage,
+            tokenIds: [1, 2, 3] // TODO @jovells we need a function to get a list of claimed EXPT, then based on the collectionSize, we list the first N EXPT to a maximum of collectionSize
           }
+          
         const res = await listExpts(listing)
         router.push(EXPERT_TICKET_PAGE(res))
-
-        console.log("submiting Listing", listing);
 
         toast({
             title: "You submitted the following values:",
             description: (
                 // <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+                <div className="text-white">Your {collectionName} collection with {collectionSize} tickets has been listed</div>
                 // {/* </pre> */}
             ),
         })
+        setIsListExptLoading(false)
+        form.reset()
     }
-
-    const [image, setImage] = useState<File>()
+    
     const {claimExpt, profileReady, fetchUnclaimedExpt} = useBackend();
     const {uid} = useParams();
     const queryClient = useQueryClient();
@@ -133,12 +137,6 @@ const ClaimExptCard = ({profile}: any) => {
         queryFn: ()=>fetchUnclaimedExpt(),
         enabled: profileReady
     });
-
-
-    console.log('watch', form.watch())
-
-
-
 
     const {mutateAsync: handleClaimExpt} = useMutation({
         mutationFn: claimExpt,
@@ -169,218 +167,209 @@ const ClaimExptCard = ({profile}: any) => {
         
     })
 
+    return (
+        <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
+            <div className="flex items-center text-sm">
+                <HiOutlineTicket className="w-4 h-4 ml-1 text-accent-3" />
+                <div className="ml-1 flex items-center text-muted">Unclaimed EXPT: <span className="ml-1 text-foreground">{unclaimedExpt}</span></div>
+            </div>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+                <Button size="sm" onClick={()=>handleClaimExpt()} className="w-full md:w-auto px-5">Claim EXPT</Button>
+                <Dialog>
+                    <DialogTrigger>
+                        <Button size="sm" variant="gradient" className="w-full md:w-auto px-5">List EXPT</Button>
+                    </DialogTrigger>
 
-    const defaultUser: UserProfile = {
-        uid: "string",
-        displayName: "Lisa Brumm",
-        tags: ["react", "ruby", "AI"],
-        about: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-        isExpert: true,
-        skill: "Ruby",
-        level: 3,
-        username: "@lisabrum",
-        sessionStats: {
-            sessions: 900,
-            timeSpent: 4924,
-        }
-    }
-
-    const defaultExpertTicket = {
-        price: 0,
-        paymentCurrency: "USDT",
-        metadata: {
-            id: "",
-            imageURL: placeholderImage,
-            title: "",
-            description: "",
-            sessionCount: 1,
-            sessionDuration: 30,
-
-        },
-        author: defaultUser,
-    }
-    // const [previewExptData, setPreviewExptData] = useState<ExpertTicket>(defaultExpertTicket)
-
-
-    // useEffect(() => {
-        const previewExptData : ExptListing = {
-            id: "1",
-            collectionName: "Juno",
-            collectionSize: 10,
-            price: 9,
-            paymentCurrency: "USDT",
-            tokenIds: [1, 2, 3, 4, 5],
-            imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-            title: "Juno",
-            description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-            sessionCount: 482,
-            sessionDuration: 42,
-            author: user?.uid!,
-            timestamp: serverTimestamp()
-          }
-    // }, [imageRef])
-    
-
-
-    const ClaimExptForm = () => {
-        return <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="">
-                    <h4 className="text-md text-foreground font-bold mb-2">
-                        Become a mentor by listing your EXPT
-                    </h4>
-                    <p className="text-xs text-muted mb-5">
-                        Fill in details, customize your EXPT token and go live in minutes
-                    </p>
-                </div>
-
-                {(formSteps < MAX_STEPS && formSteps == 0) && <>
-
-                    <FormField
-                        control={form.control}
-                        name="coverImage"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormControl className="mb-3">
-                                    <div className="flex items-center justify-center border rounded-md p-4">
-                                        
-                                        <Input
-                                            key='file'
-                                            placeholder="⇪ Upload Image"
-                                            className="mb-4 w-1/2 rounded-full"
-                                            type="file"
-                                            onChange={(e)=>setImage(e.target.files?.[0])}
-                                              />
-                                        <div className="mb-4"></div>
+                    <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
+                        <div className="grid grid-cols-1 md:grid-cols-[35%_60%]">
+                            <ScrollArea className="hidden md:block h-[90vh]">
+                                <div className="border-r h-screen pr-6 py-6">
+                                    <DialogHeader className='mb-6'>
+                                        <DialogTitle>Preview</DialogTitle>
+                                    </DialogHeader>
+                                    <ExpertHubCard data={{
+                                        id: "1",
+                                        collectionName: form.watch().collectionName,
+                                        collectionSize: form.watch().collectionSize,
+                                        price: form.watch().price,
+                                        paymentCurrency: "USDT",
+                                        tokenIds: [1, 2, 3, 4, 5],
+                                        imageURL: coverPhotoPreview ? coverPhotoPreview : String(PLACEHOLDER_COVER_PHOTO.default.src),
+                                        title: "Juno",
+                                        description: form.watch().description!,
+                                        sessionCount: Number(form.watch().sessionCount),
+                                        sessionDuration: Number(form.watch().sessionDuration),
+                                        author: user?.uid!,
+                                        timestamp: serverTimestamp()
+                                    }} disableLink={true} />
+                                    <div className="my-5">
+                                        <div className="text-sm mb-2">Session Duration</div>
+                                        <div className="text-xs text-muted">{form.watch().sessionCount} session(s) x {form.watch().sessionDuration} minutes</div>
                                     </div>
-                                </FormControl>
-                                <FormLabel>Cover Photo</FormLabel>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
 
-                    <FormField
-                        control={form.control}
-                        name="tokenIds"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Collection Size</FormLabel>
-                                <FormControl>
-                                    <Select>
-                                        <SelectTrigger className="w-full md:w-1/2">
-                                            <SelectValue placeholder="Quantity of EXPT to list" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1</SelectItem>
-                                            <SelectItem value="5">5</SelectItem>
-                                            <SelectItem value="10">10</SelectItem>
-                                            <SelectItem value="all">All</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                    <div className="my-5">
+                                        <div className="text-sm mb-2">Description</div>
+                                        <div className="text-xs text-muted">{form.watch().description}</div>
+                                    </div>
+                                </div>
+                            </ScrollArea>
+                            <ScrollArea className='h-[90vh] pt-6 md:p-6'>
+                                <>
+                                    <Form {...form}>
+                                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                                            <div className="">
+                                                <h4 className="text-md text-foreground font-bold mb-2">
+                                                    Become a mentor by listing your EXPT
+                                                </h4>
+                                                <p className="text-xs text-muted mb-5">
+                                                    Fill in details, customize your EXPT token and go live in minutes
+                                                </p>
+                                            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        
-                    <FormField
-                        control={form.control}
-                        name="sessionCount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Session Count</FormLabel>
-                                <FormControl>
-                                    <Select>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Number of sessions" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1 session</SelectItem>
-                                            <SelectItem value="2">2 sessions</SelectItem>
-                                            <SelectItem value="3">3 sessions</SelectItem>
-                                            <SelectItem value="4">4 sessions</SelectItem>
-                                            <SelectItem value="5">5 sessions</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    
-                    <FormField
-                        control={form.control}
-                        name="tokenIds"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Session Duration</FormLabel>
-                                <FormControl>
-                                    <Select>
-                                        <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Duration of sessions" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="15">15 minutes</SelectItem>
-                                            <SelectItem value="30">30 minutes</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    </div>
+                                            {/* {(formSteps < MAX_STEPS && formSteps == 0) && <> */}
 
-                    <FormField
-                        control={form.control}
-                        name="collectionName"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Collection Name</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Name your collection" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                            <FormField
+                                                control={form.control}
+                                                name="coverImage"
+                                                render={({ field: { ref, name, onBlur, onChange } }) => (
+                                                    <FormItem>
+                                                        <FormControl className="mb-3">
+                                                            <div className="flex items-center justify-center border rounded-md p-4">
+                                                                <Input
+                                                                    key='file'
+                                                                    name={name}
+                                                                    type="file"
+                                                                    ref={ref}
+                                                                    onBlur={onBlur}
+                                                                    placeholder="⇪ Upload an image"
+                                                                    className="mb-4 w-1/2 rounded-full"
+                                                                    accept="image/png, image/jpeg"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        onChange(e.target.files?.[0]);
+                                                                        setCoverPhotoPreview(file ? URL.createObjectURL(file) : null);
+                                                                      }}
+                                                                />
+                                                                <div className="mb-4"></div>
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormLabel>Cover Photo</FormLabel>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
 
-                    <FormField
-                        control={form.control}
-                        name="price"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Price</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Price for your EXPT" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                                            <FormField
+                                                control={form.control}
+                                                name="collectionSize"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Collection Size</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Number of EXPT to list" type="number" min={1} {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
 
-                    <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Message (optional)</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="What would you want your mentee to know about you and your expertise" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-xs text-muted font-normal" />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="w-full flex justify-end mb-[240px]">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                                <FormField
+                                                    control={form.control}
+                                                    name="sessionCount"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Session Count</FormLabel>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="Number of sessions" />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {SESSION_COUNT.map((el, key) => (<SelectItem key={el} value={el}>{`${el} session${key > 1 ? 's' : ''}`} </SelectItem>))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+
+                                                <FormField
+                                                    control={form.control}
+                                                    name="sessionDuration"
+                                                    render={({ field,  }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Session Duration</FormLabel>
+                                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                                <FormControl>
+                                                                    <SelectTrigger className="w-full">
+                                                                        <SelectValue placeholder="Session Durations" />
+                                                                    </SelectTrigger>
+                                                                </FormControl>
+                                                                <SelectContent>
+                                                                    {SESSION_DURATIONS.map((el) => (<SelectItem key={el} value={el}>{el} minutes</SelectItem>))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+
+                                            <FormField
+                                                control={form.control}
+                                                name="collectionName"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Collection Name</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Name your collection" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="price"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Price</FormLabel>
+                                                        <FormControl>
+                                                            <Input 
+                                                                placeholder="Price for your EXPT" type='number' min={0} {...field}/>
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="description"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Message (optional)</FormLabel>
+                                                        <FormControl>
+                                                            <Textarea placeholder="What would you want your mentee to know about you and your expertise" {...field} />
+                                                        </FormControl>
+                                                        <FormMessage className="text-xs text-muted font-normal" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            {/* <div className="w-full flex justify-end mb-[240px]">
                         <Button onClick={() => setFormSteps(1)} className='w-[160px]'>Next</Button>
-                    </div>
-                </>}
-                
-                {(formSteps < MAX_STEPS && formSteps == 1) && <>
+                    </div> */}
+                                            <div className="w-full flex justify-end mb-[240px] gap-4">
+                                                <Button className='w-[160px]' variant="outline" onClick={() => null}>Cancel</Button>
+                                                <Button type="submit" isLoading={isListExptLoading}  className='w-[160px]' disabled={isListExptLoading || !form.formState.isValid}>Save &amp; List</Button>
+                                            </div>
+                                            {/* </>} */}
+
+                                            {/* {(formSteps < MAX_STEPS && formSteps == 1) && <>
 
                     <FormField
                     control={form.control}
@@ -451,45 +440,10 @@ const ClaimExptCard = ({profile}: any) => {
                         <Button className='w-[160px]' variant="outline" onClick={()=> setFormSteps(0)}>Back</Button>
                         <Button onClick={()=>onSubmit()} type="submit" className='w-[160px]'>Save &amp; List</Button>
                     </div>
-                </>}
-            </form>
-        </Form>
-    }
-
-    return (
-        <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
-            <div className="flex items-center text-sm">
-                <HiOutlineTicket className="w-4 h-4 ml-1 text-accent-3" />
-                <div className="ml-1 flex items-center text-muted">Unclaimed EXPT: <span className="ml-1 text-foreground">{unclaimedExpt}</span></div>
-            </div>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-                <Button size="sm" onClick={()=>handleClaimExpt()} className="w-full md:w-auto px-5">Claim EXPT</Button>
-                <Dialog>
-                    <DialogTrigger>
-                        <Button size="sm" variant="gradient" className="w-full md:w-auto px-5">List EXPT</Button>
-                    </DialogTrigger>
-
-                    <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
-                        <div className="grid grid-cols-1 md:grid-cols-[35%_60%]">
-                            <ScrollArea className="hidden md:block h-[90vh]">
-                                <div className="border-r h-screen pr-6 py-6">
-                                    <DialogHeader className='mb-6'>
-                                        <DialogTitle>Preview</DialogTitle>
-                                    </DialogHeader>
-                                    <ExpertHubCard data={previewExptData} disableLink={true} />
-                                    <div className="my-5">
-                                        <div className="text-sm mb-2">Session Duration</div>
-                                        <div className="text-xs text-muted">{previewExptData.sessionCount} session(s) x {previewExptData.sessionDuration} minutes</div>
-                                    </div>
-
-                                    <div className="my-5">
-                                        <div className="text-sm mb-2">Description</div>
-                                        <div className="text-xs text-muted">{previewExptData.description}</div>
-                                    </div>
-                                </div>
-                            </ScrollArea>
-                            <ScrollArea className='h-[90vh] pt-6 md:p-6'>
-                                <ClaimExptForm />
+                </>} */}
+                                        </form>
+                                    </Form>
+                                </>
                             </ScrollArea>
                         </div>
                     </DialogContent>
