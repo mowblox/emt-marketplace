@@ -91,6 +91,7 @@ export default function useBackend() {
   //for admin
   async function togglePause() {
     try {
+      // @ts-ignore
       const tx = await EMTMarketPlaceWithSigner.pause().catch((err) => {
         console.log("Error pausing contract. Details: " + err);
         return EMTMarketPlaceWithSigner.unpause();
