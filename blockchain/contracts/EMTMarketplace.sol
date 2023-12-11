@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+// import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./MentorToken.sol";
 import "./ExpertToken.sol";
 
 /// @custom:security-contact odafe@mowblox.com
-contract EMTMarketplace is Pausable, AccessControl {
+contract EMTMarketplace is Initializable, AccessControlUpgradeable {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     struct MemberVote {
         bool upVoted;
@@ -52,37 +53,35 @@ contract EMTMarketplace is Pausable, AccessControl {
     // Public Data Definitions
     address public mentTokenAddress;
     address public exptTokenAddress;
-    uint256 public upVoteMultiplier = 10;
-    uint256 public downVoteMultiplier = 5;
-    uint256 public exptTokenDivisor = 20;
-    uint256 public exptBuyFeePercent = 2;
+    uint256 public upVoteMultiplier;
+    uint256 public downVoteMultiplier;
+    uint256 public exptTokenDivisor;
+    uint256 public exptBuyFeePercent;
     mapping(uint256 => ExptOffer) public exptOffers;
     mapping(uint256 => ExptLevel) public exptLevels;
     // Private Data Definitions
     mapping(bytes32 => ContentVote) _contentVotes;
     mapping(address => CreatorVote) _creatorVotes;
     mapping(address => uint256) _creatorTickets;
+    mapping(address => bool) _acceptableStableCoins;
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
     /**
      * @dev Grants defaultAdmin & pauser roles.
      */
-    constructor(address defaultAdmin) {
+    function initialize(address defaultAdmin) public initializer {
+        __AccessControl_init();
+
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-        _grantRole(PAUSER_ROLE, defaultAdmin);
-    }
-
-    /**
-     * @dev Pauses marketplace to allow for MENT claiming.
-     */
-    function pause() external onlyRole(PAUSER_ROLE) {
-        _pause();
-    }
-
-    /**
-     * @dev Unpauses marketplace to allow voting.
-     */
-    function unpause() external onlyRole(PAUSER_ROLE) {
-        _unpause();
+        // Set Initial Values
+        upVoteMultiplier = 10;
+        downVoteMultiplier = 5;
+        exptTokenDivisor = 20;
+        exptBuyFeePercent = 2;
     }
 
     /**
@@ -127,6 +126,25 @@ contract EMTMarketplace is Pausable, AccessControl {
         // Update fields
         _exptLevel.requiredMent = _requiredMent;
         _exptLevel.receivableExpt = _receivableExpt;
+    }
+
+    /**
+     * @dev Sets acceptable stablecoin.
+     */
+    function setAcceptableStablecoin(
+        address _stablecoin,
+        bool _isAcceptable
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _acceptableStableCoins[_stablecoin] = _isAcceptable;
+    }
+
+    /**
+     * @dev Returns if stablecoin is acceptable or not.
+     */
+    function isAcceptableStablecoin(
+        address _stablecoin
+    ) external view returns (bool) {
+        return _acceptableStableCoins[_stablecoin];
     }
 
     /**
@@ -232,7 +250,7 @@ contract EMTMarketplace is Pausable, AccessControl {
     /**
      * @dev Allows upvoting of content with _id.
      */
-    function upVoteContent(bytes32 _id) public whenNotPaused {
+    function upVoteContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -277,7 +295,7 @@ contract EMTMarketplace is Pausable, AccessControl {
     /**
      * @dev Allows downvoting of content with _id.
      */
-    function downVoteContent(bytes32 _id) public whenNotPaused {
+    function downVoteContent(bytes32 _id) public {
         // Retrieve Content Vote
         ContentVote storage _contentVote = _contentVotes[_id];
         // Ensure Content has creator
@@ -322,7 +340,7 @@ contract EMTMarketplace is Pausable, AccessControl {
     /**
      * @dev Allows mentor to claim MENT.
      */
-    function claimMent() public whenPaused {
+    function claimMent() public {
         // Ensure mentTokenAddress is not the zero address
         require(mentTokenAddress != address(0), "MENT claiming is disabled!");
         // Retrieve Creator Vote
@@ -389,6 +407,11 @@ contract EMTMarketplace is Pausable, AccessControl {
         address _stablecoin,
         uint256 _amount
     ) external {
+        // Check if _stablecoin is acceptable
+        require(
+            _acceptableStableCoins[_stablecoin],
+            "Stablecoin is not acceptable!"
+        );
         // Require this isApproval for all EXPTs
         require(
             ExpertToken(exptTokenAddress).isApprovedForAll(

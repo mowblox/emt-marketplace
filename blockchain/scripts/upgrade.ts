@@ -11,7 +11,7 @@ async function main() {
 
   // Deploy Marketplace Contract
   const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
-  const emtMarketplace = await upgrades.deployProxy(EMTMarketplace, [defaultAdmin]);
+  const emtMarketplace = await upgrades.upgradeProxy((process.env.EMT_MARKETPLACE_ADDRESS as string), EMTMarketplace);
   await emtMarketplace.waitForDeployment();
   console.log("EMT Marketplace deployed at: ", emtMarketplace.target);
 
@@ -19,19 +19,19 @@ async function main() {
 
   // Deploy Mentor Token
   const MentorToken = await ethers.getContractFactory("MentorToken");
-  const mentorToken = await upgrades.deployProxy(MentorToken, [defaultAdmin, minter]);
+  const mentorToken = await upgrades.upgradeProxy((process.env.MENTOR_TOKEN_ADDRESS as string), MentorToken);
   await mentorToken.waitForDeployment();
   console.log("Mentor Token deployed at: ", mentorToken.target);
 
   // Deploy Expert Token
   const ExpertToken = await ethers.getContractFactory("ExpertToken");
-  const expertToken = await upgrades.deployProxy(ExpertToken, [defaultAdmin, minter]);
+  const expertToken = await upgrades.upgradeProxy((process.env.EXPERT_TOKEN_ADDRESS as string), ExpertToken);
   await expertToken.waitForDeployment();
   console.log("Expert Token deployed at: ", expertToken.target);
 
   // Deploy Stablecoin
   const StableCoin = await ethers.getContractFactory("StableCoin");
-  const stableCoin = await upgrades.deployProxy(StableCoin, ["StableCoin", "SBC", defaultAdmin]);
+  const stableCoin = await upgrades.upgradeProxy((process.env.STABLECOIN_ADDRESS as string), StableCoin);
   await stableCoin.waitForDeployment();
   console.log("Stablecoin deployed at: ", stableCoin.target);
 

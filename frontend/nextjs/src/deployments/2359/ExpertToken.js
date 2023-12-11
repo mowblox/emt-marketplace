@@ -1,22 +1,6 @@
 export default {
-address: "0x87A75F7b702Edc9c52E1C5672079142cE023E090",
+address: "0xf72b93A8d7404038C90AF2B3ABB3b9eB3025949c",
 abi: [
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "defaultAdmin",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "minter",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
   {
     "inputs": [],
     "name": "AccessControlBadConfirmation",
@@ -55,6 +39,11 @@ abi: [
   },
   {
     "inputs": [],
+    "name": "InvalidInitialization",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidQueryRange",
     "type": "error"
   },
@@ -71,6 +60,11 @@ abi: [
   {
     "inputs": [],
     "name": "MintZeroQuantity",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "NotInitializing",
     "type": "error"
   },
   {
@@ -187,6 +181,19 @@ abi: [
       }
     ],
     "name": "ConsecutiveTransfer",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "version",
+        "type": "uint64"
+      }
+    ],
+    "name": "Initialized",
     "type": "event"
   },
   {
@@ -411,7 +418,7 @@ abi: [
             "type": "uint24"
           }
         ],
-        "internalType": "struct IERC721A.TokenOwnership",
+        "internalType": "struct IERC721AUpgradeable.TokenOwnership",
         "name": "",
         "type": "tuple"
       }
@@ -452,7 +459,7 @@ abi: [
             "type": "uint24"
           }
         ],
-        "internalType": "struct IERC721A.TokenOwnership[]",
+        "internalType": "struct IERC721AUpgradeable.TokenOwnership[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -538,6 +545,24 @@ abi: [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "defaultAdmin",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "minter",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

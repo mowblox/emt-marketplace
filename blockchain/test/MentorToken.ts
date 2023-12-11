@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("MentorToken", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -11,7 +11,7 @@ describe("MentorToken", function () {
     const [owner, minter, user] = await ethers.getSigners();
 
     const MentorToken = await ethers.getContractFactory("MentorToken");
-    const mentorToken = await MentorToken.deploy(owner.address, minter.address);
+    const mentorToken = await upgrades.deployProxy(MentorToken, [owner.address, minter.address]);
 
     return { mentorToken, owner, minter, user };
   }

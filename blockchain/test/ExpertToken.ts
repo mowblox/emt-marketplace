@@ -1,6 +1,6 @@
 import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 
 describe("ExpertToken", function () {
   // We define a fixture to reuse the same setup in every test.
@@ -11,7 +11,7 @@ describe("ExpertToken", function () {
     const [owner, minter, nonMinter] = await ethers.getSigners();
 
     const ExpertToken = await ethers.getContractFactory("ExpertToken");
-    const expertToken = await ExpertToken.deploy(owner.address, minter.address);
+    const expertToken = await upgrades.deployProxy(ExpertToken, [owner.address, minter.address]);
 
     return { expertToken, owner, minter, nonMinter };
   }
