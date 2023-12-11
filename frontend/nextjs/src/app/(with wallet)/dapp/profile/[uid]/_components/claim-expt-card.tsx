@@ -84,17 +84,17 @@ const ClaimExptCard = ({profile}: any) => {
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-                collectionName: "",
-                collectionSize: 1,
-                coverImage: undefined,
-                description: "",
-                sessionCount: SESSION_COUNT[0],
-                sessionDuration: SESSION_DURATIONS[0],
-            }
-    })
-    
-    const [isListExptLoading, setIsListExptLoading] = useState(false)
-    const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
+            collectionName: "",
+            collectionSize: 1,
+            coverImage: undefined,
+            description: "",
+            sessionCount: SESSION_COUNT[0],
+            sessionDuration: SESSION_DURATIONS[0],
+        }
+})
+
+const [isListExptLoading, setIsListExptLoading] = useState(false)
+const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         setIsListExptLoading(true)

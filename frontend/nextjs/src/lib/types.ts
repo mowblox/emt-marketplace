@@ -79,10 +79,18 @@ export type UserProfile ={
   }
 }
 
+export type ExptFilters = {
+  //TODO: @Jovells refine this
+  tags?: string[],
+  owner?: string,
+  isFollowing?: boolean,
+  tokenIds?: number[],
+}
+
 export type PostFilters = {
   tags?: string[],
   owner?: string,
-  isFollowing?: boolean
+  isFollowing?: boolean,
 }
 
 export type ClaimHistoryItem ={
@@ -100,7 +108,8 @@ export type ExptListing = {
   collectionName: string;
   message?: string;
   collectionSize: number;
-  tokenIds?: number[];
+  tokenIds: number[];
+  remainingTokenIds: number[];
   imageURL: string;
   title: string;
   description: string;
@@ -108,6 +117,10 @@ export type ExptListing = {
   sessionDuration: number;
   timestamp: Timestamp | FieldValue;
   author: string;
+}
+export type ExptListingWithAuthorProfile = ExptListing & {
+  authorProfile : UserProfile;
+  tokensOfCurrentUser?: number[];
 }
 
 export type NewExptListing = Omit<ExptListing, 'id' | 'title' |'imageURL' | 'author'> & {coverImage: File}

@@ -16,6 +16,9 @@ async function main() {
   stableCoin.waitForDeployment();
   console.log("Stable Coin deployed at: ", stableCoin.target);
 
+  //mint stable coin to deployer
+  stableCoin.mint(defaultAdmin, 1_000_000 * 10 ** 6)
+
   
   //Generate files containining Abis and contract addresses for use in frontend
   const chainId = (await ethers.provider.getNetwork()).chainId;

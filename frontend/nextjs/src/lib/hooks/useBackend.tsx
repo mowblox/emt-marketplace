@@ -1,19 +1,28 @@
 "use client";
 import { POST_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
+<<<<<<< Updated upstream
 import { BuiltNotification, ClaimHistoryItem, Content, ExptListing, NewExptListing, NotificationData, PostFilters, UserProfile } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistance } from 'date-fns';
 import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
 import {
   QueryDocumentSnapshot, Timestamp, collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, startAfter, where
+=======
+import { BuiltNotification, ClaimHistoryItem, Content, ExptFilters, ExptListing, NotificationData, PostFilters, UserProfile } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
+import { formatDistance } from 'date-fns';
+import { ContractTransactionReceipt, ContractTransactionResponse, ethers } from "ethers6";
+import { increment, arrayRemove, QueryDocumentSnapshot, Timestamp, collection, collectionGroup, deleteDoc, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, startAfter, updateDoc, where
+>>>>>>> Stashed changes
 } from "firebase/firestore";
+
 import {
   getDownloadURL,
   ref,
   uploadBytes
 } from "firebase/storage";
 import { useEffect, useState } from "react";
-import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, EXPT_LISTINGS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION } from "../../../emt.config";
+import { CLAIM_HISTORY_COLLECTION, CONTENTS_COLLECTION, EXPT_LISTINGS_COLLECTION, NOTIFICATIONS_COLLECTION, USERS_COLLECTION, exptLevelKeys } from "../../../emt.config";
 import { firestore, storage } from "../firebase";
 import { useContracts } from "./contracts";
 import { useUser } from "./user";
@@ -63,6 +72,7 @@ export default function useBackend() {
 
   //queries
 
+<<<<<<< Updated upstream
   //TODO: @Jovells FIX THIS
   const { data: exptLevels } = useQuery({
     queryKey: ['exptlevels'],
@@ -83,6 +93,16 @@ export default function useBackend() {
       }
       return levels
     }
+=======
+  const {data: exptLevels} = useQuery({
+    queryKey: ['exptlevels'],
+    queryFn: async ()=>{
+      const levelsPromises = exptLevelKeys.map(key => EMTMarketPlace.exptLevels(key));
+      const levels = await Promise.all(levelsPromises);
+      return levels;
+    },
+    throwOnError:(error)=>{console.log('error fetching Levels ', error); return true}
+>>>>>>> Stashed changes
   })
 
   const { data: currentUserMent } = useQuery({
@@ -310,6 +330,7 @@ export default function useBackend() {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const listing = docSnap.data() as ExptListing;
+      listing.id = docSnap.id;
       return listing;
     } else {
       throw new Error("Error Fetching Listing " + id);
@@ -455,6 +476,11 @@ export default function useBackend() {
       const _signer = await provider.getSigner();
       setSigner(_signer);
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
+      //TODO: @Jovells REMOVE THIS
+      //@ts-ignore
+      window.signer = signer;
+      //@ts-ignore
+      window.stableCoin = StableCoin; 
     }
     if (user && provider) {
       connectToSigner();
@@ -623,6 +649,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
+<<<<<<< Updated upstream
       // action: list tokens in contract
       // TODO @jovells set approval for tokens
       
@@ -633,6 +660,13 @@ export default function useBackend() {
       // console.log("listed expts in contract");
 
       // action: save metadata to firestore
+=======
+      await ExpertToken.connect(signer).setApprovalForAll(EMTMarketPlace.target, true)
+      console.log("listing expts in contract")
+      const tx = await EMTMarketPlaceWithSigner.offerExpts(listing.tokenIds, StableCoin.target, listing.price )
+      await tx!.wait();
+      console.log("listed expts in contract");
+>>>>>>> Stashed changes
       const id = await saveExptListingToFirestore(listing);
       return id;
     } catch (err: any) {
@@ -641,6 +675,7 @@ export default function useBackend() {
     }
   }
 
+<<<<<<< Updated upstream
   async function fetchExptListings(lastDocTimeStamp?: Timestamp, size = 1, filters?: PostFilters): Promise<ExptListing[]> {
     let q = query(EXPT_LISTINGS_COLLECTION, orderBy("timestamp", "desc"), limit(size))
 
@@ -666,7 +701,54 @@ export default function useBackend() {
       listing.id = doc.id
       return listing
     })
+=======
+  async function fetchExptListings(lastDocTimeStamp?: Timestamp, size = 1, filters?: ExptFilters): Promise<ExptListing[]> {
+    // Split the tokenIds array into chunks of 30 because of firebase array-contains limit
+    const tokenIdsChunks = filters?.tokenIds ? chunkArray(filters.tokenIds, 30) : [[]];
+  
+    const listingPromises = tokenIdsChunks.map(async (tokenIds) => {
+      let q = query(EXPT_LISTINGS_COLLECTION, orderBy("timestamp", "desc"), limit(size));
+  
+      if (lastDocTimeStamp) {
+        q = query(q, startAfter(lastDocTimeStamp));
+      }
+      if (filters?.tags) {
+        q = query(q, where("tags", "array-contains-any", filters.tags));
+      }
+      if (filters?.owner) {
+        q = query(q, where("owner", "==", filters.owner));
+      }
+      if (filters?.isFollowing) {
+        q = query(q, where("owner", "in", filters.isFollowing));
+      }
+      if (tokenIds.length > 0) {
+        q = query(q, where("tokenIds", "array-contains-any", tokenIds));
+      }
+  
+      const querySnapshot = await getDocs(q);
+  
+      return querySnapshot.docs.map((doc) => {
+        const listing = doc.data() as ExptListing;
+        listing.id = doc.id;
+        return listing;
+      });
+    });
+  
+    const listingsArrays = await Promise.all(listingPromises);
+  
+    // Flatten the array of arrays into a single array
+    const listings = listingsArrays.flat();
+  
+>>>>>>> Stashed changes
     return listings;
+  }
+  
+  // Helper function to split an array into chunks
+  function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    return Array(Math.ceil(array.length / chunkSize))
+      .fill(null)
+      .map((_, index) => index * chunkSize)
+      .map((begin) => array.slice(begin, begin + chunkSize));
   }
 
   /**
@@ -719,6 +801,7 @@ export default function useBackend() {
     }
   }
 
+<<<<<<< Updated upstream
   const profileReady = exptLevels !== undefined && currentUserMent !== undefined
 
 
@@ -747,4 +830,72 @@ export default function useBackend() {
     voteOnPost, 
     fetchSinglePost
   };
+=======
+  async function buyExpt(listing: ExptListing){
+    if (!user?.uid) {
+      throw new Error("User not logged in");
+    }
+    async function updateListingInFireStore(boughtTokenId: number){
+      try {
+        updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
+          remainingTokenIds: arrayRemove(boughtTokenId),
+          collectionSize: increment(-1)
+        })
+      } catch (error) {
+        console.log('error Updating Token listing ', error)
+      }
+    }
+    try {
+      console.log("approving stableCoin transfer in contract");
+      await StableCoin.connect(signer).approve(EMTMarketPlace.target, listing.price * 10 ** 6);
+      console.log("buying expts in contract");
+      let exptToBuyIndex = listing.remainingTokenIds.length-1
+      
+      //this loop is here because the chosen expt to buy might have been bought already before this user completes the purchase
+      while (exptToBuyIndex >= 0){
+        const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex]
+        try {
+          console.log('tokenToBuyId', tokenToBuyId, listing)
+          const tx = await EMTMarketPlaceWithSigner.buyExpt(tokenToBuyId)
+          await tx!.wait();
+          console.log("bought expts in contract");
+          await updateListingInFireStore(tokenToBuyId);
+          return true;
+        } catch (err:any) {
+          if(err.message.includes("No deposit yet for token id")){
+            console.log("this expt has probably been bought. Trying the next");
+            exptToBuyIndex = exptToBuyIndex -1;
+          }else throw new Error(err)
+        }
+      }
+    } catch (err: any) {
+      console.log("Error buying expts. Message: " + err.message);
+      return false
+    }
+  }
+
+
+
+  async function fetchUserExpts({lastDocTimestamp, size=10, filters}:{lastDocTimestamp?: Timestamp, size?: number, filters?:ExptFilters}, uid=user?.uid){
+    //TODO @Jovells update this to fetch metadata instead afte token uri endpoint is ready
+    //currently this will only fect the listing once of the user owns two listings from the same collection
+    if(!uid) return []
+    try {
+      console.log('fetching tokens of user')
+      const val = await ExpertToken.tokensOfOwner(uid);
+      const tokenIds = val.map(id=>Number(id));
+      console.log("tokens of owner", tokenIds)
+      const listings = await fetchExptListings(lastDocTimestamp, size, {tokenIds, ...filters})
+      return listings
+    } catch (err:any) {
+      console.log("error fetching user expts. ", err );
+      throw new Error(err)
+    }
+  }
+
+  const profileReady = exptLevels !== undefined && currentUserMent !== undefined 
+
+
+  return { createPost, fetchClaimHistory, fetchUserExpts, buyExpt, fetchExptListings, fetchSingleListing, listExpts, profileReady, togglePause, updateProfile, fetchUnclaimedExpt, fetchUnclaimedMent, fetchMent, claimMent, claimExpt, fetchNotifications, fetchUserPosts, uploadImage, followUser, unfollowUser, fetchPosts, fetchProfile, checkFollowing, voteOnPost, fetchSinglePost };
+>>>>>>> Stashed changes
 }

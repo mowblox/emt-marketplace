@@ -8,7 +8,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import ExpertHubCard from '@/components/ui/expert-hub-card'
-import { ExpertTicket } from '@/lib/types'
+import { ExpertTicket, ExptListingWithAuthorProfile } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CalendarIcon } from "@radix-ui/react-icons"
@@ -148,7 +148,7 @@ export function BookingCalendarForm() {
 }
 
 type Props = {
-    ownedExpt: ExpertTicket[]
+    ownedExpt: ExptListingWithAuthorProfile[]
 }
 
 const ExptBookingsHistory = ({ ownedExpt }: Props) => {
@@ -156,9 +156,8 @@ const ExptBookingsHistory = ({ ownedExpt }: Props) => {
         <>
             <div className="w-full flex flex-wrap gap-4 flex-grow">
                 {ownedExpt.map((expert, key) => {
-                    const { author, metadata } = expert
                     return <>
-                        <Dialog key={`book-modal-${key}-${author.uid}`}>
+                        <Dialog key={`book-modal-${key}-${expert.authorProfile.uid}`}>
                             <DialogTrigger>
                                 <ExpertHubCard data={expert} type="modal" />
                             </DialogTrigger>
@@ -173,12 +172,12 @@ const ExptBookingsHistory = ({ ownedExpt }: Props) => {
                                             <ExpertHubCard data={expert} disableLink={true} />
                                             <div className="my-5">
                                                 <div className="text-sm mb-2">Session Duration</div>
-                                                <div className="text-xs text-muted">{metadata.sessionCount} session(s) x {metadata.sessionDuration} minutes</div>
+                                                <div className="text-xs text-muted">{expert.sessionCount} session(s) x {expert.sessionDuration} minutes</div>
                                             </div>
 
                                             <div className="">
                                                 <div className="text-sm mb-2">Description</div>
-                                                <div className="text-xs text-muted">{metadata.description}</div>
+                                                <div className="text-xs text-muted">{expert.description}</div>
                                             </div>
                                         </div>
                                     </ScrollArea>
