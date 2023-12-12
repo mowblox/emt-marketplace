@@ -72,7 +72,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
   const [contracts, setContracts] = useState<ContractContext | null>(null);
 
   if(typeof window != "undefined"){
-    ethereum == window.ethereum
+    ethereum = window.ethereum
   }
 
   useEffect(() => {
@@ -88,7 +88,6 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
       else{
         provider = new JsonRpcProvider(chain.rpcUrls.default.http[0]);
       }
-
       const EMTMarketPlace_ = require(`@/deployments/${chain.id}/EMTMarketplace.js`).default;
       const ExpertToken_ = require(`@/deployments/${chain.id}/ExpertToken.js`).default;
       const MentorToken_ = require(`@/deployments/${chain.id}/MentorToken.js`).default;

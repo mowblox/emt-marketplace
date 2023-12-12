@@ -55,7 +55,7 @@ const EditProfileForm = () => {
   const { user } = useUser();
   const router = useRouter();
   const { uid }: { uid: string } = useParams();
-  const { updateProfile, fetchProfile, togglePause } = useBackend();
+  const { updateProfile, fetchProfile } = useBackend();
   
   const { data: profile } = useQuery({
     queryKey: ["profile", uid, user],

@@ -41,6 +41,7 @@ async function main() {
     EMTMarketplace: emtMarketplace.target,
     MentorToken: mentorToken.target,
     ExpertToken: expertToken.target,
+    StableCoin: stableCoin.target
   })
 }
 
