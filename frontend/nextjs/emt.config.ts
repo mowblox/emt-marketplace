@@ -8,7 +8,7 @@ import { LucideImport } from "lucide-react";
 import { publicProvider } from 'wagmi/providers/public';
 
 
- import { Chain } from 'wagmi'
+import { Chain } from 'wagmi'
 import { collection } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 
@@ -71,5 +71,6 @@ export const toposTestnet = {
   export const CLAIM_HISTORY_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'claimHistory') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'claimHistory');
   export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'contents');
   export const EXPT_LISTINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'exptListings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'exptListings');
+  export const BOOKINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'bookings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'bookings');
 
-
+  export const exptLevelKeys = [1, 2, 3]

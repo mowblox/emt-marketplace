@@ -13,9 +13,9 @@ import { useUser } from "@/lib/hooks/user";
 import { useQueryClient } from "wagmi";
 import { toast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { UserProfile } from "firebase/auth";
 import DataLoading from "@/components/ui/data-loading";
 import NoData from "@/components/ui/no-data";
+import { UserProfile } from "@/lib/types";
 
 export default  function MyWallet({profile}:{profile: UserProfile}){
 const{fetchUnclaimedExpt, claimMent, claimExpt, fetchUnclaimedMent, fetchClaimHistory} = useBackend()

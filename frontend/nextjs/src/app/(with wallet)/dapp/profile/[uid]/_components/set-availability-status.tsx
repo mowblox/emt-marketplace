@@ -59,7 +59,7 @@ const PLACEHOLDER_COVER_PHOTO = require('@/assets/default-photo.png')
 // Form Schema
 const FormSchema = z.object({
     availableDate: z.date(),
-    availableTime: z.date(),
+    availableTime: z.string(),
 });
 
 // Component
@@ -72,7 +72,7 @@ const SetAvailabilityStatus = ({ profile }: any) => {
         resolver: zodResolver(FormSchema),
         defaultValues: {
             availableDate: new Date(),
-            availableTime: new Date(),
+            availableTime: "",
         }
     })
 
@@ -221,7 +221,7 @@ const SetAvailabilityStatus = ({ profile }: any) => {
                                                     <FormItem>
                                                         <FormLabel>Set Time</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="E.g 2:15 PM" type="date" {...field} />
+                                                            <Input placeholder="E.g 2:15 PM" {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>

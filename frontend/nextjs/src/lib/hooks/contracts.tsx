@@ -49,6 +49,7 @@ const ContractContext = createContext<ContractContext | null>(null);
  * @throws Error if the contract context is not available.
  */
 export function useContracts(): ContractContext{
+
   const contractContext = useContext(ContractContext);
 
   if (!contractContext) {
@@ -64,13 +65,16 @@ export function useContracts(): ContractContext{
  * @returns The ContractProvider component.
  */
 export function ContractProvider({ children }: { children: React.ReactNode }) {
+  let ethereum:any = undefined
     const {openChainModal} = useChainModal()
     const account = useAccount();
     
   const [contracts, setContracts] = useState<ContractContext | null>(null);
 
+  if(typeof window != "undefined"){
+    ethereum == window.ethereum
+  }
 
-  
   useEffect(() => {
     if (typeof window == "undefined") {
       return;
@@ -78,8 +82,8 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
    
     async function fetchContracts() {
       let provider: JsonRpcProvider | BrowserProvider
-      if(window.ethereum){
-         provider = new ethers.BrowserProvider(window.ethereum);
+      if(ethereum){
+         provider = new ethers.BrowserProvider(ethereum);
       }
       else{
         provider = new JsonRpcProvider(chain.rpcUrls.default.http[0]);
@@ -104,7 +108,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchContracts();
-  }, [window?.ethereum, chain.id, account?.address]);
+  }, [ethereum, chain.id, account?.address]);
 
   if (!contracts) {
     return <div><PageLoading /></div>;
