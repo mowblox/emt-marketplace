@@ -28,6 +28,10 @@ contract StableCoin is
         __Ownable_init(initialOwner);
     }
 
+    function decimals() public view virtual override returns (uint8) {
+        return 6;
+    }
+
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);
     }

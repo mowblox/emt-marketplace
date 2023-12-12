@@ -31,7 +31,7 @@ async function main() {
 
   // Deploy Stablecoin
   const StableCoin = await ethers.getContractFactory("StableCoin");
-  const stableCoin = await upgrades.deployProxy(StableCoin, ["StableCoin", "SBC", defaultAdmin]);
+  const stableCoin = await upgrades.deployProxy(StableCoin, ['Mock Tether', 'USDT', defaultAdmin]);
   await stableCoin.waitForDeployment();
   console.log("Stablecoin deployed at: ", stableCoin.target);
 
