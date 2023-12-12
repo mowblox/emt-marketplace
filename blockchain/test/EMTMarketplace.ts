@@ -13,7 +13,7 @@ describe("EMTMarketplace", function () {
 
     const StableCoin = await ethers.getContractFactory("StableCoin");
     const stableCoin = await upgrades.deployProxy(StableCoin, ["StableCoin", "SBC", owner.address]);
-    await stableCoin.mint(member.address, ethers.parseEther("1000000"));
+    await stableCoin.mint(member.address, ethers.parseUnits("1000000", await stableCoin.decimals()));
 
     const EMTMarketplace = await ethers.getContractFactory("EMTMarketplace");
     const emtMarketplace = await upgrades.deployProxy(EMTMarketplace, [owner.address]);
