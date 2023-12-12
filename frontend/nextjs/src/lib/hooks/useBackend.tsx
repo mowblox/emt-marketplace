@@ -60,6 +60,7 @@ import {
 import { firestore, storage } from "../firebase";
 import { useContracts } from "./contracts";
 import { useUser } from "./user";
+import { bigint } from "zod";
 
 /**
  * Uploads an image to Firebase Storage.
@@ -88,21 +89,6 @@ export default function useBackend() {
     useState(EMTMarketPlace);
   const [signer, setSigner] = useState<ethers.Signer>();
 
-  //for admin
-  async function togglePause() {
-    try {
-      // @ts-ignore
-      const tx = await EMTMarketPlaceWithSigner.pause().catch((err) => {
-        console.log("Error pausing contract. Details: " + err);
-        // @ts-ignore
-        return EMTMarketPlaceWithSigner.unpause();
-      });
-      await tx!.wait();
-      console.log("contract paused");
-    } catch (err) {
-      console.log("Error unpausing contract. Details: " + err);
-    }
-  }
 
   //queries
 
@@ -121,9 +107,9 @@ export default function useBackend() {
     },
   });
 
-  const { data: currentUserMent } = useQuery({
+  const { data: currentUserMentAndLevel } = useQuery({
     queryKey: ["ment", user?.uid],
-    queryFn: () => fetchMent(),
+    queryFn: () => fetchMentAndLevel(),
     enabled: !!user?.uid,
   });
 
@@ -156,7 +142,7 @@ export default function useBackend() {
   async function claimMent() {
     function getMentClaimed(receipt: ContractTransactionReceipt) {
       const filter = EMTMarketPlace.filters.MentClaimed().fragment;
-      let mentClaimed: number;
+      let mentClaimed= 0;
       console.log("addess");
       // console.log(receipt?.logs)
       receipt?.logs.some((log) => {
@@ -165,7 +151,8 @@ export default function useBackend() {
         mentClaimed = Number(d[1]);
         return false;
       });
-      console.log("mentClaimed", currentUserMent!);
+      console.log("mentClaimed");
+      return mentClaimed;
     }
     if (!user?.uid) {
       throw new Error("User not logged in");
@@ -175,10 +162,10 @@ export default function useBackend() {
       const receipt = await tx!.wait();
       console.log("claimed ment");
       // @ts-ignore
-      const mentClaimed = receipt && getMentClaimed(receipt);
+      const mentClaimed = getMentClaimed(receipt);
       const historyItem: ClaimHistoryItem = {
         type: "ment",
-        amount: currentUserMent!,
+        amount: mentClaimed,
         timestamp: serverTimestamp(),
         uid: user.uid,
       };
@@ -190,18 +177,20 @@ export default function useBackend() {
     }
   }
 
-  async function getLevel(uid = user?.uid) {
-    console.log("getLevel", uid);
-    let ment = currentUserMent;
+  async function fetchMentAndLevel(uid = user?.uid) {
+    console.log("fetchMentAndLevel", uid);
+    let ment: number = currentUserMentAndLevel?.[0] || 0
     if (uid !== user?.uid) {
-      ment = await fetchMent(uid);
+       ment = await fetchMent(uid);
     }
-    const level = exptLevels
-      ? Object.entries(exptLevels).find(
+    console.log('ment2222: ', ment)
+     const level = exptLevels
+      ? (Object.entries(exptLevels).find(
           ([key, level]) => (ment || 0) > level.requiredMent
-        )?.[0]
-      : 1;
-    return Number(level) || 1;
+        )?.[0] || 0)
+      : 0;
+      console.log('level: ', level)
+    return [Number(ment), Number(level)];
   }
 
   async function claimExpt() {
@@ -209,7 +198,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      const level = await getLevel();
+      const [_, level] = await fetchMentAndLevel();
 
       if (!level) {
         throw new Error("Not qualified for expt");
@@ -437,7 +426,7 @@ export default function useBackend() {
       return ment;
     } catch (err: any) {
       console.log("Error fetching ment. Details: " + err);
-      throw new Error(err);
+      return 0
     }
   }
   async function fetchUnclaimedMent() {
@@ -452,7 +441,7 @@ export default function useBackend() {
       return unclaimedMent;
     } catch (err: any) {
       console.log("Error fetching unclaimed ment. Details: " + err);
-      throw new Error(err);
+      return 0
     }
   }
 
@@ -462,8 +451,8 @@ export default function useBackend() {
     }
     try {
       console.log("fetching unclaimed expt");
-      const level = await getLevel();
-      const val = await EMTMarketPlace.unclaimedExpt(user.uid, level);
+      const [_, level] = await fetchMentAndLevel();
+      const val = await EMTMarketPlace.unclaimedExpt(user.uid, level || 1);
       const unclaimedExpt = Number(val);
       console.log("unclaimed expt:", unclaimedExpt);
       return unclaimedExpt;
@@ -482,13 +471,14 @@ export default function useBackend() {
 
   async function fetchProfile(uid: string, exclude?:{followers?:boolean, following?:boolean, ownedExptIds?:boolean}) {
     try {
-      const promises:Promise<any>[] = [fetchUserDoc(uid), getLevel(uid), fetchMent(uid)]
+      const promises:Promise<any>[] = [fetchUserDoc(uid), fetchMentAndLevel(uid)]
       if(!exclude?.followers) promises.push(fetchNumFollowers(uid))
       if(!exclude?.following) promises.push(fetchNumFollowing(uid))
       if(!exclude?.ownedExptIds) promises.push(fetchOwnedExptIds(uid))
 
-      const [user, numFollowers, numFollowing, ment, level, ownedExptIds] =
+      const [user, [ment , level], numFollowers, numFollowing, ownedExptIds] =
       await Promise.all(promises);
+
       
       const profile: UserProfile = {
         ...user,
@@ -553,6 +543,7 @@ export default function useBackend() {
   useEffect(() => {
     async function connectToSigner() {
       const _signer = await provider.getSigner();
+
       setSigner(_signer);
         // @ts-ignore
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
@@ -560,7 +551,7 @@ export default function useBackend() {
       //can be used to mint stablecoins from browser console
       //MUST be removed when we go live
       //@ts-ignore
-      window.signer = signer;
+      window.signer = _signer;
       //@ts-ignore
       window.stableCoin = StableCoin;
       //@ts-ignore
@@ -586,9 +577,9 @@ export default function useBackend() {
     body: string;
     image?: Blob;
   }) {
-    console.log("writing to blockchain", post);
     const docRef = doc(CONTENTS_COLLECTION);
     const id = ethers.encodeBytes32String(docRef.id);
+    console.log("writing to blockchain", post, "pstId", id);
     try {
       console.log("emtMarketPlaceWithSigner", EMTMarketPlaceWithSigner);
       const tx = await EMTMarketPlaceWithSigner.addContent(id);
@@ -665,10 +656,8 @@ export default function useBackend() {
     let tx: ContractTransactionResponse;
     try {
       if (voteType === "upvote") {
-        // @ts-ignore
         tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId);
       } else if (voteType === "downvote") {
-        // @ts-ignore
         tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
       }
       await tx!.wait();
@@ -989,7 +978,6 @@ export default function useBackend() {
     }
     try {
       console.log("approving stableCoin transfer in contract");
-      // @ts-ignore
       const tx = await StableCoin.connect(signer).approve(
         EMTMarketPlace.target,
         listing.price * 10 ** 6
@@ -999,7 +987,8 @@ export default function useBackend() {
       console.log("buying expts in contract");
       let exptToBuyIndex = listing.remainingTokenIds.length - 1;
 
-      //this loop is here because the chosen expt to buy might have been bought already before this user completes the purchase
+      //this loop is here because the chosen expt to buy
+      // might have been bought already before this user completes the purchase
       while (exptToBuyIndex >= 0) {
         const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
         try {
@@ -1032,12 +1021,12 @@ export default function useBackend() {
       return tokenIds;
     } catch (err: any) {
       console.log("error fetching owned expts ids ", err);
-      throw new Error(err);
+      return [];
     }
   }
 
   const profileReady =
-    exptLevels !== undefined && currentUserMent !== undefined;
+    exptLevels !== undefined && currentUserMentAndLevel !== undefined;
 
   return {
     createPost,
@@ -1048,11 +1037,9 @@ export default function useBackend() {
     fetchSingleListing,
     listExpts,
     profileReady,
-    togglePause,
     updateProfile,
     fetchUnclaimedExpt,
     fetchUnclaimedMent,
-    fetchMent,
     claimMent,
     claimExpt,
     fetchNotifications,

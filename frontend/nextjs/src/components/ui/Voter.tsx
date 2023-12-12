@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "./button";
 import { HiOutlineHandThumbDown, HiOutlineHandThumbUp } from "react-icons/hi2";
 import { Content } from "@/lib/types";
@@ -13,9 +13,10 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
         const {voteOnPost} = useBackend();
         const {user} = useUser();
         const {openConnectModal} = useConnectModal()
+        const [votes, setVotes] = useState(post.metadata)
 
 
-        const { mutateAsync, error, data: votes  } = useMutation({
+        const { mutateAsync, error } = useMutation({
             mutationKey: ["vote", post.metadata.id],
             mutationFn: async (vote: {
               id: string;
@@ -26,7 +27,9 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
             },
             onSuccess: (data, variables, context) => {
               console.log("data", data, variables, context);
+              setVotes({...votes, ...data})
             },
+            
           });
         
           async function handleVote(
@@ -57,7 +60,7 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
                                 <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
                             </Button>
                             <div className='text-sm text-foreground ml-1'>
-                                {votes? votes.upvotes : post.metadata.upvotes}
+                                {votes.upvotes - votes.downvotes}
                             </div>
                             
                         </div>
