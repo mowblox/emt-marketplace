@@ -28,6 +28,7 @@ import DataLoading from "@/components/ui/data-loading";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
 import { ExpertTicket, UserProfile } from "@/lib/types";
 import SetAvailabilityStatus from './_components/set-availability-status';
+import NoData from '@/components/ui/no-data';
 const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
 { type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
 { type: 'expt', amount: 5, dateClaimed: "4 hours ago" },
@@ -173,7 +174,7 @@ const Profile = () => {
   
 
   //fetch followers
-  const { data: followers } = useQuery({
+  const { data: followers, isLoading } = useQuery({
     queryKey: ["followers", uid],
     queryFn: () => fetchProfile(uid as string),
     enabled: !!uid,
@@ -182,10 +183,16 @@ const Profile = () => {
   
   console.log('profile', profile)
 
-  if (!profile) {
+  if (!profile && isLoading) {
     return (<div className="h-screen">
         <DataLoading />
       </div>)
+  }
+
+  if(!profile){
+    return <div className="h-screen">
+      <NoData message="Error Loading Profile"/>
+    </div>
   }
   console.log('profile', profile, user)
 
