@@ -87,7 +87,8 @@ export default function RootLayout() {
         </ScrollArea>
       </div>
       <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2">
-        <>
+        {/* TODO @jovells 2. display random user profiles */}
+        {/* <>
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
@@ -175,7 +176,7 @@ export default function RootLayout() {
               })}
             </div>
           </div>
-        </>
+        </> */}
       </RightSidebar>
     </div>
   );
