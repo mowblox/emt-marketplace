@@ -34,7 +34,7 @@ const Notifications = () => {
             <h4 className='text-xl text-foreground font-bold mb-5'>Notifications</h4>
             <InfiniteScroll
             queryKey={['notifications', user]}
-            fetcher={ (lastDocTimeStamp: Timestamp | undefined, size: number) => {
+            fetcher={ (lastDocTimeStamp: Timestamp | undefined) => {
                 return fetchNotifications(lastDocTimeStamp);
             }}
             className='space-y-5'
