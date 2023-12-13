@@ -17,6 +17,7 @@ import { Content } from "@/lib/types";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Voter from './Voter';
 import { formatDistance } from 'date-fns';
+import RichTextEditor from './rich-text-editor';
 
 
 
@@ -52,7 +53,8 @@ const PostCard = ({data}:{data:Content}) => {
                 </CardHeader>
                 <CardContent className='space-y-3 px-0'>
                     <CardTitle className='font-bold text-md text-foreground tracking-wide'>{post.title}</CardTitle>
-                    <CardDescription className='text-muted text-sm' dangerouslySetInnerHTML={{ __html: post.body }} />
+                    {/* <CardDescription className='text-muted text-sm' dangerouslySetInnerHTML={{ __html: post.body }} /> */}
+                    <RichTextEditor value={post.body} readOnly={true} />
                     <div className="w-full h-[400px] relative">
                     <Image 
                         fill

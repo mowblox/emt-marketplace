@@ -162,8 +162,7 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                 />
               </div>
               <CardTitle className='font-bold text-3xl text-foreground tracking-wide'>{post.post.title}</CardTitle>
-              <CardDescription className='text-muted text-sm'><div dangerouslySetInnerHTML={{ __html: post.post.body }}>
-              </div></CardDescription>
+              <RichTextEditor className='text-muted text-sm' readOnly = {true}  value = {post.post.body}/>
             </CardContent>
             <Separator className="bg-border mb-3" />
             <CardFooter className='pb-0 px-0 flex justify-between'>

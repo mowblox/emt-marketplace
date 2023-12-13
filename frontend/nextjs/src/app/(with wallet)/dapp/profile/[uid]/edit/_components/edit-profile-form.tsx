@@ -23,10 +23,11 @@ import useBackend from "@/lib/hooks/useBackend";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@/lib/hooks/user";
 import { isValidFileType, profilePlaceholderImage } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TAGS } from "@/lib/contants";
 import { PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
 import { Progress } from "@/components/ui/progress";
+import { UserProfile } from "@/lib/types";
 
 const formSchema = z.object({
   displayName: z
@@ -56,13 +57,13 @@ const EditProfileForm = () => {
   const router = useRouter();
   const { uid }: { uid: string } = useParams();
   const { updateProfile, fetchProfile } = useBackend();
+  const queryClient = useQueryClient();
   
   const { data: profile } = useQuery({
-    queryKey: ["profile", uid, user],
+    queryKey: ["profile", uid],
     queryFn: () => fetchProfile(uid),
     select: (data) => { setSelectedTags(data?.tags || []); return data }
   });
-  console.log('profile', profile)
 
   const imageRef = useRef<HTMLInputElement>(null);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -101,6 +102,7 @@ const EditProfileForm = () => {
 
       return sortedArr1.every((value, index) => value === sortedArr2[index]);
     }
+    //fix tags always updating @Jovells
     function getChanges(
       oldObj: { [key: string]: any },
       newObj: { [key: string]: any }
@@ -124,14 +126,30 @@ const EditProfileForm = () => {
     profilePicture && (updates.profilePicture = profilePicture);
     delete updates.photoURL;
     try {
-      const photoURL = await updateProfile(updates);
+      const result = await updateProfile(updates);
+      console.log('result', result) 
+      if('updateValidationError' in result){
+          for (const key in result.updateValidationError.validationResult) {
+            console.log('key', key)
+            //@ts-ignore
+            form.setError(key, {
+              type: "manual",
+              message: key + " taken",
+            });
+          }
+          throw new Error('Error updating profile' + result)
+      }
       toast({
         title: "Profile updated!",
         variant: "success",
-        description: <div>success success success success success
+        description: <div>
         <Progress value={100} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" /></div>,
       });
+      
       setButtonLoading(false)
+      queryClient.setQueryData(['profile', uid], (oldData: UserProfile)=>{
+        return {...oldData, ...updates}
+      })
       router.push(PROFILE_PAGE(uid));
     } catch (err) {
       console.log("err", err);
@@ -185,6 +203,7 @@ const EditProfileForm = () => {
           />
 
           <FormField
+          disabled
             control={form.control}
             name="email"
             render={({ field }) => (

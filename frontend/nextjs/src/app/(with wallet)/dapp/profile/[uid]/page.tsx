@@ -84,7 +84,7 @@ const Profile = () => {
   })
 
   
-  console.log('profile', profile)
+  console.log('profile', profile?.uid)
 
   if (!profile && isLoading) {
     return (<div className="h-screen">
@@ -97,8 +97,6 @@ const Profile = () => {
       <NoData message="Error Loading Profile"/>
     </div>
   }
-  console.log('profile', profile, user)
-
 
 
   return (

@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
 import { ONBOARDING_PAGE } from "./page-links";
 import { is } from "date-fns/locale";
+import {chain} from "@/../emt.config"
 
 /**
  * Props for the SignInButton component.
@@ -43,7 +44,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
     <ConnectButton.Custom>
       {({
         account,
-        chain,
+        chain : currentChain,
         openAccountModal,
         openChainModal,
         openConnectModal,
@@ -52,6 +53,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
       }) => {
         // Note: If your app doesn't use authentication, you
         // can remove all 'authenticationStatus' checks
+        const wrongChain = chain.id !== currentChain?.id;
         const ready = mounted && authenticationStatus !== "loading";
         const isConnected =
           ready &&
@@ -96,7 +98,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                   </Button>
                 );
               }
-              if (chain.unsupported) {
+              if (wrongChain) {
                 return (
                   <Button variant={"default"} onClick={()=> (openChainModal())}>
                     Wrong network

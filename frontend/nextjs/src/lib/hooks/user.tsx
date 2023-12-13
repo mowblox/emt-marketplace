@@ -10,10 +10,11 @@ import { redirect, useRouter } from "next/navigation";
 import { HOME_PAGE } from "@/app/(with wallet)/_components/page-links";
 import { uploadImage } from "./useBackend";
 import { toast } from "@/components/ui/use-toast";
+import { ethers } from "ethers6";
+import { useContracts } from "./contracts";
 
 interface UserContext {
   user: User | null;
-  updateUser: (data: { username?: string, photoURL?: string, displayName?: string, email?: string }) => Promise<void>;
   isLoading: boolean;
   signIn: (options?:{redirect?:boolean}) => Promise<void>;
   signUp: () => Promise<UserSession>;
@@ -39,10 +40,12 @@ export function useUser(): UserContext {
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const {provider, StableCoin} = useContracts()
   const { data: session, status, update }: { data: UserSession | null} & ReturnType<typeof useSession>  = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const signUpDataRef = useRef<SignUpData>({});
   const signUpData = signUpDataRef.current;
+
 
   console.log('user provider');
 
@@ -51,11 +54,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   async function validateSignUpData() {
     const result = await update({validateSignUpData: signUpData}) as UserSession;
     return result.validateSignUpResult!;
-  }
-
-  async function updateUser(updates: Partial<SignUpData>) {
-    await update({ updates });
-    setUser({ ...user!, ...updates });
   }
 
   async function signUp (redirect=true) {
@@ -138,6 +136,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [session?.firebaseToken, user?.uid])
 
   return (
-    <UserContext.Provider value={{ user, signUp, signIn, validateSignUpData, signUpData, updateUser, isLoading, session, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt }}>{children}</UserContext.Provider>
+    <UserContext.Provider value={{ user, signUp, signIn, validateSignUpData, signUpData, isLoading, session, isMultipleSignUpAttempt: session?.isMultipleSignUpAttempt }}>{children}</UserContext.Provider>
   );
 }
