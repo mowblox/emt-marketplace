@@ -9,15 +9,13 @@ import {
 } from "@/components/ui/card"
 import Image from 'next/image'
 import Link from 'next/link';
-import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare } from "react-icons/hi2";
+import { HiCheckBadge, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
 import { POST_PAGE } from '@/app/(with wallet)/_components/page-links';
-import useBackend from '@/lib/hooks/useBackend';
 import { Content } from "@/lib/types";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Voter from './Voter';
 import { formatDistance } from 'date-fns';
-import RichTextEditor from './rich-text-editor';
+import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
 
 
 
@@ -53,8 +51,7 @@ const PostCard = ({data}:{data:Content}) => {
                 </CardHeader>
                 <CardContent className='space-y-3 px-0'>
                     <CardTitle className='font-bold text-md text-foreground tracking-wide'>{post.title}</CardTitle>
-                    {/* <CardDescription className='text-muted text-sm' dangerouslySetInnerHTML={{ __html: post.body }} /> */}
-                    <RichTextEditor value={post.body} readOnly={true} />
+                    <RichTextDisplayContainer richText={post.body} isExcerpt={true} />
                     <div className="w-full h-[400px] relative">
                     <Image 
                         fill

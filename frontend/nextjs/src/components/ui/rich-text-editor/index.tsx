@@ -28,4 +28,4 @@ const RichTextEditor = ({ value, onChange, placeholder, readOnly }: any) => {
   return <ReactQuill  value={value} {...propsIfEditable} theme="snow" />;
 };
 
-export default RichTextEditor;
+export default RichTextEditor

@@ -24,7 +24,20 @@ import { useRouter } from 'next/navigation'
 import { HOME_PAGE, POST_PAGE } from '@/app/(with wallet)/_components/page-links'
 import { TAGS } from "@/lib/contants";
 import { Minus, Plus } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Separator } from '@/components/ui/separator'
 
+
+const POST_TYPE = ["regular", "question", "answer"] as const;
+const POST_TYPE_LABELS = [
+    "Regular Post", "Ask a Question", "Provide an Answer"
+] as const;
 
 const formSchema = z.object({
     postTitle: z.string().min(1, {
@@ -35,6 +48,8 @@ const formSchema = z.object({
         message: 'Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.',
     }),
     tags: z.array(z.string()).optional(),
+    postType: z.enum(POST_TYPE),
+    questionPostURL: z.string().url('Must be a valid link').optional(),
 })
 
 const CreatePostForm = () => {
@@ -49,6 +64,7 @@ const CreatePostForm = () => {
         defaultValues: {
             postTitle: "",
             postBody: "",
+            postType: POST_TYPE[0]
         },
     });
     const imageRef = React.useRef<HTMLInputElement>(null);
@@ -88,10 +104,51 @@ const CreatePostForm = () => {
         }
     }
 
+    console.log('erros', form.formState)
+
     return (
         <div>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
+                    <FormField
+                        control={form.control}
+                        name="postType"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Post Type</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Number of sessions" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {POST_TYPE.map((el, key) => (<SelectItem key={el} value={el}>{POST_TYPE_LABELS[key]} </SelectItem>))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    
+                    {/* Only display the post type if you're answering a question */}
+                    {form.watch().postType == POST_TYPE[2] && <FormField
+                        control={form.control}
+                        name="questionPostURL"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Question Link</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Add a link to the question you're answering" {...field} />
+                                </FormControl>
+                                <FormMessage className='text-xs text-muted font-normal' />
+                            </FormItem>
+                        )}
+                    />}
+
+                    <Separator />
 
                     <FormField
                         control={form.control}
@@ -100,12 +157,12 @@ const CreatePostForm = () => {
                             <FormItem>
                                 <FormControl className='mb-3'>
                                     <>
-                                        <div className="w-full h-20 relative">
+                                        <div className="w-40 h-20 relative rounded-md">
                                             <Image
                                                 src={imageRef.current?.files![0] ? URL.createObjectURL(imageRef.current?.files![0]) : profilePlaceholderImage}
                                                 fill
                                                 placeholder={profilePlaceholderImage}
-                                                className='object-cover '
+                                                className='object-cover rounded-md '
                                                 alt={`Add a cover image`}
                                             />
                                         </div>
@@ -119,6 +176,7 @@ const CreatePostForm = () => {
                             </FormItem>
                         )}
                     />
+
                     <FormField
                         control={form.control}
                         name="postTitle"

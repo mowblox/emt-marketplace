@@ -20,6 +20,7 @@ import NoData from '@/components/ui/no-data';
 import { formatDistance } from 'date-fns';
 import { useUser } from "@/lib/hooks/user";
 import { toast } from "@/components/ui/use-toast";
+import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -162,7 +163,7 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                 />
               </div>
               <CardTitle className='font-bold text-3xl text-foreground tracking-wide'>{post.post.title}</CardTitle>
-              <RichTextEditor className='text-muted text-sm' readOnly = {true}  value = {post.post.body}/>
+              <RichTextDisplayContainer richText={post.post.body} />
             </CardContent>
             <Separator className="bg-border mb-3" />
             <CardFooter className='pb-0 px-0 flex justify-between'>
