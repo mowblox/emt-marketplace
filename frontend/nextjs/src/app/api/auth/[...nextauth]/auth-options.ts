@@ -10,8 +10,11 @@ import { getSession } from "next-auth/react";
 import * as admin from "firebase-admin";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
 import { cert } from "firebase-admin/app";
-import { SignUpData } from "@/lib/types";
+import { SignUpData, userUpdateValidationResult } from "@/lib/types";
 import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
+import { JsonRpcProvider, ethers } from "ethers6";
+import { MentorToken as MentorTokenType } from "../../../../../../../blockchain/typechain-types/contracts/MentorToken";
+// import { MentorToken } from "../../../../../emt.config";
 
 const USERS_COLLECTION = "users";
 
@@ -54,48 +57,70 @@ async function getFirebaseToken(address: string) {
 }
 
 async function isUsernameTaken(username: string) {
-  console.log("isUsernameTaken function", username)
+  console.log("isUsernameTaken function", username);
   try {
     const result = await firestore
-      .collection("users").where("username", "==", username).limit(1)
+      .collection("users")
+      .where("username", "==", username)
+      .limit(1)
       .get();
-    console.log("isUsernameTaken", result)
-    return result.size === 1;
-  }catch(error){
-    console.log("isUsernameTakenError", error)
-    return false
+    return result.size > 0;
+  } catch (error) {
+    console.log("isUsernameTakenError", error);
+    return false;
   }
 }
 async function isEmailTaken(email: string) {
-  console.log("isEmailTaken", email)
+  console.log("isEmailTaken", email);
   try {
     const result = await auth.getUserByEmail(email);
     return true;
   } catch (error) {
-    console.log("isEmailTakenError", error)
+    console.log("isEmailTakenError", error);
     return false;
   }
 }
 
-async function validateSignUp(signUpData: SignUpData): Promise<Record<string, boolean>> {
-  console.log("validateSignUp function")
+async function validateSignUp(
+  signUpData: SignUpData
+): Promise<userUpdateValidationResult> {
+  console.log("validateSignUp function");
   return {
     username: !(await isUsernameTaken(signUpData.username!)),
-    email: !(await isEmailTaken(signUpData.email!))
+    email: !(await isEmailTaken(signUpData.email!)),
   };
+}
+
+async function validateUpdates(
+  data: SignUpData
+): Promise<userUpdateValidationResult> {
+  console.log("validateUpdates function", data);
+  const validations = {} as userUpdateValidationResult;
+
+  //totally prevent updating of email
+  //TODO: @Jovells IMPLEMENT UPDATE EMAIL FLOW
+  data.email && (validations.email = false);
+
+  //prevent updating of username to existing username
+  data.username && (validations.username = !(await  isUsernameTaken(data.username)))
+  console.log('validations', validations)
+  return validations
+  
 }
 
 async function signUp(address: string, signUpData: SignUpData) {
   try {
     const validationResult = await validateSignUp(signUpData);
     for (const key in validationResult) {
-      if (!validationResult[key] ) {
-        return { error: { code: `validation error`, validationResult} };
+      if (!validationResult[key]) {
+        return { error: { code: `validation error`, validationResult } };
       }
     }
     await auth.createUser({ uid: address, ...signUpData });
     signUpData.usernameLowercase = signUpData.username!.toLowerCase();
 
+    await firestore.collection(USERS_COLLECTION).doc(address + '/private/email').set({email: signUpData.email})
+    delete signUpData.email;
     const newUserDoc = await firestore
       .collection(USERS_COLLECTION)
       .doc(address)
@@ -143,7 +168,7 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (result.success) {
-            console.log( "result", result);
+            console.log("result", result);
 
             return {
               id,
@@ -175,6 +200,7 @@ export const authOptions: NextAuthOptions = {
         signUpData?: Partial<SignUpData>;
         updates?: Partial<SignUpData>;
         validateSignUpData?: Partial<SignUpData>;
+        updateMent?: boolean;
       };
       trigger?: any;
     }) => {
@@ -185,7 +211,7 @@ export const authOptions: NextAuthOptions = {
         "firebaseToken",
         !!user?.firebaseToken,
         "trigger",
-        trigger,
+        trigger
       );
 
       async function isSignedUp(uid: string) {
@@ -210,13 +236,54 @@ export const authOptions: NextAuthOptions = {
       } else if (trigger === "update" && session) {
         console.log("UPDATE CALLBACK", trigger, session);
 
-        if(session.validateSignUpData){
-          console.log('validating signup')
+        if (session.validateSignUpData) {
+          console.log("validating signup");
           const result = await validateSignUp(session.validateSignUpData);
-          console.log(result)
-          token.validateSignUpResult = result
-          return token
+          console.log(result);
+          token.validateSignUpResult = result;
+          return token;
         }
+          if (session.updateMent){
+            try{
+              const chainId =
+                process.env.NODE_ENV === "production"
+                  ? "2359"
+                  : process.env.NEXT_PUBLIC_DEVCHAIN;
+      
+              const provider = new JsonRpcProvider(
+                chainId === "2359"
+                  ? "https://rpc.topos-subnet.testnet-1.topos.technology"
+                  : "http://127.0.0.1:8545"
+              );
+      
+              const MentorToken_ = require(
+                `@/deployments/${chainId}/MentorToken.js`
+              ).default;
+      
+              const MentorToken = new ethers.Contract(
+                MentorToken_.address,
+                MentorToken_.abi,
+                provider
+              ) as unknown as MentorTokenType;
+      
+              console.log('fetching new ment');
+              const mentBalance = await MentorToken.balanceOf(token.sub);
+              const newMent = Number(mentBalance);
+              console.log('new Ment: ', newMent);
+      
+              console.log('saving ment to firestore');
+              const result = await firestore.collection(USERS_COLLECTION).doc(token.sub).update({ment: newMent});
+              console.log('firestoreWriteResult', result)
+              token.newMent = newMent
+              return token
+            }
+            catch (e){
+              console.log(e)
+              token.error = e
+              return token
+            }
+
+          }
 
         if (session.signUpData) {
           const signUpResult = await signUp(token.sub, session.signUpData);
@@ -229,6 +296,13 @@ export const authOptions: NextAuthOptions = {
             token.error = signUpResult.error;
           }
         } else if (session.updates) {
+          const validationResult = await validateUpdates(session.updates);
+          for (const key in validationResult) {
+            if (!validationResult[key]) {
+              token.updateValidationError = { code: `validation error`, validationResult } 
+              return token
+            }}
+          delete token.updateValidationError
           auth.updateUser(token.sub, session.updates);
           const updated = await firestore
             .collection(USERS_COLLECTION)

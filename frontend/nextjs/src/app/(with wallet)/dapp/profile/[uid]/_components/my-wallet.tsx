@@ -4,18 +4,17 @@ import { Button } from "@/components/ui/button";
 import {
   HiOutlineFire,
 } from "react-icons/hi2";
-import ClaimHistoryItem from "./claim-history-item";
+import ClaimHistoryItemComp  from "./claim-history-item";
 import ClaimExptCard from "./claim-expt-card";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useBackend from "@/lib/hooks/useBackend";
 import { useParams } from "next/navigation";
 import { useUser } from "@/lib/hooks/user";
-import { useQueryClient } from "wagmi";
 import { toast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
 import DataLoading from "@/components/ui/data-loading";
 import NoData from "@/components/ui/no-data";
-import { UserProfile } from "@/lib/types";
+import { ClaimHistoryItem, UserProfile } from "@/lib/types";
 
 export default  function MyWallet({profile}:{profile: UserProfile}){
 const{fetchUnclaimedExpt, claimMent, claimExpt, fetchUnclaimedMent, fetchClaimHistory} = useBackend()
@@ -26,7 +25,8 @@ const {data: unclaimedMent} = useQuery({
   queryKey: ["unclaimedMent", user?.uid],
   queryFn: fetchUnclaimedMent,
   enabled: !!user?.uid,
-  throwOnError: (err)=>{console.log(err); return true}
+  throwOnError: (err)=>{console.log(err); return true},
+  refetchOnMount: true
 })
 
 
@@ -38,15 +38,27 @@ const {data: claimHistory, isLoading: loadingHistory} = useQuery({
 
 const { mutateAsync: handleClaimMent}=useMutation({
   mutationFn: claimMent,
-  onSuccess: () => {
+  onSuccess: (data) => {
     queryClient.setQueryData(["unclaimedMent", user?.uid], ()=>{
       return 0;
     })
+    queryClient.setQueryData(["profile", user?.uid], (oldData: UserProfile, )=>{
+      return {
+        ...oldData,
+        ment: data.newMent
+      }
+    })
+    queryClient.refetchQueries({queryKey: ['unclaimedExpt', user?.uid], }),
     toast({
       title: 'Claimed',
       variant: 'success',
-      description: <div>success success success success success
+      description: <div>
       <Progress value={100} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" /></div>,
+    })
+    queryClient.setQueryData(['claimHistory', user?.uid], (oldData: ClaimHistoryItem[])=>{
+      return [...oldData, {
+        ...data.claimHistoryItem
+      }]
     })
   },
   onMutate:()=>{
@@ -86,7 +98,7 @@ const { mutateAsync: handleClaimMent}=useMutation({
 
                 <div className="flex flex-col gap-7">
                   {claimHistory?
-                  claimHistory.map((claimItem, key) => <ClaimHistoryItem key={`claim-item-${claimItem.type}-${key}`} claimItem={claimItem} />)
+                  claimHistory.map((claimItem, key) => <ClaimHistoryItemComp key={claimItem.id} data={claimItem} />)
                   :loadingHistory?
                   <DataLoading/>:
                   <NoData message="No History"/>
