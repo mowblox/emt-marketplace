@@ -17,6 +17,7 @@ import DataLoading from '@/components/ui/data-loading';
 import { Content } from '@/lib/types';
 import Voter from '@/components/ui/Voter';
 import NoData from '@/components/ui/no-data';
+import RichTextEditor from '@/components/ui/rich-text-editor';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -136,7 +137,7 @@ post = post || newPost;
                 />
               </div>
               <CardTitle className='font-bold text-3xl text-foreground tracking-wide'>{post.post.title}</CardTitle>
-              <CardDescription className='text-muted text-sm'>{post.post.body}</CardDescription>
+              <RichTextEditor className='text-muted text-sm' readOnly = {true}  value = {post.post.body}/>
             </CardContent>
             <Separator className="bg-border mb-3" />
             <CardFooter className='pb-0 px-0 flex justify-between'>
