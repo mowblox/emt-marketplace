@@ -7,16 +7,13 @@ import {
   HiCheckBadge,
   HiOutlineCog6Tooth,
   HiOutlineFire,
-  HiOutlineTicket,
   HiOutlineUserPlus,
   HiUser,
 } from "react-icons/hi2";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PostCard from "@/components/ui/post-card";
 import { useUser } from "@/lib/hooks/user";
-import PageLoading from "@/components/ui/page-loading";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Posts from "@/components/ui/posts";
 import useBackend from "@/lib/hooks/useBackend";
@@ -25,7 +22,6 @@ import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
-import { ExpertTicket, UserProfile } from "@/lib/types";
 import SetAvailabilityStatus from './_components/set-availability-status';
 import NoData from '@/components/ui/no-data';
 

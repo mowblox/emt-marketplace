@@ -242,7 +242,7 @@ const EditProfileForm = () => {
 
           <FormField
             control={form.control}
-            name="about"
+            name="tags"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tags</FormLabel>
