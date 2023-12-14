@@ -107,6 +107,14 @@ export type ExptFilters = {
   mentee?: string,
   tokenIds?: number[],
 }
+export type Coin = {
+  name: string;
+  address: string;
+  decimals?: number;
+  balance?: number;
+  type: 'native' | 'erc721' | 'erc1155' | 'erc20';
+}
+
 export type userUpdateValidationResult = {
   email: boolean,
   username: boolean,

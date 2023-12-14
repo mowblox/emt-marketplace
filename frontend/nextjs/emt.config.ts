@@ -77,6 +77,5 @@ export const toposTestnet = {
   export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'contents');
   export const EXPT_LISTINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'exptListings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'exptListings');
   export const BOOKINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'bookings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'bookings');
-
  
 export const exptLevelKeys = [1, 2, 3]

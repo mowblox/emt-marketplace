@@ -71,7 +71,7 @@ export const Navbar = () => {
                     <HiOutlinePencilSquare className="h-4 w-4" />
                   </Button>
                   <div className="hidden md:block">
-                    <SignInButton />
+                    <SignInButton label="Sign in" />
                   </div>
                   <div className="block lg:hidden">
                     <Popover open={mobileMenu}>
@@ -98,9 +98,9 @@ export const Navbar = () => {
                         <div className="space-y-2">
                           <div className="w-full">
                             {user ? (
-                              <SignInButton label="Sign Out" style={{width: "100%"}}/>
+                              <SignInButton mobile label="Sign Out" style={{width: "100%"}}/>
                             ) : (
-                              <SignInButton label="Sign In" style={{width: "100%"}} />
+                              <SignInButton mobile label="Sign In" style={{width: "100%"}} />
                             )}
                           </div>
                           <div className=" py-2">

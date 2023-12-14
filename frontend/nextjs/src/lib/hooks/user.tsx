@@ -1,13 +1,13 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSession, signOut as signOutNextAuth, signIn as signInNextAuth } from "next-auth/react";
 import axios from "axios";
 import { auth, firestore } from "@/lib/firebase";
 import { signInWithCustomToken, signOut, onAuthStateChanged, } from "firebase/auth";
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { SignUpData, User, UserSession } from '@/lib/types'
-import { redirect, useRouter } from "next/navigation";
-import { HOME_PAGE } from "@/app/(with wallet)/_components/page-links";
+import { redirect, usePathname, useRouter } from "next/navigation";
+import { HOME_PAGE, PROTECTED_ROUTES } from "@/app/(with wallet)/_components/page-links";
 import { uploadImage } from "./useBackend";
 import { toast } from "@/components/ui/use-toast";
 import { ethers } from "ethers6";
@@ -40,16 +40,13 @@ export function useUser(): UserContext {
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const {provider, StableCoin} = useContracts()
   const { data: session, status, update }: { data: UserSession | null} & ReturnType<typeof useSession>  = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const signUpDataRef = useRef<SignUpData>({});
   const signUpData = signUpDataRef.current;
 
-
-  console.log('user provider');
-
   const router = useRouter();
+  const pathname = usePathname()
 
   async function validateSignUpData() {
     const result = await update({validateSignUpData: signUpData}) as UserSession;
@@ -112,6 +109,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session?.firebaseToken])
 
+  useLayoutEffect(()=>{
+    if (PROTECTED_ROUTES.some( route=> pathname.startsWith(route)) && !user ){
+      router.push(HOME_PAGE)
+    }
+  },[pathname, user])
+
 
   useEffect(() => {
 
@@ -126,10 +129,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       });
       setIsLoading(false)
     }
-
+    //logged in to next auth but not firebase
     if (status === 'unauthenticated' && user) {
       _signOut();
     }
+    //logged in to next auth
     if (session?.firebaseToken) {
       signIn({redirect: false})
     }
