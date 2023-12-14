@@ -648,7 +648,6 @@ export default function useBackend() {
 
     try {
       console.log("writing to database");
-      // TODO @od41
       await setDoc(docRef, {
         title: post.title,
         body: post.body,

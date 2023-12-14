@@ -1,10 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  PopoverClose,
 } from "@/components/ui/popover";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Search } from "@/components/ui/forms/search";
@@ -16,23 +17,18 @@ import {
 import { X } from "lucide-react";
 import Link from "next/link";
 import {
-  CREATE_A_POST_PAGE,
   primaryNavigationLinks,
   resourcesLinks,
-  hasBackButtonList,
   HOME_PAGE,
-  ONBOARDING_PAGE,
 } from "./page-links";
 import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
-
-
-//TODO:  @od41 fix mobile menu layout
-//TODO: @od41 display an 'x' button when the mobile menu is active
+import { Separator } from "@/components/ui/separator";
 
 export const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const { user } = useUser();
+  const [mobileMenu, setMobileMenu] = useState(false)
   
 
   return (
@@ -78,25 +74,42 @@ export const Navbar = () => {
                     <SignInButton />
                   </div>
                   <div className="block lg:hidden">
-                    <Popover>
+                    <Popover open={mobileMenu}>
                       <PopoverTrigger>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="mobile-menu"
-                          className="">
-                          <HiBars3 className="h-6 w-6" />
-                        </Button>
+                          {mobileMenu ? <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="close-mobile-menu"
+                            onClick={() => setMobileMenu(false)}
+                            className="" >
+                            <X className="h-5 w-6" />
+                          </Button>
+                            : <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="mobile-menu"
+                              onClick={() => setMobileMenu(true)}
+                              className="">
+                              <HiBars3 className="h-6 w-6" />
+                            </Button>
+                          }
                       </PopoverTrigger>
-                      <PopoverContent className="w-[90vw] bg-accent-shade right-[calc(50%-160px)] ">
-                        <div className="space-y-4">
-                          <div className="px-3 py-2">
+                      <PopoverContent onInteractOutside={() => setMobileMenu(false)} sideOffset={12} alignOffset={0} align="end" className="w-[80vw] md:w-[240px] bg-accent-shade right-[calc(50%-160px)] top-12">
+                        <div className="space-y-2">
+                          <div className="w-full">
+                            {user ? (
+                              <SignInButton label="Sign Out" style={{width: "100%"}}/>
+                            ) : (
+                              <SignInButton label="Sign In" style={{width: "100%"}} />
+                            )}
+                          </div>
+                          <div className=" py-2">
                             <div className="space-y-1">
                               {primaryNavigationLinks.map((link) => (
-                                <Button
+                                link.needsAuth && !user?.uid ? null : <Button
                                   variant="ghost"
                                   key={`primary-nav-${link}`}
-                                  className="w-full justify-start"
+                                  className="w-full justify-start px-0"
                                   asChild>
                                   <Link
                                     href={
@@ -110,24 +123,17 @@ export const Navbar = () => {
                                 </Button>
                               ))}
                             </div>
-                            {user ? (
-                              //TODO: @od41 check placement of button
-                              <SignInButton label="Sign Out" />
-                            ) : (
-                              <SignInButton label="Sign in" />
-                            )}
                           </div>
 
-                          <div className="bg-accent-shade rounded-md py-4 px-2">
-                            <h2 className="mb-3 px-4 text-md font-semibold tracking-tight">
-                              Resources
-                            </h2>
+                          <Separator />
+
+                          <div className="bg-accent-shade rounded-md pt-2">
                             <div className="space-y-0">
                               {resourcesLinks.map((link, key) => (
                                 <Button
                                   variant="link"
                                   key={`resources-nav-${key}`}
-                                  className="w-full text-sm font-normal py-0 h-9 text-muted justify-start"
+                                  className="w-full text-sm font-normal py-0 h-9 text-muted justify-start px-0"
                                   asChild>
                                   <Link href={link.href}>{link.title}</Link>
                                 </Button>
