@@ -24,6 +24,12 @@ export type UserSession = Session & {firebaseToken?: string;
   validateSignUpResult?: {email: boolean, username: boolean}
 }
 
+export enum POST_TYPES {
+  Regular = 'regular',
+  Question = 'question',
+  Answer = 'answer',
+}
+
 
 export interface Content {
   post: {
@@ -33,6 +39,8 @@ export interface Content {
     owner: string;
     timestamp: Timestamp;
     id: string;
+    tags?: string[];
+    postType?: POST_TYPES;
   },
   metadata: {
     upvotes: number;

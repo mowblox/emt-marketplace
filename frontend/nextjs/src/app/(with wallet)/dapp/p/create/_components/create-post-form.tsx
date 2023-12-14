@@ -47,7 +47,7 @@ const formSchema = z.object({
     coverPhoto: z.string().refine((value) => isValidFileType(value), {
         message: 'Invalid file type. Only images e.g JPG, JPEG or PNG are allowed.',
     }),
-    tags: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(), // not using this tags in the form schema
     postType: z.enum(POST_TYPE),
     questionPostURL: z.string().url('Must be a valid link').optional(),
 })
@@ -69,8 +69,19 @@ const CreatePostForm = () => {
     });
     const imageRef = React.useRef<HTMLInputElement>(null);
     const [isCreatePostLoading, setIsCreatePostLoading] = useState(false)
+    const [tags, setTags] = useState<string[]>([])
 
     const { toast } = useToast()
+
+    function handleTags(e: React.MouseEvent<HTMLButtonElement>) {
+        e.preventDefault();
+        const tag = e.currentTarget.innerText
+        if (tags.includes(tag)) {
+            setTags(old => old.filter(t => t !== tag))
+        } else {
+            setTags(old => [...old, tag])
+        }
+    }
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -89,7 +100,7 @@ const CreatePostForm = () => {
                 image,
                 postType: values.postType,
                 questionPostURL: values.questionPostURL ? values.questionPostURL : "",
-                tags: values.tags ? values.tags : [""],
+                tags: tags ? tags : [""],
              })
             router.push(POST_PAGE(id));
             t.update({
@@ -221,33 +232,16 @@ const CreatePostForm = () => {
                                 <FormLabel>Tags</FormLabel>
                                 <FormControl>
                                     <div className="flex gap-3 flex-wrap w-full">
-                                        {TAGS.map((tag) => {
-                                            const isSelected = selectedTags.includes(tag);
-                                            const setTags = () =>
-                                                setSelectedTags(
-                                                    isSelected
-                                                        ? selectedTags.filter(
-                                                            (item: string) => item !== tag
-                                                        )
-                                                        : [...selectedTags, tag]
-                                                );
-                                            return (
-                                                <Button
-                                                    type="button"
-                                                    onClick={setTags}
-                                                    key={`skills-tags-${tag}`}
-                                                    className="rounded-full text-sm "
-                                                    size="sm"
-                                                    variant={isSelected ? "default" : "outline"}>
-                                                    {tag}
-                                                    {isSelected ? (
-                                                        <Minus className="w-4 h-4 text-muted ml-2" />
-                                                    ) : (
-                                                        <Plus className="w-4 h-4 text-accent-2 ml-2" />
-                                                    )}
-                                                </Button>
-                                            );
-                                        })}
+                                        {TAGS.map((tag) => (
+                                            <Button onClick={handleTags} key={`skills-tags-${tag}`} className='rounded-full text-sm ' size="sm" variant={tags!.includes(tag) ? "default" : "outline"}>
+                                                {tag}
+                                                {tags!.includes(tag) ? (
+                                                    <Minus className="w-4 h-4 text-muted ml-2" />
+                                                ) : (
+                                                    <Plus className="w-4 h-4 text-accent-2 ml-2" />
+                                                )}
+                                            </Button>)
+                                        )}
                                     </div>
                                 </FormControl>
                                 <FormMessage />

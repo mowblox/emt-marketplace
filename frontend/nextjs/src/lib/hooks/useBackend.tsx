@@ -619,7 +619,8 @@ export default function useBackend() {
     body: string;
     image?: Blob;
     postType: string;
-    questionPostURL?: string
+    questionPostURL?: string;
+    tags?: string[];
   }) {
     const docRef = doc(CONTENTS_COLLECTION);
     const id = ethers.encodeBytes32String(docRef.id);
@@ -647,7 +648,7 @@ export default function useBackend() {
 
     try {
       console.log("writing to database");
-      // TODO @jovells I added the postType, questionPostURL and tags, but after setting them, it doesn't update the firestore
+      // TODO @od41
       await setDoc(docRef, {
         title: post.title,
         body: post.body,
@@ -655,6 +656,7 @@ export default function useBackend() {
         imageURL: imageURL,
         postType: post.postType, 
         questionPostURL: post.questionPostURL,
+        tags: post.tags,
         timestamp: serverTimestamp(),
       });
     } catch (err: any) {
@@ -956,6 +958,7 @@ export default function useBackend() {
     profilePicture?: File;
     about?: string;
     username?: string;
+    tags?: string;
   }) {
     const _updates: { [key: string]: string | boolean | File } = { ...updates };
     if (updates.profilePicture) {

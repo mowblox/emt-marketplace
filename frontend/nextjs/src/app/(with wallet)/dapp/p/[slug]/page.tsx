@@ -14,13 +14,14 @@ import { RightSidebar } from '../../../_components/right-sidebar'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
 import DataLoading from '@/components/ui/data-loading';
-import { Content } from '@/lib/types';
+import { Content, POST_TYPES } from '@/lib/types';
 import Voter from '@/components/ui/Voter';
 import NoData from '@/components/ui/no-data';
 import { formatDistance } from 'date-fns';
 import { useUser } from "@/lib/hooks/user";
 import { toast } from "@/components/ui/use-toast";
 import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
+import { Badge } from '@/components/ui/badge';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -153,6 +154,25 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
 
             </CardHeader>
             <CardContent className='space-y-5 px-0'>
+              {post.post.postType == POST_TYPES.Question && <div><Badge className='bg-accent-4'>Question</Badge></div>}
+              {post.post.postType == POST_TYPES.Answer && <div>
+                <div className='p-3 rounded-md bg-glass border 2border-alt-stroke mt-3 flex items-center mb-2'>
+                  <div className="w-12 h-12 relative">
+                    <Image
+                      fill
+                      src={post.post.imageURL as string}
+                      className='rounded-md object-cover'
+                      loading="lazy"
+                      alt={`${post.post.title} cover photo`}
+                    />
+                  </div>
+                  <div className='ml-3'>
+                    <Badge className='bg-accent-4 mb-1'>Responding to...</Badge>
+                    <CardTitle className='font-semibold text-sm text-foreground tracking-wide'>{post.post.title}</CardTitle>
+                  </div>
+                </div>
+              </div>}
+
               <div className="w-full h-[400px] relative">
                 <Image
                   fill
@@ -162,6 +182,11 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                   alt={`${post.post.title} cover photo`}
                 />
               </div>
+              
+              {post.post.tags && <div> <div className='flex gap-3 flex-wrap w-full mb-4'>
+                {post.post.tags.map((tag, key) => <Badge key={`tag-${tag}-${key}`}>{tag}</Badge>)}
+              </div></div>}
+              
               <CardTitle className='font-bold text-3xl text-foreground tracking-wide'>{post.post.title}</CardTitle>
               <RichTextDisplayContainer richText={post.post.body} />
             </CardContent>
