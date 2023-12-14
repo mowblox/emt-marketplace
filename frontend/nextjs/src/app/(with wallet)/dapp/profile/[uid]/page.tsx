@@ -128,7 +128,7 @@ const Profile = () => {
             <Button
               variant="ghost"
               onClick={() =>
-                router.push(PROFILE_EDIT_PAGE(uid))
+                router.push(PROFILE_EDIT_PAGE)
               }
               className="text-xs hover:bg-transparent text-muted hover:text-accent-3">
               <HiOutlineCog6Tooth className="w-4 h-4 mr-1 " />

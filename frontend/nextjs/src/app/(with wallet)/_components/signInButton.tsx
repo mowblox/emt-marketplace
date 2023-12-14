@@ -34,11 +34,11 @@ interface SignInButtonProps extends ButtonProps {
 }
 interface SignInButtonProps extends ButtonProps  {
   href?: string
-  
+  mobile?: boolean
   label?: string
 }
 
-export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
+export const SignInButton = ({ label, href, mobile, before }: SignInButtonProps) => {
   const { user, isLoading, session, signIn } = useUser();
   const {balances, refetchBalances} = useBackend()
   
@@ -108,8 +108,8 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                 );
               }
               return (
-                <div style={{ display: "flex", gap: 12 }}>
-                   <Button variant={'light'} onClick={()=>console.log(refetchBalances('USDT'))} className="flex flex-row items-center justify-center">
+                <div className={`flex ${mobile? "flex-col" : "flex-row"} gap-3`}>
+                   <Button variant={'light'} onClick={()=>console.log(refetchBalances('USDT'))} className={"flex flex-row items-center justify-center"}>
                     <span>{balances['USDT']} USDT</span>
                     <Separator orientation="vertical" className="mx-3"/>
                     <span>{balances[chain.nativeCurrency.symbol]} {chain.nativeCurrency.symbol}</span>
