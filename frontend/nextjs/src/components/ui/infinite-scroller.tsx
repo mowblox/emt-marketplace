@@ -1,19 +1,11 @@
-import { Content } from "@/lib/types";
-import React, { Component } from "react";
-import PostCard from "./post-card";
-import { useUser } from "@/lib/hooks/user";
+import React from "react";
 import { useIntersection } from "@mantine/hooks";
 import {
   useInfiniteQuery,
-  useMutation,
-  useQueryClient,
 } from "@tanstack/react-query";
-import PageLoading from "./page-loading";
 import DataLoading from "./data-loading";
-import useBackend from "@/lib/hooks/useBackend";
-import { Timestamp } from "firebase/firestore";
 import NoData from "./no-data";
-import LoadingMore, { LoadingDone } from "./loading-more";
+import LoadingMore from "./loading-more";
 
 type Props = {
   filters?: Record<string, any>;

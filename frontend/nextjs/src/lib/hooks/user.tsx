@@ -126,10 +126,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       });
       setIsLoading(false)
     }
-
+    //logged in to next auth but not firebase
     if (status === 'unauthenticated' && user) {
       _signOut();
     }
+    //logged in to next auth
     if (session?.firebaseToken) {
       signIn({redirect: false})
     }

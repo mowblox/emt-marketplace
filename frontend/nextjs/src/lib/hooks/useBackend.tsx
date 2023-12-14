@@ -8,6 +8,7 @@ import {
   BookingFilters,
   BuiltNotification,
   ClaimHistoryItem,
+  Coin,
   Content,
   ExptFilters,
   ExptListing,
@@ -20,7 +21,7 @@ import {
   UserProfile,
   userUpdateValidationResult,
 } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
+import { UseQueryResult, useQueries, useQuery } from "@tanstack/react-query";
 import { formatDistance } from "date-fns";
 import {
   ContractTransactionReceipt,
@@ -47,7 +48,7 @@ import {
   startAfter,
   updateDoc,
   where,
-  documentId
+  documentId,
 } from "firebase/firestore";
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -91,13 +92,13 @@ export default function useBackend() {
   const { EMTMarketPlace, MentorToken, ExpertToken, StableCoin, provider } =
     useContracts();
   const { user } = useUser();
-  const {update} = useSession();
+  const { update } = useSession();
   const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] =
     useState(EMTMarketPlace);
   const [signer, setSigner] = useState<ethers.Signer>();
-  const network = useNetwork()
+  const network = useNetwork();
 
-  const wrongChain = network.chain?.id !== chain.id
+  const wrongChain = network.chain?.id !== chain.id;
 
   //queries
   const { data: exptLevels } = useQuery({
@@ -114,21 +115,55 @@ export default function useBackend() {
       return true;
     },
     //TODO: store expt levels in firestore and remove this enabled check
-    enabled: !wrongChain
+    enabled: !wrongChain,
   });
-
-  async function fechCoinBalance(coin: "usdt" | "usdc" | "dai" | "native" , uid = user?.uid ) {
-    //TODO   
-    if(!uid) return
-      switch (coin) {
-        case "native":
-          return await provider.getBalance(uid)  
-          break;
-        default:
-          return await StableCoin.balanceOf(uid)
-          break;
-      }
-  }
+  const tokens: Coin[] = [
+    { address: StableCoin.target as string, type: "erc20", name: "USDT" },
+    { name: "MENT", type: "erc20", address: MentorToken.target as string },
+    { name: "EXPT", type: "erc721", address: ExpertToken.target as string },
+    { name: chain.nativeCurrency.symbol, type: "native", address: "0x0" },
+  ];
+  const { balances, refetchBalances, isLoadingBalances, balancesError } =
+    useQueries({
+      queries: tokens.map((token) => ({
+        queryKey: ["balances", token.name, user?.uid],
+        queryFn: async () => {
+          const currentUserId = user?.uid!;
+          if (token.type === "native")
+            return {
+              [token.name]: parseFloat(ethers.formatEther(await provider.getBalance(currentUserId))).toFixed(2),
+            };
+          const contract = StableCoin.attach(
+            token.address!
+          ) as typeof StableCoin;
+          const balance = await contract.balanceOf(currentUserId);
+          return { [token.name]: parseFloat(ethers.formatUnits(balance, 6)).toFixed(2) };
+        },
+        enabled: !wrongChain && !!user?.uid,
+      })),
+      combine: (allResults) => {
+        return {
+          balances: allResults.reduce(
+            (acc, result) => ({ ...acc, ...result.data }),
+            {} as Record< "USDT" | "MENT" | "EXPT" | typeof chain.nativeCurrency.symbol , number >
+          ),
+          pending: allResults.some((result) => result.isPending),
+          balancesError: allResults.find((result) => result.error),
+          isLoadingBalances: allResults.some((result) => result.isLoading),
+          refetchBalances: (coin?: "USDT" | "MENT" | "EXPT" | "native") =>
+            coin
+              ? allResults
+                  .find(
+                    (res) =>
+                      res.data?.[
+                        coin === "native" ? chain.nativeCurrency.name : coin
+                      ] !== undefined
+                  )
+                  ?.refetch()
+              : Promise.all(allResults.map((result) => result.refetch())),
+        };
+      },
+    });
 
   async function createNotification(data: Partial<NotificationData>) {
     console.log("createNotification", data);
@@ -142,12 +177,14 @@ export default function useBackend() {
     const docRef = doc(NOTIFICATIONS_COLLECTION);
     await setDoc(docRef, data);
   }
-  async function saveClaimHistoryItemToFirestore(item: Omit<ClaimHistoryItem, 'timestamp' | 'id'>) {
+  async function saveClaimHistoryItemToFirestore(
+    item: Omit<ClaimHistoryItem, "timestamp" | "id">
+  ) {
     try {
       const docRef = doc(CLAIM_HISTORY_COLLECTION);
-      const itemWithTimestamp = {...item, timestamp: serverTimestamp()}
+      const itemWithTimestamp = { ...item, timestamp: serverTimestamp() };
       await setDoc(docRef, itemWithTimestamp);
-      return {...item, id: docRef.id, timestamp: Timestamp.now()}
+      return { ...item, id: docRef.id, timestamp: Timestamp.now() };
     } catch (err: any) {
       console.log(
         `Error saving ${item.type} claim history item to firestore. Message: ` +
@@ -158,23 +195,26 @@ export default function useBackend() {
       );
     }
   }
-  async function updateUserMentInFirestore(){
-    try{
-      console.log('updating ment in firestore through nextjs server')
-      const ses = await update({updateMent: true}) as unknown as {error: any, newMent: number} 
-      console.log('updated ment in firestore', ses)
-      const {error, newMent} = ses
-      if(error) throw new Error(error)
-      return newMent
-    }catch(err: any){
-      console.log('error saving ment to firestore');
-      throw new Error(err)
+  async function updateUserMentInFirestore() {
+    try {
+      console.log("updating ment in firestore through nextjs server");
+      const ses = (await update({ updateMent: true })) as unknown as {
+        error: any;
+        newMent: number;
+      };
+      console.log("updated ment in firestore", ses);
+      const { error, newMent } = ses;
+      if (error) throw new Error(error);
+      return newMent;
+    } catch (err: any) {
+      console.log("error saving ment to firestore");
+      throw new Error(err);
     }
   }
   async function claimMent() {
     function getMentClaimed(receipt: ContractTransactionReceipt) {
       const filter = EMTMarketPlace.filters.MentClaimed().fragment;
-      let mentClaimed= 0;
+      let mentClaimed = 0;
       // console.log(receipt?.logs)
       receipt?.logs.some((log) => {
         const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
@@ -194,14 +234,15 @@ export default function useBackend() {
       console.log("claimed ment");
       // @ts-ignore
       const mentClaimed = getMentClaimed(receipt);
-      const historyItem: Omit<ClaimHistoryItem,'id'| 'timestamp'> = {
+      const historyItem: Omit<ClaimHistoryItem, "id" | "timestamp"> = {
         type: "ment",
         amount: mentClaimed,
         uid: user.uid,
       };
-      const claimHistoryItem = await saveClaimHistoryItemToFirestore(historyItem);
-      const newMent = await updateUserMentInFirestore()
-      return {mentClaimed, newMent, claimHistoryItem};
+      const claimHistoryItem =
+        await saveClaimHistoryItemToFirestore(historyItem);
+      const newMent = await updateUserMentInFirestore();
+      return { mentClaimed, newMent, claimHistoryItem };
     } catch (err: any) {
       console.log(err);
       throw new Error("Error claiming ment. Message: " + err.message);
@@ -210,24 +251,24 @@ export default function useBackend() {
 
   async function fetchMentAndLevel(uid = user?.uid): Promise<[number, number]> {
     console.log("fetchMentAndLevel", uid);
-    let ment = 0
+    let ment = 0;
     if (uid !== user?.uid) {
-       ment = await fetchMent(uid);
+      ment = await fetchMent(uid);
     }
-    console.log('ment2222: ', ment)
-     const level = exptLevels
-      ? (Object.entries(exptLevels).find(
+    console.log("ment2222: ", ment);
+    const level = exptLevels
+      ? Object.entries(exptLevels).find(
           ([key, level]) => (ment || 0) > level.requiredMent
-        )?.[0] || 0)
+        )?.[0] || 0
       : 0;
-      console.log('level: ', level)
+    console.log("level: ", level);
     return [Number(ment), Number(level)];
   }
 
   async function claimExpt() {
     function getExptClaimed(receipt: ContractTransactionReceipt) {
       const filter = EMTMarketPlace.filters.ExptClaimed().fragment;
-      let exptClaimed= 0;
+      let exptClaimed = 0;
       // console.log(receipt?.logs)
       receipt?.logs.some((log) => {
         const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
@@ -251,17 +292,18 @@ export default function useBackend() {
       const receipt = await tx!.wait();
       const val = await ExpertToken.balanceOf(user.uid);
       const newExptBalance = Number(val);
-      const exptClaimed= getExptClaimed(receipt!);
+      const exptClaimed = getExptClaimed(receipt!);
 
-      const historyItem: Omit<ClaimHistoryItem, 'timestamp' | 'id'> = {
+      const historyItem: Omit<ClaimHistoryItem, "timestamp" | "id"> = {
         type: "expt",
         amount: exptClaimed,
         level: level,
         uid: user.uid,
       };
-      const claimHistoryItem = await saveClaimHistoryItemToFirestore(historyItem);
+      const claimHistoryItem =
+        await saveClaimHistoryItemToFirestore(historyItem);
       console.log("claimed expt. New expt balance: ", newExptBalance);
-      return {newExptBalance, claimHistoryItem};
+      return { newExptBalance, claimHistoryItem };
     } catch (err: any) {
       console.log(err);
       throw new Error("Error claiming ment. Message: " + err.message);
@@ -387,8 +429,8 @@ export default function useBackend() {
     const userDocRef = doc(USERS_COLLECTION, owner);
     const userDoc = await getDoc(userDocRef);
     const author = userDoc.data() as Content["author"];
-    const  [_upvotes, _downvotes] = await fetchPostVotes(id);
-    
+    const [_upvotes, _downvotes] = await fetchPostVotes(id);
+
     return {
       author,
       metadata: {
@@ -464,7 +506,7 @@ export default function useBackend() {
       return ment;
     } catch (err: any) {
       console.log("Error fetching ment. Details: " + err);
-      return 0
+      return 0;
     }
   }
   async function fetchUnclaimedMent() {
@@ -479,7 +521,7 @@ export default function useBackend() {
       return unclaimedMent;
     } catch (err: any) {
       console.log("Error fetching unclaimed ment. Details: " + err);
-      return 0
+      return 0;
     }
   }
 
@@ -507,18 +549,26 @@ export default function useBackend() {
     }
   }
 
-  async function fetchProfile(uid: string, exclude?:{followers?:boolean, following?:boolean, ownedExptIds?:boolean}) {
+  async function fetchProfile(
+    uid: string,
+    exclude?: {
+      followers?: boolean;
+      following?: boolean;
+      ownedExptIds?: boolean;
+    }
+  ) {
     try {
-      const promises:Promise<any>[] = [fetchUserDoc(uid), fetchMentAndLevel(uid)]
-      if(!exclude?.followers) promises.push(fetchNumFollowers(uid))
-      if(!exclude?.following) promises.push(fetchNumFollowing(uid))
-      if(!exclude?.ownedExptIds) promises.push(fetchOwnedExptIds(uid)
-      )
+      const promises: Promise<any>[] = [
+        fetchUserDoc(uid),
+        fetchMentAndLevel(uid),
+      ];
+      if (!exclude?.followers) promises.push(fetchNumFollowers(uid));
+      if (!exclude?.following) promises.push(fetchNumFollowing(uid));
+      if (!exclude?.ownedExptIds) promises.push(fetchOwnedExptIds(uid));
 
-      const [userDoc, [ment , level], numFollowers, numFollowing, ownedExptIds] =
-      await Promise.all(promises);
+      const [userDoc, [ment, level], numFollowers, numFollowing, ownedExptIds] =
+        await Promise.all(promises);
 
-      
       const profile: UserProfile = {
         ...userDoc,
         level,
@@ -526,7 +576,7 @@ export default function useBackend() {
         numFollowing,
         ownedExptIds,
         ment,
-        email: user?.email
+        email: user?.email,
       };
 
       console.log("fetched Profile", profile.uid);
@@ -585,7 +635,7 @@ export default function useBackend() {
       const _signer = await provider.getSigner();
 
       setSigner(_signer);
-        // @ts-ignore
+      // @ts-ignore
       setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
       //TODO: INFO @Jovells @od41 @mickeymond INFO: This is for testing purposes only
       //can be used to mint stablecoins from browser console
@@ -593,7 +643,11 @@ export default function useBackend() {
       //@ts-ignore
       window.signer = _signer;
       //@ts-ignore
-      window.adminSigner = new ethers.Wallet(process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY, provider)
+      window.adminSigner = new ethers.Wallet(
+        // @ts-ignore
+        process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY,
+        provider
+      );
       //@ts-ignore
       window.stableCoin = StableCoin;
       //@ts-ignore
@@ -774,7 +828,10 @@ export default function useBackend() {
   }
   async function listExpts(listing: NewExptListing) {
     async function saveExptListingToFirestore(listing: NewExptListing) {
-      const withImage: NewExptListing & {imageURL: string,} = { ...listing, imageURL: "" };
+      const withImage: NewExptListing & { imageURL: string } = {
+        ...listing,
+        imageURL: "",
+      };
       if (listing.coverImage) {
         try {
           const imageURL = await uploadImage(
@@ -791,13 +848,13 @@ export default function useBackend() {
         }
       }
       const docRef = doc(EXPT_LISTINGS_COLLECTION);
-      const fullListing: Omit<ExptListing, 'id'> = {
+      const fullListing: Omit<ExptListing, "id"> = {
         ...withImage,
         author: user?.uid!,
         timestamp: serverTimestamp(),
         remainingTokenIds: withImage.tokenIds,
       };
-      
+
       try {
         await setDoc(docRef, fullListing);
         console.log("saved expt listing to firestore");
@@ -813,7 +870,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-        // @ts-ignore
+      // @ts-ignore
       await ExpertToken.connect(signer).setApprovalForAll(
         EMTMarketPlace.target,
         true
@@ -874,7 +931,7 @@ export default function useBackend() {
       const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
         const listing = doc.data() as ExptListingWithAuthorProfile;
         listing.id = doc.id;
-        console.log('listing', listing)
+        console.log("listing", listing);
         listing.authorProfile = await fetchProfile(listing.author);
         return listing;
       });
@@ -938,13 +995,18 @@ export default function useBackend() {
       .map((begin) => array.slice(begin, begin + chunkSize));
   }
 
-  async function updateUser(updates: Omit<Partial<SignUpData>, 'email'>) {
-    const updateResult = await update({ updates }) as unknown as {updateValidationError:{code: string, validationResult: userUpdateValidationResult} }
-    if (updateResult?.updateValidationError){
+  async function updateUser(updates: Omit<Partial<SignUpData>, "email">) {
+    const updateResult = (await update({ updates })) as unknown as {
+      updateValidationError: {
+        code: string;
+        validationResult: userUpdateValidationResult;
+      };
+    };
+    if (updateResult?.updateValidationError) {
       // setUser({ ...user!, ...updates });
-      return {updateValidationError: updateResult.updateValidationError}
+      return { updateValidationError: updateResult.updateValidationError };
     }
-    return updates ;
+    return updates;
   }
 
   /**
@@ -1037,8 +1099,8 @@ export default function useBackend() {
         EMTMarketPlace.target,
         listing.price * 10 ** 6
       );
-      const receipt  = await tx.wait();
-      console.log(receipt)
+      const receipt = await tx.wait();
+      console.log(receipt);
       console.log("buying expts in contract");
       let exptToBuyIndex = listing.remainingTokenIds.length - 1;
 
@@ -1080,42 +1142,54 @@ export default function useBackend() {
     }
   }
 
-  async function fetchProfiles(lastdocParam?: any, size = 5, filters?: ProfileFilters ) {  
-    let q = query(
-      USERS_COLLECTION,
-      limit(size),
-    );
+  async function fetchProfiles(
+    lastdocParam?: any,
+    size = 5,
+    filters?: ProfileFilters
+  ) {
+    let q = query(USERS_COLLECTION, limit(size));
     if (lastdocParam) {
       q = query(q, startAfter(lastdocParam));
     }
-    if (filters?.ment){
-      console.log('filters.ment', filters)
-        q = query(q, orderBy("ment", filters.ment))
+    if (filters?.ment) {
+      console.log("filters.ment", filters);
+      q = query(q, orderBy("ment", filters.ment));
     }
-    if (filters?.level){
-        q = query(q, where("ment", ">=", exptLevels![filters.level].requiredMent))
+    if (filters?.level) {
+      q = query(
+        q,
+        where("ment", ">=", exptLevels![filters.level].requiredMent)
+      );
     }
-    if (filters?.tags){
-        q = query(q, where("tags", "array-contains-any", filters.tags))
+    if (filters?.tags) {
+      q = query(q, where("tags", "array-contains-any", filters.tags));
     }
-    if (filters?.numFollowers){
+    if (filters?.numFollowers) {
       //TODO @Jovells update follow function to store count in firestore
-        q = query(q, orderBy("numFollowers", filters.numFollowers))
+      q = query(q, orderBy("numFollowers", filters.numFollowers));
     }
-    if (filters?.usernames){
-        q = query(q, where("usernameLowercase", "in", filters?.usernames.map(u=>u.toLowerCase())))
+    if (filters?.usernames) {
+      q = query(
+        q,
+        where(
+          "usernameLowercase",
+          "in",
+          filters?.usernames.map((u) => u.toLowerCase())
+        )
+      );
     }
-    if (filters?.uids){
-        q = query(q, where(documentId(), "in", filters.uids))
+    if (filters?.uids) {
+      q = query(q, where(documentId(), "in", filters.uids));
     }
-    if(filters?.isFollowing){//TODO @Jovells
-      
+    if (filters?.isFollowing) {
+      //TODO @Jovells
     }
-    if(filters?.isNotFollowing){//TODO @Jovells
+    if (filters?.isNotFollowing) {
+      //TODO @Jovells
     }
 
     const querySnapshot = await getDocs(q);
-    console.log('profilesSnapshot', querySnapshot.docs)
+    console.log("profilesSnapshot", querySnapshot.docs);
     const profiles = querySnapshot.docs.map((doc) => {
       const data = doc.data();
       data.uid = doc.id;
@@ -1124,22 +1198,24 @@ export default function useBackend() {
     return profiles;
   }
 
-  const profileReady =
-    exptLevels !== undefined 
+  const profileReady = exptLevels !== undefined;
 
-  async function  fetchPostVotes (id: string): Promise<[number, number, number]>{
-    console.log('fetchPostVotes', id)
+  async function fetchPostVotes(id: string): Promise<[number, number, number]> {
+    console.log("fetchPostVotes", id);
     try {
       const contentId = ethers.encodeBytes32String(id);
-      const [_upvotes, _downvotes, diffrence] = await EMTMarketPlace.contentVotes(contentId);
+      const [_upvotes, _downvotes, diffrence] =
+        await EMTMarketPlace.contentVotes(contentId);
       return [Number(_upvotes), Number(_downvotes), Number(diffrence)];
     } catch (e) {
       console.log("error fetching post votes", e);
-      return [0,0,0]
+      return [0, 0, 0];
     }
   }
 
   return {
+    balances,
+    refetchBalances,
     fetchPostVotes,
     createPost,
     fetchClaimHistory,
@@ -1164,6 +1240,6 @@ export default function useBackend() {
     checkFollowing,
     voteOnPost,
     fetchSinglePost,
-    fetchProfiles
+    fetchProfiles,
   };
 }
