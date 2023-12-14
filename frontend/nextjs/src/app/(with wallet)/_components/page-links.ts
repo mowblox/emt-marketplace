@@ -1,14 +1,14 @@
 import {HiOutlineHome, HiOutlineUser, HiOutlineUsers, HiOutlineCalendarDays, HiOutlineEnvelope } from 'react-icons/hi2'
 
-export const CREATE_A_POST_PAGE = "/dapp/p/create"
 export const POST_PAGE = (permalink:string) => `/dapp/p/${permalink}`
 export const EXPERT_TICKET_PAGE = (permalink:string) => `/dapp/expert-hub/${permalink}`
-export const PROFILE_EDIT_PAGE = (uid:string) => `/dapp/profile/${uid}/edit`
+export const PROFILE_EDIT_PAGE = `/dapp/profile/edit`
 export const HOME_PAGE = "/dapp"
 export const EXPERT_HUB_PAGE = "/dapp/expert-hub"
 export const BOOKINGS_PAGE = "/dapp/bookings"
 export const PROFILE_PAGE = (uid:string) => `/dapp/profile/${uid}`
 export const NOTIFICATIONS_PAGE = "/dapp/notifications"
+export const CREATE_A_POST_PAGE = "/dapp/p/create"
 
 export const WELCOME_PAGE = "/welcome"
 export const FAQ_PAGE = "/faq"
@@ -76,4 +76,11 @@ export const resourcesLinks = [
 export const hasBackButtonList = [
     PROFILE_EDIT_PAGE,
     CREATE_A_POST_PAGE
+]
+
+export const PROTECTED_ROUTES = [
+    BOOKINGS_PAGE,
+    PROFILE_EDIT_PAGE,
+    CREATE_A_POST_PAGE,
+    NOTIFICATIONS_PAGE
 ]

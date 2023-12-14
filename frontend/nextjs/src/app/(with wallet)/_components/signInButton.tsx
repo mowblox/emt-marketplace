@@ -5,11 +5,12 @@ import { isEmpty } from "@/lib/utils";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect } from "react";
 import { ONBOARDING_PAGE } from "./page-links";
 import { is } from "date-fns/locale";
 import {chain} from "@/../emt.config"
+import { useQuery } from "@tanstack/react-query";
+import useBackend from "@/lib/hooks/useBackend";
+import { Separator } from "@/components/ui/separator";
 
 /**
  * Props for the SignInButton component.
@@ -33,13 +34,14 @@ interface SignInButtonProps extends ButtonProps {
 }
 interface SignInButtonProps extends ButtonProps  {
   href?: string
-  
+  mobile?: boolean
   label?: string
 }
 
-export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
+export const SignInButton = ({ label, href, mobile, before }: SignInButtonProps) => {
   const { user, isLoading, session, signIn } = useUser();
-
+  const {balances, refetchBalances} = useBackend()
+  
   return (
     <ConnectButton.Custom>
       {({
@@ -106,10 +108,16 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                 );
               }
               return (
-                <div style={{ display: "flex", gap: 12 }}>
+                <div className={`flex ${mobile? "flex-col" : "flex-row"} gap-3`}>
+                   <Button variant={'light'} onClick={()=>console.log(refetchBalances('USDT'))} className={"flex flex-row items-center justify-center"}>
+                    <span>{balances['USDT']} USDT</span>
+                    <Separator orientation="vertical" className="mx-3"/>
+                    <span>{balances[chain.nativeCurrency.symbol]} {chain.nativeCurrency.symbol}</span>
+                    </Button>
                   <Button variant={"default"} onClick={()=>(openAccountModal())} className="w-full">
                     {account.displayName}
                   </Button>
+
                 </div>
               );
             })()}

@@ -97,6 +97,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
       const ExpertToken = new ethers.Contract(ExpertToken_.address, ExpertToken_.abi, provider)  as unknown as ExpertToken ;
       const MentorToken = new ethers.Contract(MentorToken_.address, MentorToken_.abi, provider)  as unknown as MentorToken;
       const StableCoin = new ethers.Contract(StableCoin_.address, StableCoin_.abi, provider)  as unknown as StableCoin;
+      
       setContracts({
         EMTMarketPlace,
         ExpertToken,
