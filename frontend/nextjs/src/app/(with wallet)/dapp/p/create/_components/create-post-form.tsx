@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import RichTextEditor from '@/components/ui/rich-text-editor'
 import useBackend from '@/lib/hooks/useBackend'
-import { isValidFileType, profilePlaceholderImage } from '@/lib/utils'
+import { isValidFileType, placeholderImage } from '@/lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { HOME_PAGE, POST_PAGE } from '@/app/(with wallet)/_components/page-links'
@@ -56,7 +56,7 @@ const CreatePostForm = () => {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const { createPost } = useBackend();
     const { data, mutateAsync } = useMutation({
-        mutationFn: (variables: { title: string, body: string, image: File }) => createPost(variables),
+        mutationFn: (variables: { title: string, body: string, image: File, postType: string, questionPostURL?: string, tags?: string[]}) => createPost(variables),
     })
     const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
@@ -83,7 +83,14 @@ const CreatePostForm = () => {
         })
         const image = imageRef.current?.files![0] as File;
         try {
-            const { id, imageURL } = await mutateAsync({ title: values.postTitle, body: values.postBody, image })
+            const { id, imageURL } = await mutateAsync({ 
+                title: values.postTitle, 
+                body: values.postBody, 
+                image,
+                postType: values.postType,
+                questionPostURL: values.questionPostURL ? values.questionPostURL : "",
+                tags: values.tags ? values.tags : [""],
+             })
             router.push(POST_PAGE(id));
             t.update({
                 id: t.id,
@@ -100,6 +107,7 @@ const CreatePostForm = () => {
                 variant: "destructive",
                 duration: 1000,
             })
+            console.error(error.message)
             setIsCreatePostLoading(false)
         }
     }
@@ -159,9 +167,9 @@ const CreatePostForm = () => {
                                     <>
                                         <div className="w-40 h-20 relative rounded-md">
                                             <Image
-                                                src={imageRef.current?.files![0] ? URL.createObjectURL(imageRef.current?.files![0]) : profilePlaceholderImage}
+                                                src={imageRef.current?.files![0] ? URL.createObjectURL(imageRef.current?.files![0]) : placeholderImage}
                                                 fill
-                                                placeholder={profilePlaceholderImage}
+                                                placeholder={placeholderImage}
                                                 className='object-cover rounded-md '
                                                 alt={`Add a cover image`}
                                             />
