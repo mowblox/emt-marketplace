@@ -2,18 +2,28 @@ import React, { useState } from "react";
 import { Button } from "./button";
 import { HiOutlineHandThumbDown, HiOutlineHandThumbUp } from "react-icons/hi2";
 import { Content } from "@/lib/types";
-import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import useBackend from "@/lib/hooks/useBackend";
-import { useQueryClient } from "wagmi";
 import { toast } from "./use-toast";
 import { useUser } from "@/lib/hooks/user";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
     export default function Voter({post}:{post:Content}) {
-        const {voteOnPost} = useBackend();
+        const {voteOnPost, fetchPostVotes} = useBackend();
         const {user} = useUser();
         const {openConnectModal} = useConnectModal()
-        const [votes, setVotes] = useState(post.metadata)
+        const queryClient = useQueryClient();
+
+        const {data: votes} = useQuery({
+            queryKey: ["votes", post.metadata.id],
+            queryFn: async () : Promise<{upvotes: number, downvotes: number}> => {
+              const [upvotes, downvotes] = await fetchPostVotes(post.metadata.id)
+              return {upvotes, downvotes}
+            },
+            enabled: !!post.metadata.id,
+            refetchOnMount: true,
+            initialData: {upvotes: post.metadata.upvotes, downvotes: post.metadata.downvotes}
+          });
 
 
         const { mutateAsync, error } = useMutation({
@@ -27,9 +37,11 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
             },
             onSuccess: (data, variables, context) => {
               console.log("data", data, variables, context);
-              setVotes({...votes, ...data})
-            },
-            
+              queryClient.setQueryData(["votes", post.metadata.id], {
+                upvotes: data.upvotes,
+                downvotes: data.downvotes,
+              });
+            },            
           });
         
           async function handleVote(

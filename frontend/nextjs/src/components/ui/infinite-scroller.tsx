@@ -1,7 +1,6 @@
 import { Content } from "@/lib/types";
-import React, { Component } from 'react'
-import PostCard from './post-card';
-import { Separator } from '@radix-ui/react-separator';
+import React, { Component } from "react";
+import PostCard from "./post-card";
 import { useUser } from "@/lib/hooks/user";
 import { useIntersection } from "@mantine/hooks";
 import {
@@ -9,96 +8,137 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import PageLoading from './page-loading';
-import DataLoading from './data-loading';
+import PageLoading from "./page-loading";
+import DataLoading from "./data-loading";
 import useBackend from "@/lib/hooks/useBackend";
 import { Timestamp } from "firebase/firestore";
 import NoData from "./no-data";
 import LoadingMore, { LoadingDone } from "./loading-more";
 
-
 type Props = {
-    filters?: Record<string, any>,
-    fetcher: (pageParam: any, size: number, filters?: Record<string, any>)=>Promise<any>,
-    queryKey: string[],
+  filters?: Record<string, any>;
+  fetcher: (
+    pageParam: any,
     size?: number,
-    getNextPageParam?: (lastpage: any)=>any
-    ItemComponent: React.FunctionComponent<{data: any}>
-    itemKey?:(data: any)=>string
-} & React.HtmlHTMLAttributes<HTMLDivElement>
+    filters?: Record<string, any>
+  ) => Promise<any>;
+  queryKey: ReadonlyArray<unknown>;
+  size?: number;
+  getNextPageParam?: (lastpage: any) => any;
+  ItemComponent: React.FunctionComponent<{ data: any }>;
+  itemKey?: (data: any) => string;
+  enabled?: boolean;
+  max?: number;
+  Separator?: React.ReactNode;
+  noDataComponent?: React.ReactNode;
+  loadingComonent?: React.ReactNode;
+} & React.HtmlHTMLAttributes<HTMLDivElement>;
 
-export default function InfiniteScroll ({filters, fetcher, size=1, queryKey, ItemComponent, itemKey, getNextPageParam, ...props}: Props) {
-    const { entry, ref } = useIntersection({
-      threshold: 0,
-      // root: loadMoreRef.current
-    });
+export default function InfiniteScroll({
+  filters,
+  fetcher,
+  size,
+  queryKey,
+  ItemComponent,
+  max,
+  itemKey,
+  getNextPageParam,
+  enabled,
+  Separator,
+  noDataComponent,
+  loadingComonent: loadingComponent,
+  ...props
+}: Props) {
+  const { entry, ref } = useIntersection({
+    threshold: 0,
+    // root: loadMoreRef.current
+  });
 
-    const {
-      data: contentPages,
-      fetchNextPage,
-      isFetchingNextPage,
-      hasNextPage,
-      isLoading,
-      error
-    } = useInfiniteQuery({
-      queryKey: [...queryKey, size, filters],
-      queryFn: async ({ pageParam }) => {
-        const contents = await fetcher(pageParam, size, filters);
-        return contents;
-      },
-      initialPageParam : undefined as any,
-      getNextPageParam : getNextPageParam || ((lastPage) => {
+  const {
+    data: contentPages,
+    fetchNextPage,
+    isFetchingNextPage,
+    hasNextPage,
+    isLoading,
+    error,
+  } = useInfiniteQuery({
+    queryKey: [...queryKey, size, filters],
+    queryFn: async ({ pageParam, meta }) => {
+      console.log("querying", meta);
+      filters = filters;
+      const contents = await fetcher(pageParam, size, filters);
+      return contents;
+    },
+    initialPageParam: undefined as any,
+    getNextPageParam:
+      getNextPageParam ||
+      ((lastPage, allPages) => {
+        if (max && allPages.length >= max) return undefined;
         return lastPage[lastPage.length - 1]?.timestamp;
       }),
-      select:(data)=>{
-        return {
-          pages:data.pages.flat(),
-          pageParams:[data.pageParams.pop()]
-        }
-        }
-    });
-  
-    // const posts =
-    //   postPages?.pages?.flatMap((page, i) =>
-    //     page.map((p, j) => ({ ...p, indexes: [i, j] }))
-    //   ) || [];
+    select: (data) => {
+      return {
+        pages: data.pages.flat(),
+        pageParams: [data.pageParams.pop()],
+      };
+    },
+    enabled,
+  });
 
-    error && console.info(queryKey[0]+ " loading error:", error)
-  
+  // const posts =
+  //   postPages?.pages?.flatMap((page, i) =>
+  //     page.map((p, j) => ({ ...p, indexes: [i, j] }))
+  //   ) || [];
+
+  error && console.info(queryKey[0] + " loading error:", error);
+
   if (hasNextPage && entry?.isIntersecting) {
     fetchNextPage();
   }
-  
-  if(!contentPages && isLoading) {
-    return (<div className="h-screen">
+
+  if (!contentPages && isLoading) {
+    return (
+      <div className="h-screen">
         <DataLoading />
-      </div>)
+      </div>
+    );
   }
 
-  if(!contentPages?.pages[0] && !isLoading) {
-    return (<div className="h-screen">
-        <NoData message={"No "+queryKey} />
-      </div>)
+  if (!contentPages?.pages[0] && !isLoading) {
+    return <NoData message={"No " + queryKey} />;
   }
 
-  console.log(queryKey, contentPages)
-  
+  console.log(queryKey, contentPages);
+
   return (
     <>
       <div {...props}>
-        {contentPages?.pages?.map((content:  any) => {
+        {contentPages?.pages?.map((content: any) => {
           return (
+            <>
               <ItemComponent
-              key={itemKey?.(content) || content.id}
+                key={itemKey?.(content) || content.id}
                 data={content}
               />
+              {Separator}
+            </>
           );
         })}
       </div>
 
       <div ref={ref}>
-        { isFetchingNextPage ? <LoadingMore />: <LoadingDone /> }
+        {isFetchingNextPage ? (
+          noDataComponent ? (
+            noDataComponent
+          ) : loadingComponent ? (
+            loadingComponent
+          ) : (
+            <LoadingMore />
+          )
+        ) : (
+          <></>
+        )}
       </div>
     </>
-  )
+  );
 }

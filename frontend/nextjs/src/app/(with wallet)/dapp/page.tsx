@@ -15,6 +15,7 @@ import useBackend from "@/lib/hooks/useBackend";
 import Posts from "@/components/ui/posts";
 import { useUser } from "@/lib/hooks/user";
 import { PROFILE_PAGE } from "../_components/page-links";
+import UserList from "../_components/user-List";
 
 const topCreatorList = [
   {
@@ -87,48 +88,14 @@ export default function RootLayout() {
         </ScrollArea>
       </div>
       <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2">
-        <>
+        {/* TODO @jovells 2. display random user profiles */}
+        {/* <>
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
             </h2>
             <div className="flex flex-col gap-y-0">
-              {topCreatorList.map((profile, key) => {
-                return (
-                  <Link
-                    href={PROFILE_PAGE(profile.uid)}
-                    key={`top-creator-${key}`}
-                    className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 relative">
-                        <Image
-                          fill
-                          className="rounded-full object-cover"
-                          loading="eager"
-                          src={profile.photoURL}
-                          alt={`${profile.displayName}-photoURL`}
-                          quality={80}
-                        />
-                      </div>
-                      <div className="ml-3">
-                        <div className="flex items-center">
-                          <p className="text-md text-foreground">
-                            {profile.displayName}
-                          </p>
-                          {profile.isExpert === true && (
-                            <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />
-                          )}
-                        </div>
-                        <Badge>{profile.skill}</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-xs text-muted">
-                      <HiOutlineFire className="w-4 h-4 ml-1 text-muted" />
-                      <div className="ml-1">245 MENT</div>
-                    </div>
-                  </Link>
-                );
-              })}
+                <UserList filters={{ment: "desc"}}/>
             </div>
           </div>
 
@@ -137,45 +104,10 @@ export default function RootLayout() {
               Who to Follow
             </h2>
             <div className="flex flex-col gap-y-0">
-              {topCreatorList.map((profile, key) => {
-                return (
-                  <Link
-                    href={`/dapp/profile/${profile.uid}`}
-                    key={`top-creator-${key}`}
-                    className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 relative">
-                        <Image
-                          fill
-                          className="rounded-full object-cover"
-                          loading="eager"
-                          src={profile.photoURL}
-                          alt={`${profile.displayName}-photoURL`}
-                          quality={80}
-                        />
-                      </div>
-                      <div className="ml-3">
-                        <div className="flex items-center">
-                          <p className="text-md text-foreground">
-                            {profile.displayName}
-                          </p>
-                          {profile.isExpert === true && (
-                            <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />
-                          )}
-                        </div>
-                        <Badge>{profile.skill}</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center text-xs text-muted">
-                      <HiOutlineFire className="w-4 h-4 ml-1 text-muted" />
-                      <div className="ml-1">245 MENT</div>
-                    </div>
-                  </Link>
-                );
-              })}
+              <UserList filters={{isNotFollowing: true }}/>
             </div>
           </div>
-        </>
+        </> */}
       </RightSidebar>
     </div>
   );

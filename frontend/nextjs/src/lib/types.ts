@@ -24,6 +24,12 @@ export type UserSession = Session & {firebaseToken?: string;
   validateSignUpResult?: {email: boolean, username: boolean}
 }
 
+export enum POST_TYPES {
+  Regular = 'regular',
+  Question = 'question',
+  Answer = 'answer',
+}
+
 
 export interface Content {
   post: {
@@ -33,6 +39,8 @@ export interface Content {
     owner: string;
     timestamp: Timestamp;
     id: string;
+    tags?: string[];
+    postType?: POST_TYPES;
   },
   metadata: {
     upvotes: number;
@@ -81,6 +89,17 @@ export type UserProfile ={
   }
 }
 
+export type ProfileFilters = {
+  ment?: 'asc' | 'desc',
+  numFollowers?: 'asc' | 'desc',
+  tags?: string[],
+  level?: number,
+  usernames?: string[],
+  uids?: string[], 
+  isFollowing?: boolean,
+  isNotFollowing?: boolean,
+}
+
 export type ExptFilters = {
   //TODO: @Jovells refine this
   tags?: string[],
@@ -88,7 +107,11 @@ export type ExptFilters = {
   mentee?: string,
   tokenIds?: number[],
 }
-
+export type userUpdateValidationResult = {
+  email: boolean,
+  username: boolean,
+  [key: string]: boolean; 
+}
 export type PostFilters = {
   tags?: string[],
   owner?: string,
@@ -96,11 +119,12 @@ export type PostFilters = {
 }
 
 export type ClaimHistoryItem ={
+  id: string,
   type: 'ment' | 'expt',
-  timestamp: Timestamp | FieldValue,
+  timestamp: Timestamp,
   amount: number,
   level?: number,
-  uid?: string,
+  uid: string,
 }
 
 export type ExptListing = {
@@ -148,6 +172,8 @@ export type BookingFilters ={
   isCompleted?: boolean,
   tags?: string[],
 }
+
+
 
 export type NewExptListing = Omit<ExptListing, 'id' |'imageURL' | 'author' | 'remainingTokenIds'> & {coverImage?: File}
 

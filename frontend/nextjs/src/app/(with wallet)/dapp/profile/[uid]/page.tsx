@@ -3,21 +3,17 @@ import MyWallet from './_components/my-wallet';
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   HiCheckBadge,
   HiOutlineCog6Tooth,
   HiOutlineFire,
-  HiOutlineTicket,
   HiOutlineUserPlus,
   HiUser,
 } from "react-icons/hi2";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PostCard from "@/components/ui/post-card";
 import { useUser } from "@/lib/hooks/user";
-import PageLoading from "@/components/ui/page-loading";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Posts from "@/components/ui/posts";
 import useBackend from "@/lib/hooks/useBackend";
@@ -26,101 +22,8 @@ import { profilePlaceholderImage } from "@/lib/utils";
 import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
 import ExptBookingsHistory from "./_components/expt-bookings-history";
-import { ExpertTicket, UserProfile } from "@/lib/types";
 import SetAvailabilityStatus from './_components/set-availability-status';
 import NoData from '@/components/ui/no-data';
-const claimHistory = [{ type: 'ment', amount: 500, dateClaimed: "20 seconds ago" },
-{ type: 'expt', amount: 5, dateClaimed: "20 minutes ago" },
-{ type: 'expt', amount: 5, dateClaimed: "4 hours ago" },
-{ type: 'ment', amount: 5, dateClaimed: "20 days ago" }]
-
-const dummyUser: UserProfile = {
-  uid: "string",
-  displayName: "Lisa Brumm",
-  tags: ["react", "ruby", "AI"],
-  about: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-  isExpert: true,
-  skill: "Ruby",
-  level: 3,
-  username: "@lisabrum",
-  sessionStats: {
-      sessions: 900,
-      timeSpent: 4924,
-  }
-}
-
-const dummyOtherExperts: ExpertTicket[] = [
-  {
-      price: 9,
-      paymentCurrency: "USDT",
-      metadata: {
-          id: "eiwoi2424",
-          imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          title: "Juno",
-          description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-          sessionCount: 1,
-          sessionDuration: 30,
-
-      },
-      author: dummyUser,
-  },
-  {
-      price: 9,
-      paymentCurrency: "USDT",
-      metadata: {
-          id: "eiwoi2424",
-          imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          title: "Juno",
-          description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-          sessionCount: 1,
-          sessionDuration: 30,
-
-      },
-      author: dummyUser,
-  },
-  {
-      price: 9,
-      paymentCurrency: "USDT",
-      metadata: {
-          id: "eiwoi2424",
-          imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          title: "Juno",
-          description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-          sessionCount: 1,
-          sessionDuration: 30,
-
-      },
-      author: dummyUser,
-  },
-  {
-      price: 9,
-      paymentCurrency: "USDT",
-      metadata: {
-          id: "eiwoi2424",
-          imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          title: "Juno",
-          description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-          sessionCount: 1,
-          sessionDuration: 30,
-
-      },
-      author: dummyUser,
-  },
-  {
-      price: 9,
-      paymentCurrency: "USDT",
-      metadata: {
-          id: "eiwoi2424",
-          imageURL: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-          title: "Juno",
-          description: "Aenean massa gravida mollis consectetur. Tempus auctor mattis in posuere mauris tincidunt pulvinar. Lorem volutpat auctor ultrices orci habitant vel fusce vel. Facilisis aliquet in est consequat sed cursus id. Ut nunc nisl id gravida. Lobortis morbi massa vestibulum lectus mauris lacus platea et. Blandit curabitur dignissim justo erat sed. At nullam metus iaculis massa nulla id aliquet pharetra. Malesuada condimentum iaculis turpis tristique lectus euismod. Urna maecenas nisl diam sagittis tempus rhoncus at.",
-          sessionCount: 1,
-          sessionDuration: 30,
-
-      },
-      author: dummyUser,
-  }
-]
 
 const Profile = () => {
   const { uid } = useParams();
@@ -181,7 +84,7 @@ const Profile = () => {
   })
 
   
-  console.log('profile', profile)
+  console.log('profile', profile?.uid)
 
   if (!profile && isLoading) {
     return (<div className="h-screen">
@@ -194,8 +97,6 @@ const Profile = () => {
       <NoData message="Error Loading Profile"/>
     </div>
   }
-  console.log('profile', profile, user)
-
 
 
   return (

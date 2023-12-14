@@ -1,27 +1,32 @@
 
 "use client";
 import React from 'react'
-import { HiCheckBadge, HiOutlineHandThumbUp, HiOutlineHandThumbDown, HiOutlineShare, HiOutlineFire } from 'react-icons/hi2'
+import {
+  HiCheckBadge, HiOutlineUserPlus,
+  HiUser, HiOutlineShare
+} from 'react-icons/hi2'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RightSidebar } from '../../../_components/right-sidebar'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
-import PageLoading from '@/components/ui/page-loading';
 import DataLoading from '@/components/ui/data-loading';
-import { Content } from '@/lib/types';
+import { Content, POST_TYPES } from '@/lib/types';
 import Voter from '@/components/ui/Voter';
 import NoData from '@/components/ui/no-data';
+import { formatDistance } from 'date-fns';
+import { useUser } from "@/lib/hooks/user";
+import { toast } from "@/components/ui/use-toast";
+import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
+import { Badge } from '@/components/ui/badge';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
-  const { fetchSinglePost } = useBackend();
+  const { fetchSinglePost, unfollowUser, checkFollowing, followUser } = useBackend();
 
   const cachedPosts = queryClient.getQueryData(["posts"]) as { pages: [][] }
   console.log('cached', cachedPosts);
@@ -34,6 +39,7 @@ const Post = ({ params }: { params: { slug: string } }) => {
     })
   }
 
+  const { user } = useUser();
 
   const { data: newPost, isLoading, error } = useQuery({
     queryKey: ["post", params.slug],
@@ -45,46 +51,61 @@ const Post = ({ params }: { params: { slug: string } }) => {
     },
   });
 
+  //check if following
+  const { data: isFollowingUser, } = useQuery({
+    queryKey: ["isFollowing", user?.uid],
+    queryFn: (v) => checkFollowing(user?.uid as string),
+    // enabled: !isCurrentUserProfile && !!user?.uid,
+  })
+
+  //follow/unfollow user
+  const { mutateAsync } = useMutation({
+    mutationFn: () => isFollowingUser ? unfollowUser(user?.uid!) : followUser(user?.uid!),
+    onSuccess: () => {
+      queryClient.setQueryData(["isFollowing", user?.uid!], (OldfollowStatus: boolean) => {
+        return !OldfollowStatus;
+      })
+    },
+    onError: (e: any) => {
+      // Handle error state here
+      console.error("oops!", e.message)
+    },
+  });
+
+  async function toggleFollowing() {
+    await mutateAsync();
+    toast({
+      title: isFollowingUser ? 'Unfollowed' : 'Followed',
+      description: isFollowingUser ? 'You have unfollowed this user' : 'You have followed this user',
+      variant: 'success',
+    })
+
+  }
+
   console.log('newPost', newPost, 'error', error)
 
-post = post || newPost;
+  post = post || newPost;
 
 
-  const topCreatorList = [
-    {
-      displayName: "Naval",
-      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: "false",
-      skill: "UI Design",
-      href: "/profile/naval",
-      ment: 134
-    },
-    {
-      displayName: "Naval",
-      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-      skill: "Java",
-      href: "/profile/naval",
-      ment: 693
-    },
-    {
-      displayName: "Naval",
-      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-      skill: "Ruby",
-      href: "/profile/naval",
-      ment: 953
-    },
-    {
-      displayName: "Naval",
-      photoURL: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGF2YXRhcnxlbnwwfHwwfHx8MA%3D%3D",
-      isExpert: true,
-      skill: "AI",
-      href: "/profile/naval",
-      ment: 422
-    },
-  ]
 
+  if (!user) {
+    // bypass follow / not follow checks and functions if the user is not signed in
+    return <PostTemplate post={post} isLoading={isLoading} />
+  }
+
+  return <PostTemplate post={post} isLoading={isLoading} isFollowingUser={isFollowingUser} toggleFollowing={toggleFollowing} />
+
+
+}
+
+interface PostTemplateProps {
+  post: Content | undefined;
+  isLoading: boolean;
+  toggleFollowing?: () => void;
+  isFollowingUser?: boolean;
+}
+
+const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: PostTemplateProps) => {
   if (!post && isLoading) {
     return (<div className="h-screen">
       <DataLoading />
@@ -92,7 +113,7 @@ post = post || newPost;
   }
   if (!post) {
     return (<div className="h-screen">
-      <NoData message='Post does not exist'/>
+      <NoData message='Post does not exist' />
     </div>)
   }
 
@@ -118,14 +139,40 @@ post = post || newPost;
                   <div className="flex items-center">
                     <p className='text-md text-foreground'>{post.author?.displayName}</p>
                     {post.author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
-                    <div className='ml-2 text-[11px] text-muted'>20 secs. ago</div>
+                    <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                   </div>
-                  <Button variant="ghost" className='text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted'>Follow</Button>
+                  {toggleFollowing && <Button
+                    variant="ghost"
+                    onClick={toggleFollowing}
+                    className="text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted">
+                    {isFollowingUser ? <><HiUser className="mr-1" /> Following</> : <>
+                      <HiOutlineUserPlus className="mr-1" /> Follow
+                    </>}
+                  </Button>}
                 </div>
               </div>
 
             </CardHeader>
             <CardContent className='space-y-5 px-0'>
+              {post.post.postType == POST_TYPES.Question && <div><Badge className='bg-accent-4'>Question</Badge></div>}
+              {post.post.postType == POST_TYPES.Answer && <div>
+                <div className='p-3 rounded-md bg-glass border 2border-alt-stroke mt-3 flex items-center mb-2'>
+                  <div className="w-12 h-12 relative">
+                    <Image
+                      fill
+                      src={post.post.imageURL as string}
+                      className='rounded-md object-cover'
+                      loading="lazy"
+                      alt={`${post.post.title} cover photo`}
+                    />
+                  </div>
+                  <div className='ml-3'>
+                    <Badge className='bg-accent-4 mb-1'>Responding to...</Badge>
+                    <CardTitle className='font-semibold text-sm text-foreground tracking-wide'>{post.post.title}</CardTitle>
+                  </div>
+                </div>
+              </div>}
+
               <div className="w-full h-[400px] relative">
                 <Image
                   fill
@@ -135,8 +182,13 @@ post = post || newPost;
                   alt={`${post.post.title} cover photo`}
                 />
               </div>
+              
+              {post.post.tags && <div> <div className='flex gap-3 flex-wrap w-full mb-4'>
+                {post.post.tags.map((tag, key) => <Badge key={`tag-${tag}-${key}`}>{tag}</Badge>)}
+              </div></div>}
+              
               <CardTitle className='font-bold text-3xl text-foreground tracking-wide'>{post.post.title}</CardTitle>
-              <CardDescription className='text-muted text-sm'>{post.post.body}</CardDescription>
+              <RichTextDisplayContainer richText={post.post.body} />
             </CardContent>
             <Separator className="bg-border mb-3" />
             <CardFooter className='pb-0 px-0 flex justify-between'>
@@ -147,11 +199,12 @@ post = post || newPost;
                 <HiOutlineShare className="h-5 w-5 text-foreground" />
               </Button>
             </CardFooter>
-          </Card> 
+          </Card>
         </ScrollArea>
       </div>
       <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" >
-        <>
+        {/* TODO @jovells 1. display random user profiles */}
+        {/* <>
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
@@ -233,7 +286,7 @@ post = post || newPost;
 
             </div>
           </div>
-        </>
+        </> */}
       </RightSidebar>
     </div>
   )

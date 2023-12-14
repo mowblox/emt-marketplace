@@ -19,7 +19,6 @@ import { Input } from "@/components/ui/input"
 import { toast, useToast } from "@/components/ui/use-toast"
 import Image from 'next/image'
 import { useUser } from '@/lib/hooks/user'
-import useBackend from '@/lib/hooks/useBackend'
 import { ONBOARDING_PAGE } from '../../_components/page-links'
 
 const formSchema = z.object({

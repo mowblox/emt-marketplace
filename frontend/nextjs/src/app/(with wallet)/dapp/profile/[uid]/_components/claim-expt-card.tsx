@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { HiOutlineTicket } from 'react-icons/hi2'
 import {
     Dialog,
@@ -13,7 +13,6 @@ import ExpertHubCard from '@/components/ui/expert-hub-card'
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
@@ -23,14 +22,10 @@ import * as z from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "@/components/ui/use-toast"
-import { Globe2Icon } from 'lucide-react'
-import { CalendarIcon } from "@radix-ui/react-icons"
 
 import { Textarea } from '@/components/ui/textarea'
 import { cn, isValidFileType } from "@/lib/utils"
-import { ExpertTicket, ExptListing, NewExptListing, UserProfile } from '@/lib/types';
-import Image from 'next/image'
-import { placeholderImage } from '@/lib/utils'
+import { NewExptListing, UserProfile } from '@/lib/types';
 import { Input } from '@/components/ui/input'
 import {
     Select,
@@ -39,13 +34,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
-import { format } from 'date-fns'
-import { Calendar } from '@/components/ui/calendar'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
 import { useParams, useRouter } from 'next/navigation'

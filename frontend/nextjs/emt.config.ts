@@ -11,6 +11,11 @@ import { publicProvider } from 'wagmi/providers/public';
 import { Chain } from 'wagmi'
 import { collection } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { JsonRpcProvider, ethers } from "ethers6";
+import { EMTMarketplace as EMTMarketplaceType } from "../../blockchain/typechain-types/contracts/EMTMarketplace";
+import { ExpertToken as ExpertTokenType } from "../../blockchain/typechain-types/contracts/ExpertToken";
+import { MentorToken as MentorTokenType } from "../../blockchain/typechain-types/contracts/MentorToken";
+import { StableCoin as StableCoinType } from "../../blockchain/typechain-types/contracts/StableCoin";
 
 export const toposTestnet = {
   id: 2359,
@@ -73,4 +78,5 @@ export const toposTestnet = {
   export const EXPT_LISTINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'exptListings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'exptListings');
   export const BOOKINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'bookings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'bookings');
 
-  export const exptLevelKeys = [1, 2, 3]
+ 
+export const exptLevelKeys = [1, 2, 3]

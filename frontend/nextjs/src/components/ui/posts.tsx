@@ -23,7 +23,7 @@ export default function Posts ({filters}: Props) {
 } 
       getNextPageParam={(lastPage) => {
         return lastPage[lastPage.length - 1]?.post.timestamp;
-      }} queryKey={['posts']}  fetcher={fetchPosts}  className="flex flex-col gap-y-4"/>
+      }} queryKey={['posts']} filters={filters} fetcher={fetchPosts}  className="flex flex-col gap-y-4"/>
 
 
   )

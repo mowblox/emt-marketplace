@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect } from "react";
 import { ONBOARDING_PAGE } from "./page-links";
 import { is } from "date-fns/locale";
+import {chain} from "@/../emt.config"
 
 /**
  * Props for the SignInButton component.
@@ -43,7 +44,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
     <ConnectButton.Custom>
       {({
         account,
-        chain,
+        chain : currentChain,
         openAccountModal,
         openChainModal,
         openConnectModal,
@@ -52,6 +53,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
       }) => {
         // Note: If your app doesn't use authentication, you
         // can remove all 'authenticationStatus' checks
+        const wrongChain = chain.id !== currentChain?.id;
         const ready = mounted && authenticationStatus !== "loading";
         const isConnected =
           ready &&
@@ -61,6 +63,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
         const signedIn = isConnected && user;
         return (
           <div
+            className="w-full"
             {...(!ready && {
               "aria-hidden": true,
               style: {
@@ -73,7 +76,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
               if(!isConnected){
                 console.log('not connectd')
                 return(
-                  <Button variant={"default"} onClick={openConnectModal}>
+                  <Button variant={"default"} onClick={openConnectModal} className="w-full">
                   {label || "Connect Wallet"}
                 </Button>
                 )
@@ -81,8 +84,7 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
               if(isConnected && session?.isNotSignedUp){
                 console.log('not signed up')
                 return (
-                  <Button variant={"default"} asChild>
-                    {/* TODO INFO: @jovells onboarding should start on the second page. The reason is that current flow has too many steps */}
+                  <Button variant={"default"} asChild className="w-full">
                     <Link href={ONBOARDING_PAGE(2)}>Sign Up</Link>
                   </Button>
                 );
@@ -91,21 +93,21 @@ export const SignInButton = ({ label, href, before }: SignInButtonProps) => {
                 console.log('not signed in')
                 // if (isConnected ) signOut({redirect:false}) 
                 return (
-                  <Button variant={"default"} onClick={()=>(signIn())}>
+                  <Button variant={"default"} onClick={()=>(signIn())} className="w-full">
                     {isLoading? "...Signing In": label || "Sign In"}
                   </Button>
                 );
               }
-              if (chain.unsupported) {
+              if (wrongChain) {
                 return (
-                  <Button variant={"default"} onClick={()=> (openChainModal())}>
+                  <Button variant={"default"} onClick={()=> (openChainModal())} className="w-full">
                     Wrong network
                   </Button>
                 );
               }
               return (
                 <div style={{ display: "flex", gap: 12 }}>
-                  <Button variant={"default"} onClick={()=>(openAccountModal())}>
+                  <Button variant={"default"} onClick={()=>(openAccountModal())} className="w-full">
                     {account.displayName}
                   </Button>
                 </div>
