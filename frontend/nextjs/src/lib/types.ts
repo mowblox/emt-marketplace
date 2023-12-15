@@ -30,6 +30,12 @@ export enum POST_TYPES {
   Answer = 'answer',
 }
 
+export type PostVotes=  {
+  upvotes: number;
+  downvotes: number;
+  userUpvoted?: boolean;
+  userDownvoted?: boolean;
+}
 
 export interface Content {
   post: {
@@ -42,9 +48,7 @@ export interface Content {
     tags?: string[];
     postType?: POST_TYPES;
   },
-  metadata: {
-    upvotes: number;
-    downvotes: number;
+  metadata: PostVotes & {
     id: string;
   },
   author: UserProfile

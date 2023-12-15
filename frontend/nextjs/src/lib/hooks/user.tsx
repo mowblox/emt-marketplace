@@ -11,7 +11,7 @@ import { HOME_PAGE, PROTECTED_ROUTES } from "@/app/(with wallet)/_components/pag
 import { uploadImage } from "./useBackend";
 import { toast } from "@/components/ui/use-toast";
 import { ethers } from "ethers6";
-import { useContracts } from "./contracts";
+import { useContracts } from "./useContracts";
 
 interface UserContext {
   user: User | null;
@@ -25,11 +25,6 @@ interface UserContext {
 }
 
 
-declare global {
-  interface Window {
-    ethereum: any;
-  }
-}
 
 const UserContext = createContext<UserContext | null>(null);
 

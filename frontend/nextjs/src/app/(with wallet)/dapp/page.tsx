@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useContracts } from "@/lib/hooks/contracts";
+import { useContracts } from "@/lib/hooks/useContracts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PostCard from "@/components/ui/post-card";
 import { Separator } from "@/components/ui/separator";
@@ -80,16 +80,12 @@ export default function RootLayout() {
               {user && <TabsContent value="following">
                 <Posts filters={{ isFollowing: true }} />
               </TabsContent>}
-              {/* <TabsContent value="design">
-                <Posts filters={{tags:["design"]}} />
-              </TabsContent> */}
             </Tabs>
           </div>
         </ScrollArea>
       </div>
       <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2">
-        {/* TODO @jovells 2. display random user profiles */}
-        {/* <>
+        <>
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
@@ -107,7 +103,7 @@ export default function RootLayout() {
               <UserList filters={{isNotFollowing: true }}/>
             </div>
           </div>
-        </> */}
+        </>
       </RightSidebar>
     </div>
   );

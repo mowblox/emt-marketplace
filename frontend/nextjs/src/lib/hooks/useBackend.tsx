@@ -16,6 +16,7 @@ import {
   NewExptListing,
   NotificationData,
   PostFilters,
+  PostVotes,
   ProfileFilters,
   SignUpData,
   UserProfile,
@@ -60,15 +61,59 @@ import {
   EXPT_LISTINGS_COLLECTION,
   NOTIFICATIONS_COLLECTION,
   USERS_COLLECTION,
-  chain,
   exptLevelKeys,
+  chain
 } from "../../../emt.config";
 import { firestore, storage } from "../firebase";
-import { useContracts } from "./contracts";
+import { useContracts } from "./useContracts";
 import { useUser } from "./user";
-import { useNetwork } from "wagmi";
 import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/use-toast";
+import {
+  useAccountModal,
+  useChainModal,
+  useConnectModal,
+} from "@rainbow-me/rainbowkit";
+import { Progress } from "@/components/ui/progress";
 
+// toast({
+//   title: "Profile updated!",
+//   description: <div>
+//     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
+//   </div>,
+//   duration: Infinity
+// });
+//toast setup
+function loadingToast( message: string, stage?: number | undefined, error?: boolean )  {
+  const t = toast({
+    title: message,
+    variant: "default",
+    description: (
+      stage !== undefined ? <div>
+        <Progress
+          value={stage}
+          className="h-2 mt-2 w-full text-accent-4 bg-accent-shade"
+        />
+      </div> : undefined
+    ),
+    duration: (stage !== undefined  && stage !== 100) && !error ? Infinity :3100
+  });
+  return ( newMessage: string, stage?: number | undefined , error?: boolean ) =>
+    t.update({
+      id: t.id,
+      title: newMessage || message,
+      description: (
+        stage !== undefined ? <div>
+          <Progress
+            value={stage}
+            className="h-2 mt-2 w-full text-accent-4 bg-accent-shade"
+          />
+        </div> : undefined
+      ),
+      variant: error ? "destructive" : stage === 100 ? "success" : "default",
+      duration: (stage !== undefined  && stage !== 100) && !error ? Infinity : 3000
+    })
+}
 /**
  * Uploads an image to Firebase Storage.
  * @param image - The image to upload.
@@ -89,41 +134,41 @@ export async function uploadImage(image: Blob, name: string, subpath?: string) {
  * @returns An object containing functions for creating posts, updating profiles, fetching user posts, fetching posts, and voting on posts.
  */
 export default function useBackend() {
-  const { EMTMarketPlace, MentorToken, ExpertToken, StableCoin, provider } =
+  const { emtMarketplace, mentorToken, expertToken, network, stableCoin, provider } =
     useContracts();
   const { user } = useUser();
   const { update } = useSession();
-  const [EMTMarketPlaceWithSigner, setEmtMarketPlaceWithSigner] =
-    useState(EMTMarketPlace);
   const [signer, setSigner] = useState<ethers.Signer>();
-  const network = useNetwork();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+  const { openChainModal } = useChainModal();
 
-  const wrongChain = network.chain?.id !== chain.id;
+  const wrongChain =  Number(network?.chainId) !== chain.id;
 
   //queries
   const { data: exptLevels } = useQuery({
     queryKey: ["exptlevels"],
     queryFn: async () => {
       const levelsPromises = exptLevelKeys.map((key) =>
-        EMTMarketPlace.exptLevels(key)
+        emtMarketplace.exptLevels(key)
       );
       const levels = await Promise.all(levelsPromises);
       return levels;
     },
     throwOnError: (error) => {
       console.log("error fetching Levels ", error);
-      return true;
+      return false;
     },
     //TODO: store expt levels in firestore and remove this enabled check
     enabled: !wrongChain,
   });
   const tokens: Coin[] = [
-    { address: StableCoin.target as string, type: "erc20", name: "USDT" },
-    { name: "MENT", type: "erc20", address: MentorToken.target as string },
-    { name: "EXPT", type: "erc721", address: ExpertToken.target as string },
+    { address: stableCoin.target as string, type: "erc20", name: "USDT" },
+    { name: "MENT", type: "erc20", address: mentorToken.target as string },
+    { name: "EXPT", type: "erc721", address: expertToken.target as string },
     { name: chain.nativeCurrency.symbol, type: "native", address: "0x0" },
   ];
-  const { balances, refetchBalances, isLoadingBalances, balancesError } =
+  const { balances, isFetchingBalances, refetchBalances, balancesError } =
     useQueries({
       queries: tokens.map((token) => ({
         queryKey: ["balances", token.name, user?.uid],
@@ -131,13 +176,17 @@ export default function useBackend() {
           const currentUserId = user?.uid!;
           if (token.type === "native")
             return {
-              [token.name]: parseFloat(ethers.formatEther(await provider.getBalance(currentUserId))).toFixed(2),
+              [token.name]: parseFloat(
+                ethers.formatEther(await provider.getBalance(currentUserId))
+              ).toFixed(2),
             };
-          const contract = StableCoin.attach(
+          const contract = stableCoin.attach(
             token.address!
-          ) as typeof StableCoin;
+          ) as typeof stableCoin;
           const balance = await contract.balanceOf(currentUserId);
-          return { [token.name]: parseFloat(ethers.formatUnits(balance, 6)).toFixed(2) };
+          return {
+            [token.name]: parseFloat(ethers.formatUnits(balance, 6)).toFixed(2),
+          };
         },
         enabled: !wrongChain && !!user?.uid,
       })),
@@ -145,11 +194,14 @@ export default function useBackend() {
         return {
           balances: allResults.reduce(
             (acc, result) => ({ ...acc, ...result.data }),
-            {} as Record< "USDT" | "MENT" | "EXPT" | typeof chain.nativeCurrency.symbol , number >
+            {} as Record<
+              "USDT" | "MENT" | "EXPT" | typeof chain.nativeCurrency.symbol,
+              number
+            >
           ),
           pending: allResults.some((result) => result.isPending),
           balancesError: allResults.find((result) => result.error),
-          isLoadingBalances: allResults.some((result) => result.isLoading),
+          isFetchingBalances: allResults.some((result) => result.isFetching),
           refetchBalances: (coin?: "USDT" | "MENT" | "EXPT" | "native") =>
             coin
               ? allResults
@@ -213,11 +265,11 @@ export default function useBackend() {
   }
   async function claimMent() {
     function getMentClaimed(receipt: ContractTransactionReceipt) {
-      const filter = EMTMarketPlace.filters.MentClaimed().fragment;
+      const filter = emtMarketplace.filters.MentClaimed().fragment;
       let mentClaimed = 0;
       // console.log(receipt?.logs)
       receipt?.logs.some((log) => {
-        const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
+        const d = emtMarketplace.interface.decodeEventLog(filter, log.data);
         console.log("l", d);
         mentClaimed = Number(d[1]);
         return false;
@@ -229,7 +281,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      const tx = await EMTMarketPlaceWithSigner.claimMent();
+      const tx = await emtMarketplace.claimMent();
       const receipt = await tx!.wait();
       console.log("claimed ment");
       // @ts-ignore
@@ -267,11 +319,11 @@ export default function useBackend() {
 
   async function claimExpt() {
     function getExptClaimed(receipt: ContractTransactionReceipt) {
-      const filter = EMTMarketPlace.filters.ExptClaimed().fragment;
+      const filter = emtMarketplace.filters.ExptClaimed().fragment;
       let exptClaimed = 0;
       // console.log(receipt?.logs)
       receipt?.logs.some((log) => {
-        const d = EMTMarketPlace.interface.decodeEventLog(filter, log.data);
+        const d = emtMarketplace.interface.decodeEventLog(filter, log.data);
         console.log("l", d);
         exptClaimed = Number(d[1]);
         return false;
@@ -288,9 +340,9 @@ export default function useBackend() {
       if (!level) {
         throw new Error("Not qualified for expt");
       }
-      const tx = await EMTMarketPlaceWithSigner.claimExpt(level);
+      const tx = await emtMarketplace.claimExpt(level);
       const receipt = await tx!.wait();
-      const val = await ExpertToken.balanceOf(user.uid);
+      const val = await expertToken.balanceOf(user.uid);
       const newExptBalance = Number(val);
       const exptClaimed = getExptClaimed(receipt!);
 
@@ -328,7 +380,7 @@ export default function useBackend() {
         notification.message = content.title;
 
         const [upvotes, downvotes, netVotes] =
-          await EMTMarketPlace.contentVotes(
+          await emtMarketplace.contentVotes(
             ethers.encodeBytes32String(notification.contentId!)
           );
         notification.votes = Number(
@@ -429,13 +481,12 @@ export default function useBackend() {
     const userDocRef = doc(USERS_COLLECTION, owner);
     const userDoc = await getDoc(userDocRef);
     const author = userDoc.data() as Content["author"];
-    const [_upvotes, _downvotes] = await fetchPostVotes(id);
+    const votes = await fetchPostVotes(id);
 
     return {
       author,
       metadata: {
-        upvotes: Number(_upvotes),
-        downvotes: Number(_downvotes),
+        ...votes,
         id,
       },
     };
@@ -500,7 +551,7 @@ export default function useBackend() {
   async function fetchMent(address = user?.uid) {
     console.log("fetching ment", address);
     try {
-      const val = await MentorToken.balanceOf(address!);
+      const val = await mentorToken.balanceOf(address!);
       const ment = Number(val);
       console.log("ment:", ment);
       return ment;
@@ -515,7 +566,7 @@ export default function useBackend() {
     }
     try {
       console.log("unclaimed ment fetching");
-      const val = await EMTMarketPlace.unclaimedMent(user.uid);
+      const val = await emtMarketplace.unclaimedMent(user.uid);
       console.log("unclaimed ment:", val);
       const unclaimedMent = Number(val);
       return unclaimedMent;
@@ -532,7 +583,7 @@ export default function useBackend() {
     try {
       console.log("fetching unclaimed expt");
       const [_, level] = await fetchMentAndLevel();
-      const val = await EMTMarketPlace.unclaimedExpt(user.uid, level || 1);
+      const val = await emtMarketplace.unclaimedExpt(user.uid, level || 1);
       const unclaimedExpt = Number(val);
       console.log("unclaimed expt:", unclaimedExpt);
       return unclaimedExpt;
@@ -630,38 +681,6 @@ export default function useBackend() {
     return posts;
   }
 
-  useEffect(() => {
-    async function connectToSigner() {
-      const _signer = await provider.getSigner();
-
-      setSigner(_signer);
-      // @ts-ignore
-      setEmtMarketPlaceWithSigner(EMTMarketPlace.connect(_signer));
-      //TODO: INFO @Jovells @od41 @mickeymond INFO: This is for testing purposes only
-      //can be used to mint stablecoins from browser console
-      //MUST be removed when we go live
-      //@ts-ignore
-      window.signer = _signer;
-      //@ts-ignore
-      window.adminSigner = new ethers.Wallet(
-        // @ts-ignore
-        process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY,
-        provider
-      );
-      //@ts-ignore
-      window.stableCoin = StableCoin;
-      //@ts-ignore
-      window.EMTMarketPlace = EMTMarketPlace;
-      //@ts-ignore
-      window.ExpertToken = ExpertToken;
-      //@ts-ignore
-      window.MentorToken = MentorToken;
-    }
-    if (user && provider) {
-      connectToSigner();
-    }
-  }, [user, provider, EMTMarketPlace]);
-
   /**
    * Creates a new post.
    * @param post - The post data.
@@ -676,12 +695,22 @@ export default function useBackend() {
     questionPostURL?: string;
     tags?: string[];
   }) {
+    if(!user?.uid){
+      toast({
+        title: "Login",
+        description: "Please login to create a post",
+      })
+      throw new Error("User not logged in");
+    }
+
+    const t = loadingToast("Creating Post", 1);
     const docRef = doc(CONTENTS_COLLECTION);
     const id = ethers.encodeBytes32String(docRef.id);
     console.log("writing to blockchain", post, "pstId", id);
     try {
-      console.log("emtMarketPlaceWithSigner", EMTMarketPlaceWithSigner);
-      const tx = await EMTMarketPlaceWithSigner.addContent(id);
+      console.log("emtMarketplace", emtMarketplace);
+      const tx = await emtMarketplace.addContent(id);
+      t("Mining transaction", 30);
       const receipt = await tx.wait();
 
       console.log("Content added to blockchain. Receipt:", receipt);
@@ -690,7 +719,7 @@ export default function useBackend() {
       throw new Error("Error writing to blockchain. Details: " + err.message);
     }
     let imageURL = "";
-
+    t("Almost there...", 50);
     if (post.image) {
       try {
         console.log("uploading image");
@@ -699,7 +728,7 @@ export default function useBackend() {
         throw new Error("Error uploading image. Details: " + err.message);
       }
     }
-
+    t("", 80)
     try {
       console.log("writing to database");
       await setDoc(docRef, {
@@ -707,12 +736,14 @@ export default function useBackend() {
         body: post.body,
         owner: user?.uid,
         imageURL: imageURL,
-        postType: post.postType, 
+        postType: post.postType,
         questionPostURL: post.questionPostURL,
         tags: post.tags,
         timestamp: serverTimestamp(),
       });
+      t("Post Created successfully", 100)
     } catch (err: any) {
+      t("Error creating post", 0, true)
       throw new Error("Error writing to database. Details: " + err.message);
     }
     console.log("Document written with ID: ", docRef.id);
@@ -750,21 +781,30 @@ export default function useBackend() {
     id: string,
     voteType: "upvote" | "downvote",
     owner: string
-  ) {
+  ): Promise<PostVotes> {
     if (!user?.uid) {
+      toast({
+        title: "Login",
+        description: "Please login to vote",
+      });
+      openConnectModal?.();
       throw new Error("User not logged in");
     }
+    const t = loadingToast("Processing vote", 1);
     const contentId = ethers.encodeBytes32String(id);
     let tx: ContractTransactionResponse;
+    const isUpvote = voteType === "upvote";
     try {
-      if (voteType === "upvote") {
-        tx = await EMTMarketPlaceWithSigner.upVoteContent(contentId);
+      if (isUpvote) {
+        tx = await emtMarketplace.upVoteContent(contentId);
       } else if (voteType === "downvote") {
-        tx = await EMTMarketPlaceWithSigner.downVoteContent(contentId);
+        tx = await emtMarketplace.downVoteContent(contentId);
       }
+      t('Mining transaction', 30);
       await tx!.wait();
+      t('Almost done', 70)
       const [_upvotes, _downvotes] =
-        await EMTMarketPlace.contentVotes(contentId);
+        await emtMarketplace.contentVotes(contentId);
       console.log("voted. New votes: ", {
         upvotes: _upvotes,
         downvotes: _downvotes,
@@ -775,10 +815,20 @@ export default function useBackend() {
         contentId: id,
         recipients: [user.uid],
       });
-
-      return { upvotes: Number(_upvotes), downvotes: Number(_downvotes) };
+      t("Vote SuccessFul", 100)
+      return { upvotes: Number(_upvotes), downvotes: Number(_downvotes), userDownvoted: !isUpvote, userUpvoted: isUpvote };
     } catch (err: any) {
       console.log(err);
+      if(err.message.includes("Member has already up voted")){
+        t("You have already upvoted this post", undefined, true)
+      }else
+      if(err.message.includes("Member has already down voted")){
+        t("You have already downvoted this post", undefined, true)
+      }else
+      if(err.message.includes("Cannot Vote Again Due to Claim Rules")){
+        t("You cannot change your vote", undefined, true)
+      }else 
+      t("Error Voting on Post", undefined , true);
       throw new Error("Error voting on content. Message: " + err.message);
     }
   }
@@ -870,15 +920,14 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      // @ts-ignore
-      await ExpertToken.connect(signer).setApprovalForAll(
-        EMTMarketPlace.target,
+      await expertToken.setApprovalForAll(
+        emtMarketplace.target,
         true
       );
       console.log("listing expts in contract");
-      const tx = await EMTMarketPlaceWithSigner.offerExpts(
+      const tx = await emtMarketplace.offerExpts(
         listing.tokenIds,
-        StableCoin.target,
+        stableCoin.target,
         listing.price
       );
       await tx!.wait();
@@ -1095,8 +1144,8 @@ export default function useBackend() {
     }
     try {
       console.log("approving stableCoin transfer in contract");
-      const tx = await StableCoin.connect(signer).approve(
-        EMTMarketPlace.target,
+      const tx = await stableCoin.approve(
+        emtMarketplace.target,
         listing.price * 10 ** 6
       );
       const receipt = await tx.wait();
@@ -1110,7 +1159,7 @@ export default function useBackend() {
         const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
         try {
           console.log("tokenToBuyId", tokenToBuyId, listing);
-          const tx = await EMTMarketPlaceWithSigner.buyExpt(tokenToBuyId);
+          const tx = await emtMarketplace.buyExpt(tokenToBuyId);
           await tx!.wait();
           console.log("bought expts in contract");
           await updateListingInFireStore(tokenToBuyId);
@@ -1132,7 +1181,7 @@ export default function useBackend() {
     if (!uid) return [];
     try {
       console.log("fetching tokens of user");
-      const val = await ExpertToken.tokensOfOwner(uid);
+      const val = await expertToken.tokensOfOwner(uid);
       const tokenIds = val.map((id) => Number(id));
       console.log("tokens of owner", tokenIds);
       return tokenIds;
@@ -1199,23 +1248,37 @@ export default function useBackend() {
   }
 
   const profileReady = exptLevels !== undefined;
+  async function fetchMemberVotes(id: string){
+    if(!user?.uid) throw new Error("User not logged in");
+    console.log("fetchingMemberVotes", id)
+    try {
+      const contentId = ethers.encodeBytes32String(id);
+      const [upvoted, downvoted] = await emtMarketplace.memberVotes(contentId, user.uid);
+      return [upvoted,  downvoted];
+    } catch (err: any) {
+      console.log("error fetching member votes", err);
+      throw new Error(err);
+    }
+  }
 
-  async function fetchPostVotes(id: string): Promise<[number, number, number]> {
+  async function fetchPostVotes(id: string): Promise<PostVotes> {
     console.log("fetchPostVotes", id);
     try {
       const contentId = ethers.encodeBytes32String(id);
       const [_upvotes, _downvotes, diffrence] =
-        await EMTMarketPlace.contentVotes(contentId);
-      return [Number(_upvotes), Number(_downvotes), Number(diffrence)];
-    } catch (e) {
+        await emtMarketplace.contentVotes(contentId);
+      const [userUpvoted, userDownvoted] = user?.uid? await fetchMemberVotes(id) : [undefined, undefined];
+      return {upvotes: Number(_upvotes), downvotes: Number(_downvotes), userUpvoted, userDownvoted};
+    } catch (e: any) {
       console.log("error fetching post votes", e);
-      return [0, 0, 0];
+      return {upvotes: 0, downvotes: 0, userUpvoted: undefined, userDownvoted: undefined};
     }
   }
 
   return {
     balances,
     refetchBalances,
+    isFetchingBalances,
     fetchPostVotes,
     createPost,
     fetchClaimHistory,

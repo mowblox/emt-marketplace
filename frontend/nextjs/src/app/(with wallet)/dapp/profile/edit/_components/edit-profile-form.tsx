@@ -55,9 +55,10 @@ const formSchema = z.object({
 const EditProfileForm = () => {
   const { user } = useUser();
   const router = useRouter();
-  const { uid }: { uid: string } = useParams();
   const { updateProfile, fetchProfile } = useBackend();
   const queryClient = useQueryClient();
+  
+  const uid = user?.uid!
   
   const { data: profile } = useQuery({
     queryKey: ["profile", uid],
@@ -85,7 +86,7 @@ const EditProfileForm = () => {
   // TODO INFO: @jovells if you want to create a toast with a progress bar, use the snippet below
   // toast({
   //   title: "Profile updated!",
-  //   description: <div>success success success success success
+  //   description: <div>
   //     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
   //   </div>,
   //   duration: Infinity
@@ -118,7 +119,7 @@ const EditProfileForm = () => {
 
       return changes;
     }
-    console.log("formvalues", values);
+    console.log("formvalues, profile", values, profile);
     console.log("imagerRef.current", imageRef.current?.files?.[0]);
     const updates = getChanges(profile!, values);
     !areArraysEqual(profile?.tags, selectedTags) && (updates.tags = selectedTags);

@@ -11,6 +11,7 @@ import {chain} from "@/../emt.config"
 import { useQuery } from "@tanstack/react-query";
 import useBackend from "@/lib/hooks/useBackend";
 import { Separator } from "@/components/ui/separator";
+import { CgSpinnerTwo } from "react-icons/cg";
 
 /**
  * Props for the SignInButton component.
@@ -40,7 +41,7 @@ interface SignInButtonProps extends ButtonProps  {
 
 export const SignInButton = ({ label, href, mobile, before }: SignInButtonProps) => {
   const { user, isLoading, session, signIn } = useUser();
-  const {balances, refetchBalances} = useBackend()
+  const {balances, refetchBalances, isFetchingBalances} = useBackend()
   
   return (
     <ConnectButton.Custom>
@@ -109,7 +110,8 @@ export const SignInButton = ({ label, href, mobile, before }: SignInButtonProps)
               }
               return (
                 <div className={`flex ${mobile? "flex-col" : "flex-row"} gap-3`}>
-                   <Button variant={'light'} onClick={()=>console.log(refetchBalances('USDT'))} className={"flex flex-row items-center justify-center"}>
+                   <Button title="Click to reload" variant={'light'} onClick={()=>refetchBalances()} className={"flex flex-row items-center justify-center"}>
+                  {isFetchingBalances && <CgSpinnerTwo className="w-5 h-5 text-accent-6 animate-spin mr-2" />}
                     <span>{balances['USDT']} USDT</span>
                     <Separator orientation="vertical" className="mx-3"/>
                     <span>{balances[chain.nativeCurrency.symbol]} {chain.nativeCurrency.symbol}</span>
