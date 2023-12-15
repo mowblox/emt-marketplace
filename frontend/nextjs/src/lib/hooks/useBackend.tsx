@@ -62,7 +62,7 @@ import {
   NOTIFICATIONS_COLLECTION,
   USERS_COLLECTION,
   exptLevelKeys,
-  chain
+  chain,
 } from "../../../emt.config";
 import { firestore, storage } from "../firebase";
 import { useContracts } from "./useContracts";
@@ -84,35 +84,42 @@ import { Progress } from "@/components/ui/progress";
 //   duration: Infinity
 // });
 //toast setup
-function loadingToast( message: string, stage?: number | undefined, error?: boolean )  {
+function loadingToast(
+  message: string,
+  stage?: number | undefined,
+  error?: boolean
+) {
   const t = toast({
     title: message,
     variant: "default",
-    description: (
-      stage !== undefined ? <div>
-        <Progress
-          value={stage}
-          className="h-2 mt-2 w-full text-accent-4 bg-accent-shade"
-        />
-      </div> : undefined
-    ),
-    duration: (stage !== undefined  && stage !== 100) && !error ? Infinity :3100
-  });
-  return ( newMessage: string, stage?: number | undefined , error?: boolean ) =>
-    t.update({
-      id: t.id,
-      title: newMessage || message,
-      description: (
-        stage !== undefined ? <div>
+    description:
+      stage !== undefined ? (
+        <div>
           <Progress
             value={stage}
             className="h-2 mt-2 w-full text-accent-4 bg-accent-shade"
           />
-        </div> : undefined
-      ),
+        </div>
+      ) : undefined,
+    duration: stage !== undefined && stage !== 100 && !error ? Infinity : 3100,
+  });
+  return (newMessage: string, stage?: number | undefined, error?: boolean) =>
+    t.update({
+      id: t.id,
+      title: newMessage || message,
+      description:
+        stage !== undefined ? (
+          <div>
+            <Progress
+              value={stage}
+              className="h-2 mt-2 w-full text-accent-4 bg-accent-shade"
+            />
+          </div>
+        ) : undefined,
       variant: error ? "destructive" : stage === 100 ? "success" : "default",
-      duration: (stage !== undefined  && stage !== 100) && !error ? Infinity : 3000
-    })
+      duration:
+        stage !== undefined && stage !== 100 && !error ? Infinity : 3000,
+    });
 }
 /**
  * Uploads an image to Firebase Storage.
@@ -134,8 +141,14 @@ export async function uploadImage(image: Blob, name: string, subpath?: string) {
  * @returns An object containing functions for creating posts, updating profiles, fetching user posts, fetching posts, and voting on posts.
  */
 export default function useBackend() {
-  const { emtMarketplace, mentorToken, expertToken, network, stableCoin, provider } =
-    useContracts();
+  const {
+    emtMarketplace,
+    mentorToken,
+    expertToken,
+    network,
+    stableCoin,
+    provider,
+  } = useContracts();
   const { user } = useUser();
   const { update } = useSession();
   const [signer, setSigner] = useState<ethers.Signer>();
@@ -143,7 +156,7 @@ export default function useBackend() {
   const { openAccountModal } = useAccountModal();
   const { openChainModal } = useChainModal();
 
-  const wrongChain =  Number(network?.chainId) !== chain.id;
+  const wrongChain = network?.chain?.id !== chain.id;
 
   //queries
   const { data: exptLevels } = useQuery({
@@ -695,11 +708,11 @@ export default function useBackend() {
     questionPostURL?: string;
     tags?: string[];
   }) {
-    if(!user?.uid){
+    if (!user?.uid) {
       toast({
         title: "Login",
         description: "Please login to create a post",
-      })
+      });
       throw new Error("User not logged in");
     }
 
@@ -728,7 +741,7 @@ export default function useBackend() {
         throw new Error("Error uploading image. Details: " + err.message);
       }
     }
-    t("", 80)
+    t("", 80);
     try {
       console.log("writing to database");
       await setDoc(docRef, {
@@ -741,9 +754,9 @@ export default function useBackend() {
         tags: post.tags,
         timestamp: serverTimestamp(),
       });
-      t("Post Created successfully", 100)
+      t("Post Created successfully", 100);
     } catch (err: any) {
-      t("Error creating post", 0, true)
+      t("Error creating post", 0, true);
       throw new Error("Error writing to database. Details: " + err.message);
     }
     console.log("Document written with ID: ", docRef.id);
@@ -800,9 +813,9 @@ export default function useBackend() {
       } else if (voteType === "downvote") {
         tx = await emtMarketplace.downVoteContent(contentId);
       }
-      t('Mining transaction', 30);
+      t("Mining transaction", 30);
       await tx!.wait();
-      t('Almost done', 70)
+      t("Almost done", 70);
       const [_upvotes, _downvotes] =
         await emtMarketplace.contentVotes(contentId);
       console.log("voted. New votes: ", {
@@ -815,20 +828,22 @@ export default function useBackend() {
         contentId: id,
         recipients: [user.uid],
       });
-      t("Vote SuccessFul", 100)
-      return { upvotes: Number(_upvotes), downvotes: Number(_downvotes), userDownvoted: !isUpvote, userUpvoted: isUpvote };
+      t("Vote SuccessFul", 100);
+      return {
+        upvotes: Number(_upvotes),
+        downvotes: Number(_downvotes),
+        userDownvoted: !isUpvote,
+        userUpvoted: isUpvote,
+      };
     } catch (err: any) {
       console.log(err);
-      if(err.message.includes("Member has already up voted")){
-        t("You have already upvoted this post", undefined, true)
-      }else
-      if(err.message.includes("Member has already down voted")){
-        t("You have already downvoted this post", undefined, true)
-      }else
-      if(err.message.includes("Cannot Vote Again Due to Claim Rules")){
-        t("You cannot change your vote", undefined, true)
-      }else 
-      t("Error Voting on Post", undefined , true);
+      if (err.message.includes("Member has already up voted")) {
+        t("You have already upvoted this post", undefined, true);
+      } else if (err.message.includes("Member has already down voted")) {
+        t("You have already downvoted this post", undefined, true);
+      } else if (err.message.includes("Cannot Vote Again Due to Claim Rules")) {
+        t("You cannot change your vote", undefined, true);
+      } else t("Error Voting on Post", undefined, true);
       throw new Error("Error voting on content. Message: " + err.message);
     }
   }
@@ -920,10 +935,7 @@ export default function useBackend() {
       throw new Error("User not logged in");
     }
     try {
-      await expertToken.setApprovalForAll(
-        emtMarketplace.target,
-        true
-      );
+      await expertToken.setApprovalForAll(emtMarketplace.target, true);
       console.log("listing expts in contract");
       const tx = await emtMarketplace.offerExpts(
         listing.tokenIds,
@@ -1248,13 +1260,16 @@ export default function useBackend() {
   }
 
   const profileReady = exptLevels !== undefined;
-  async function fetchMemberVotes(id: string){
-    if(!user?.uid) throw new Error("User not logged in");
-    console.log("fetchingMemberVotes", id)
+  async function fetchMemberVotes(id: string) {
+    if (!user?.uid) throw new Error("User not logged in");
+    console.log("fetchingMemberVotes", id);
     try {
       const contentId = ethers.encodeBytes32String(id);
-      const [upvoted, downvoted] = await emtMarketplace.memberVotes(contentId, user.uid);
-      return [upvoted,  downvoted];
+      const [upvoted, downvoted] = await emtMarketplace.memberVotes(
+        contentId,
+        user.uid
+      );
+      return [upvoted, downvoted];
     } catch (err: any) {
       console.log("error fetching member votes", err);
       throw new Error(err);
@@ -1267,11 +1282,23 @@ export default function useBackend() {
       const contentId = ethers.encodeBytes32String(id);
       const [_upvotes, _downvotes, diffrence] =
         await emtMarketplace.contentVotes(contentId);
-      const [userUpvoted, userDownvoted] = user?.uid? await fetchMemberVotes(id) : [undefined, undefined];
-      return {upvotes: Number(_upvotes), downvotes: Number(_downvotes), userUpvoted, userDownvoted};
+      const [userUpvoted, userDownvoted] = user?.uid
+        ? await fetchMemberVotes(id)
+        : [undefined, undefined];
+      return {
+        upvotes: Number(_upvotes),
+        downvotes: Number(_downvotes),
+        userUpvoted,
+        userDownvoted,
+      };
     } catch (e: any) {
       console.log("error fetching post votes", e);
-      return {upvotes: 0, downvotes: 0, userUpvoted: undefined, userDownvoted: undefined};
+      return {
+        upvotes: 0,
+        downvotes: 0,
+        userUpvoted: undefined,
+        userDownvoted: undefined,
+      };
     }
   }
 

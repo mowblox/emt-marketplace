@@ -11,7 +11,7 @@ import {
   useAccountModal,
   useChainModal,
 } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { WagmiConfigProps, useAccount, useNetwork } from "wagmi";
 import PageLoading from "@/components/ui/page-loading";
 import { chain } from "../../../contracts";
 import {
@@ -37,7 +37,7 @@ type ContractContext = {
   mentorToken: typeof _mentorToken;
   stableCoin: typeof _stableCoin;
   provider: JsonRpcProvider | BrowserProvider;
-  network: ethers.Network | null | undefined;
+  network: ReturnType<typeof useNetwork> | null | undefined;
   signer: ethers.Signer | null | undefined;
 };
 /**
@@ -76,6 +76,7 @@ export function useContracts() {
 export function ContractProvider({ children }: { children: React.ReactNode }) {
   let ethereum: any = undefined;
   const { openChainModal } = useChainModal();
+  const network = useNetwork()
   const account = useAccount();
 
   const [contracts, setContracts] = useState<ContractContext>({
@@ -85,7 +86,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     stableCoin: _stableCoin,
     provider: _provider,
     signer: null,
-    network: null,
+    network,
   });
   const {
     emtMarketplace,
@@ -93,7 +94,6 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     mentorToken,
     provider,
     stableCoin,
-    network,
   } = contracts;
   console.log("contracts", contracts);
 
@@ -108,7 +108,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
 
     async function fetchContracts() {
       let _signer: ethers.Signer | undefined;
-      const _network = await provider.getNetwork();
+
       if (ethereum) {
         let _provider = new ethers.BrowserProvider(ethereum);
         _signer = await _provider.getSigner();
@@ -117,12 +117,6 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
         //MUST be removed when we go live
         //@ts-ignore
         window.signer = _signer;
-        //@ts-ignore
-        window.adminSigner = new ethers.Wallet(
-          // @ts-ignore
-          process.env.NEXT_PUBLIC_ADMIN_PRIVATE_KEY,
-          provider
-        );
         //@ts-ignore
         window.stableCoin = stableCoin;
         //@ts-ignore
@@ -138,7 +132,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
           mentorToken: mentorToken.connect(_signer),
           stableCoin: stableCoin.connect(_signer),
           provider: _provider,
-          network: _network,
+          network: network,
           signer: _signer,
         });
       } else {
@@ -147,7 +141,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetchContracts();
-  }, [ethereum, chain.id, account.address, network?.chainId]);
+  }, [ethereum, chain.id, account.address, network?.chain?.id]);
 
   if (!contracts) {
     return (
