@@ -21,7 +21,6 @@ const Notifications = () => {
         queryFn:  async (): Promise<BuiltNotification[]> =>{
             const lastDocTimeStamp: Timestamp | undefined = notifications?.[notifications.length - 1]?.timestamp;
             const size = 20;
-            console.log("querying notifications", lastDocTimeStamp, size)
             const n = await fetchNotifications(lastDocTimeStamp, size);
             return n
         },

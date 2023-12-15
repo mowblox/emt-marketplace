@@ -59,12 +59,16 @@ const EditProfileForm = () => {
   const queryClient = useQueryClient();
   
   const uid = user?.uid!
-  
+  console.log('uid', uid)
+
+
   const { data: profile } = useQuery({
-    queryKey: ["profile", uid],
-    queryFn: () => fetchProfile(uid),
+    queryKey: ["profile", uid, "edit"],
+    queryFn: () => (console.log('running queryfn'), fetchProfile(uid)),
     select: (data) => { setSelectedTags(data?.tags || []); return data }
   });
+  console.log('profile on edit', profile)
+
 
   const imageRef = useRef<HTMLInputElement>(null);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -119,7 +123,7 @@ const EditProfileForm = () => {
 
       return changes;
     }
-    console.log("formvalues, profile", values, profile);
+    console.log("formvalues, profile", values, profile, user);
     console.log("imagerRef.current", imageRef.current?.files?.[0]);
     const updates = getChanges(profile!, values);
     !areArraysEqual(profile?.tags, selectedTags) && (updates.tags = selectedTags);

@@ -1250,7 +1250,6 @@ export default function useBackend() {
     }
 
     const querySnapshot = await getDocs(q);
-    console.log("profilesSnapshot", querySnapshot.docs);
     const profiles = querySnapshot.docs.map((doc) => {
       const data = doc.data();
       data.uid = doc.id;

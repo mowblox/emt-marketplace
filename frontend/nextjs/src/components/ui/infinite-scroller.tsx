@@ -56,7 +56,6 @@ export default function InfiniteScroll({
   } = useInfiniteQuery({
     queryKey: [...queryKey, size, filters],
     queryFn: async ({ pageParam, meta }) => {
-      console.log("querying", meta);
       filters = filters;
       const datas = await fetcher(pageParam, size, filters);
       return datas;
@@ -100,13 +99,10 @@ export default function InfiniteScroll({
     return <NoData message={"No " + queryKey} />;
   }
 
-  console.log(queryKey, dataPages);
-
   return (
     <>
       <div {...props}>
         {dataPages?.pages?.map((data: any) => {
-          console.log("key", )
           return (
             <Fragment key ={itemKey?.(data) || data.id} >
               <ItemComponent
