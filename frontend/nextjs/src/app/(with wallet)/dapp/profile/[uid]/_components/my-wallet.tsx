@@ -56,9 +56,10 @@ const { mutateAsync: handleClaimMent}=useMutation({
       <Progress value={100} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" /></div>,
     })
     queryClient.setQueryData(['claimHistory', user?.uid], (oldData: ClaimHistoryItem[])=>{
-      return [...oldData, {
+      return [
+        {
         ...data.claimHistoryItem
-      }]
+      }, ...oldData]
     })
   },
   onMutate:()=>{

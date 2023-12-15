@@ -8,7 +8,7 @@ import {
 import { GetSiweMessageOptions, RainbowKitSiweNextAuthProvider } from '@rainbow-me/rainbowkit-siwe-next-auth';
 import { chain, emtChains, emtWagmiConfig } from "@/../emt.config"
 import { WagmiConfig } from 'wagmi';
-import { ContractProvider } from '@/lib/hooks/contracts';
+import { ContractProvider } from '@/lib/hooks/useContracts';
 import { UserProvider } from '@/lib/hooks/user';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 

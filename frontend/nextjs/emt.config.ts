@@ -17,34 +17,7 @@ import { ExpertToken as ExpertTokenType } from "../../blockchain/typechain-types
 import { MentorToken as MentorTokenType } from "../../blockchain/typechain-types/contracts/MentorToken";
 import { StableCoin as StableCoinType } from "../../blockchain/typechain-types/contracts/StableCoin";
 
-export const toposTestnet = {
-  id: 2359,
-  name: 'Topos Subnet',
-  network: 'topos',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'TOPOS',
-    symbol: 'TOPOS',
-  },
-  rpcUrls: {
-    public: { http: ['https://rpc.topos-subnet.testnet-1.topos.technology'] },
-    default: { http: ['https://rpc.topos-subnet.testnet-1.topos.technology'] },
-  },
-  blockExplorers: {
-    etherscan: { name: 'Blockscout', url: 'https://topos.blockscout.testnet-1.topos.technology' },
-    default: { name: 'Blockscout', url: 'https://topos.blockscout.testnet-1.topos.technology' },
-  },
-  // contracts: {
-  //   multicall3: {
-  //     address: '0xca11bde05977b3631167028862be2a173976ca11',
-  //     blockCreated: 11_907_934,
-  //   },
-  // },
-} as const satisfies Chain 
-
- const productionChain = toposTestnet
-
- const envChains = process.env.NODE_ENV === "production" ? [productionChain] : [hardhat, productionChain]
+import {chain, envChains} from './contracts'
 
  const { chains, publicClient } = configureChains(
   envChains,
@@ -68,8 +41,8 @@ export const toposTestnet = {
 
   export const emtChains = chains
   export const emtWagmiConfig = wagmiConfig
+  export {chain}
 
-  export const chain = process.env.NODE_ENV === "production" ? productionChain : chains.find(c => c.id == parseInt(process.env.NEXT_PUBLIC_DEVCHAIN!)) || hardhat
 
   export const USERS_COLLECTION = collection(firestore, 'users');
   export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'notifications');

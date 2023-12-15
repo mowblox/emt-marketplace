@@ -13,8 +13,8 @@ import { cert } from "firebase-admin/app";
 import { SignUpData, userUpdateValidationResult } from "@/lib/types";
 import { getFirestore, initializeFirestore } from "firebase-admin/firestore";
 import { JsonRpcProvider, ethers } from "ethers6";
-import { MentorToken as MentorTokenType } from "../../../../../../../blockchain/typechain-types/contracts/MentorToken";
-// import { MentorToken } from "../../../../../emt.config";
+import { mentorToken } from "@/../../contracts"
+// import { mentorToken } from "../../../../../emt.config";
 
 const USERS_COLLECTION = "users";
 
@@ -255,19 +255,10 @@ export const authOptions: NextAuthOptions = {
                   ? "https://rpc.topos-subnet.testnet-1.topos.technology"
                   : "http://127.0.0.1:8545"
               );
-      
-              const MentorToken_ = require(
-                `@/deployments/${chainId}/MentorToken.js`
-              ).default;
-      
-              const MentorToken = new ethers.Contract(
-                MentorToken_.address,
-                MentorToken_.abi,
-                provider
-              ) as unknown as MentorTokenType;
-      
+    
+          
               console.log('fetching new ment');
-              const mentBalance = await MentorToken.balanceOf(token.sub);
+              const mentBalance = await mentorToken.balanceOf(token.sub);
               const newMent = Number(mentBalance);
               console.log('new Ment: ', newMent);
       

@@ -22,6 +22,7 @@ import { useUser } from "@/lib/hooks/user";
 import { toast } from "@/components/ui/use-toast";
 import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
 import { Badge } from '@/components/ui/badge';
+import UserList from '@/app/(with wallet)/_components/user-List';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -202,47 +203,14 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
           </Card>
         </ScrollArea>
       </div>
-      <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2" >
-        {/* TODO @jovells 1. display random user profiles */}
-        {/* <>
+      <RightSidebar className="hidden md:block min-h-[94vh] col-span-2 lg:col-span-2">
+        <>
           <div className="mb-8">
             <h2 className="mb-1 text-md pl-3 font-semibold tracking-tight">
               Top Creators
             </h2>
             <div className="flex flex-col gap-y-0">
-              {topCreatorList.map((profile, key) => {
-                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
-                  <div className='flex items-center'>
-                    <div className="w-10 h-10 relative">
-                      <Image
-                        fill
-                        className='rounded-full object-cover'
-                        loading="eager"
-                        src={profile.photoURL
-                        }
-                        alt={`${profile.displayName}-photoURL
-                `}
-                        quality={80}
-                      />
-                    </div>
-                    <div className='ml-3'>
-                      <div className="flex items-center">
-                        <p className='text-md text-foreground'>{profile.displayName}</p>
-                        {profile.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
-                      </div>
-                      <Badge>{profile.skill}</Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-xs text-muted">
-                    <HiOutlineFire className="w-4 h-4 ml-1 text-muted" />
-                    <div className="ml-1">
-                      245 MENT
-                    </div>
-                  </div>
-                </Link>
-              })}
-
-
+                <UserList filters={{ment: "desc"}}/>
             </div>
           </div>
 
@@ -251,42 +219,10 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
               Who to Follow
             </h2>
             <div className="flex flex-col gap-y-0">
-              {topCreatorList.map((profile, key) => {
-                return <Link href={"dapp" + profile.href} key={`top-creator-${key}`} className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
-                  <div className='flex items-center'>
-                    <div className="w-10 h-10 relative">
-                      <Image
-                        fill
-                        className='rounded-full object-cover'
-                        loading="eager"
-                        src={profile.photoURL
-                        }
-                        alt={`${profile.displayName}-photoURL
-                `}
-                        quality={80}
-                      />
-                    </div>
-                    <div className='ml-3'>
-                      <div className="flex items-center">
-                        <p className='text-md text-foreground'>{profile.displayName}</p>
-                        {profile.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
-                      </div>
-                      <Badge>{profile.skill}</Badge>
-                    </div>
-                  </div>
-                  <div className="flex items-center text-xs text-muted">
-                    <HiOutlineFire className="w-4 h-4 ml-1 text-muted" />
-                    <div className="ml-1">
-                      245 MENT
-                    </div>
-                  </div>
-                </Link>
-              })}
-
-
+              <UserList filters={{isNotFollowing: true }}/>
             </div>
           </div>
-        </> */}
+        </>
       </RightSidebar>
     </div>
   )

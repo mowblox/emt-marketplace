@@ -5,7 +5,6 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { HiCheckCircle, HiMiniExclamationTriangle, HiOutlineBellAlert } from "react-icons/hi2"
-import { Progress } from "@/components/ui/progress";
 
 
 const ToastProvider = ToastPrimitives.Provider
@@ -17,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-10 sm:right-0 sm:bottom-auto sm:left-[calc(50%-160px)] sm:flex-col md:max-w-[380px]",
+      "fixed top-0 z-[10000] flex max-h-screen w-full flex-col-reverse p-4 sm:top-10 sm:right-0 sm:bottom-auto sm:left-[calc(50%-160px)] sm:flex-col md:max-w-[380px]",
       className
     )}
     {...props}
