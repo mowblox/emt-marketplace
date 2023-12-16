@@ -57,7 +57,6 @@ const formSchema = z.object({
 });
 
 const CreatePostForm = () => {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { createPost } = useBackend();
   const { data, mutateAsync } = useMutation({
     mutationFn: (variables: {
