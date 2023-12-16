@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import { useIntersection } from "@mantine/hooks";
 import {
   useInfiniteQuery,
@@ -47,7 +47,7 @@ export default function InfiniteScroll({
   });
 
   const {
-    data: contentPages,
+    data: dataPages,
     fetchNextPage,
     isFetchingNextPage,
     hasNextPage,
@@ -56,10 +56,9 @@ export default function InfiniteScroll({
   } = useInfiniteQuery({
     queryKey: [...queryKey, size, filters],
     queryFn: async ({ pageParam, meta }) => {
-      console.log("querying", meta);
       filters = filters;
-      const contents = await fetcher(pageParam, size, filters);
-      return contents;
+      const datas = await fetcher(pageParam, size, filters);
+      return datas;
     },
     initialPageParam: undefined as any,
     getNextPageParam:
@@ -88,7 +87,7 @@ export default function InfiniteScroll({
     fetchNextPage();
   }
 
-  if (!contentPages && isLoading) {
+  if (!dataPages && isLoading) {
     return (
       <div className="h-screen">
         <DataLoading />
@@ -96,24 +95,21 @@ export default function InfiniteScroll({
     );
   }
 
-  if (!contentPages?.pages[0] && !isLoading) {
+  if (!dataPages?.pages[0] && !isLoading) {
     return <NoData message={"No " + queryKey} />;
   }
-
-  console.log(queryKey, contentPages);
 
   return (
     <>
       <div {...props}>
-        {contentPages?.pages?.map((content: any) => {
+        {dataPages?.pages?.map((data: any) => {
           return (
-            <>
+            <Fragment key ={itemKey?.(data) || data.id} >
               <ItemComponent
-                key={itemKey?.(content) || content.id}
-                data={content}
+                data={data}
               />
               {Separator}
-            </>
+            </Fragment>
           );
         })}
       </div>

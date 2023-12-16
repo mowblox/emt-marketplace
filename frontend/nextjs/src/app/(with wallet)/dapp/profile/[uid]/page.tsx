@@ -37,9 +37,10 @@ const Profile = () => {
   const { data: profile} = useQuery({
     queryKey: ["profile", uid],
     queryFn: () => fetchProfile(uid as string),
-    enabled: !!uid,
     throwOnError: (error)=>{ console.log(error); return false}
   });
+
+  console.log('profile on page, uid', profile, uid)
 
   //check if following
   const {data: isFollowingUser, } = useQuery({
@@ -84,7 +85,6 @@ const Profile = () => {
   })
 
   
-  console.log('profile', profile?.uid)
 
   if (!profile && isLoading) {
     return (<div className="h-screen">

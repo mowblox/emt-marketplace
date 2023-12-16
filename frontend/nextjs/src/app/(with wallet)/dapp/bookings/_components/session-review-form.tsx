@@ -29,7 +29,7 @@ const SessionReviewForm = () => {
   });
 
   const onSubmit = () => {
-    console.log(form.getValues())
+    console.log('submits', form.getValues())
   }
     return (
         <div>

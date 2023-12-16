@@ -26,9 +26,6 @@ const FavouriteTopicsForm = () => {
             setTags(old => [...old, tag])
         }
     }
-
-    const { toast } = useToast();
-
     function onSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         console.log(tags)

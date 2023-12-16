@@ -75,7 +75,7 @@ export const Navbar = () => {
                   </div>
                   <div className="block lg:hidden">
                     <Popover open={mobileMenu}>
-                      <PopoverTrigger>
+                      <PopoverTrigger asChild>
                           {mobileMenu ? <Button
                             variant="ghost"
                             size="icon"
