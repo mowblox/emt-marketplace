@@ -50,6 +50,7 @@ import {
   updateDoc,
   where,
   documentId,
+  DocumentReference,
 } from "firebase/firestore";
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -715,52 +716,67 @@ export default function useBackend() {
       });
       throw new Error("User not logged in");
     }
-
     const t = loadingToast("Creating Post", 1);
-    const docRef = doc(CONTENTS_COLLECTION);
-    const id = ethers.encodeBytes32String(docRef.id);
-    console.log("writing to blockchain", post, "pstId", id);
     try {
-      console.log("emtMarketplace", emtMarketplace);
-      const tx = await emtMarketplace.addContent(id);
-      t("Mining transaction", 30);
-      const receipt = await tx.wait();
-
-      console.log("Content added to blockchain. Receipt:", receipt);
+      const docRef = await writePostToBlockchain();
+      t("Almost there...", 50);
+      const imageURL = await uploadPostImage(docRef.id);
+      t("", 80);
+      await savePostToFirestore(imageURL, docRef);
+      console.log("Document written with ID: ", docRef.id);
+      t("Post Created successfully", 100);
+      return { id: docRef.id, imageURL };
     } catch (err: any) {
-      console.log("Error writing to blockchain. Details: " + err.message);
-      throw new Error("Error writing to blockchain. Details: " + err.message);
+      console.log(err);
+      t("Error creating post", 0, true);
+      throw new Error(err)
     }
-    let imageURL = "";
-    t("Almost there...", 50);
-    if (post.image) {
+    async function uploadPostImage(id: string) {
+      if (!post.image) return "";
       try {
         console.log("uploading image");
-        imageURL = await uploadImage(post.image, docRef.id, "contentImages");
+        const imageURL = await uploadImage(post.image, id, "contentImages");
+        return imageURL;
       } catch (err: any) {
         throw new Error("Error uploading image. Details: " + err.message);
       }
     }
-    t("", 80);
-    try {
-      console.log("writing to database");
-      await setDoc(docRef, {
-        title: post.title,
-        body: post.body,
-        owner: user?.uid,
-        imageURL: imageURL,
-        postType: post.postType,
-        questionPostURL: post.questionPostURL,
-        tags: post.tags,
-        timestamp: serverTimestamp(),
-      });
-      t("Post Created successfully", 100);
-    } catch (err: any) {
-      t("Error creating post", 0, true);
-      throw new Error("Error writing to database. Details: " + err.message);
+
+    async function writePostToBlockchain() {
+      const docRef = doc(CONTENTS_COLLECTION);
+      const contentId = ethers.encodeBytes32String(docRef.id);
+      console.log("writing to blockchain", post, "pstId", contentId);
+      try {
+        console.log("emtMarketplace", emtMarketplace);
+        const tx = await emtMarketplace.addContent(contentId);
+        t("Mining transaction", 30);
+        const receipt = await tx.wait();
+
+        console.log("Content added to blockchain. Receipt:", receipt);
+        return docRef;
+      } catch (err: any) {
+        console.log("Error writing to blockchain. Details: " + err.message);
+        throw new Error("Error writing to blockchain. Details: " + err.message);
+      }
     }
-    console.log("Document written with ID: ", docRef.id);
-    return { id: docRef.id, imageURL };
+
+    async function savePostToFirestore(imageURL: string, docRef: DocumentReference) {
+      try {
+        console.log("writing to database");
+        await setDoc(docRef, {
+          title: post.title,
+          body: post.body,
+          owner: user?.uid,
+          imageURL: imageURL,
+          postType: post.postType,
+          questionPostURL: post.questionPostURL,
+          tags: post.tags,
+          timestamp: serverTimestamp(),
+        });
+      } catch (err: any) {
+        throw new Error("Error writing to database. Details: " + err.message);
+      }
+    }
   }
 
   /**
