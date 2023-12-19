@@ -175,8 +175,16 @@ const CreatePostForm = () => {
             name="coverPhoto"
             render={({ field }) => (
               <FormItem>
+                <FormLabel aria-required>Cover Photo <span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl className="mb-3">
                   <>
+                  <Input
+                      placeholder="Upload photo"
+                      className="mb-4 hover:cursor-pointer"
+                      type="file"
+                      {...field}
+                      ref={imageRef}
+                    />
                     <div className="w-40 h-20 relative rounded-md">
                       <Image
                         src={
@@ -190,18 +198,9 @@ const CreatePostForm = () => {
                         alt={`Add a cover image`}
                       />
                     </div>
-
-                    <Input
-                      placeholder="Upload photo"
-                      className="mb-4"
-                      type="file"
-                      {...field}
-                      ref={imageRef}
-                    />
                     <div className="mb-4"></div>
                   </>
                 </FormControl>
-                <FormLabel>Cover Photo</FormLabel>
                 <FormMessage />
               </FormItem>
             )}
@@ -212,7 +211,7 @@ const CreatePostForm = () => {
             name="postTitle"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>Title<span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl>
                   <Input placeholder="Your post title" {...field} />
                 </FormControl>
@@ -226,7 +225,7 @@ const CreatePostForm = () => {
             name="postBody"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Body</FormLabel>
+                <FormLabel>Body<span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl>
                   <RichTextEditor
                     placeholder="Answer a question or explain a concept"

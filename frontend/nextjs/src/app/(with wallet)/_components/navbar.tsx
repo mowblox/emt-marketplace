@@ -64,12 +64,12 @@ export const Navbar = () => {
                     onClick={() => setShowSearch(true)}>
                     <HiMagnifyingGlass className="h-4 w-4" />
                   </Button>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     aria-label="create a post"
                     size="icon">
                     <HiOutlinePencilSquare className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                   <div className="hidden md:block">
                     <SignInButton label="Sign in" />
                   </div>

@@ -15,7 +15,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import useBackend from '@/lib/hooks/useBackend'
 import DataLoading from '@/components/ui/data-loading';
 import { Content, POST_TYPES } from '@/lib/types';
-import Voter from '@/components/ui/Voter';
+import Voter from '@/components/ui/voter';
 import NoData from '@/components/ui/no-data';
 import { formatDistance } from 'date-fns';
 import { useUser } from "@/lib/hooks/user";

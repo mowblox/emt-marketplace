@@ -136,7 +136,7 @@ const SetAvailabilityStatus = ({ profile }: any) => {
     return (
         <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
             <div className="flex p-4 items-center justify-between bg-accent-shade rounded-md">
-                <div className="flex items-center">
+                <div className="flex items-center mr-3">
                     <div className="flex items-center text-sm">
                         <div className="ml-1 flex items-center text-muted">Are you available for mentoring?</div>
                     </div>
