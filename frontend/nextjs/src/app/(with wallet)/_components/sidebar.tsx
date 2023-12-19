@@ -72,8 +72,8 @@ export function Sidebar({ className }: SidebarProps) {
                         </h2>
                         <div className="space-y-0">
                             {resourcesLinks.map((link, key) => (
-                                <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
-                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
+                                <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 justify-start" asChild>
+                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "!text-accent-3 font-semibold" : "text-muted"}`}>
                                         {link.title}
                                     </Link>
                                 </Button>
