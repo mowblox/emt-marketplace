@@ -15,6 +15,7 @@ import {
   ExptListingWithAuthorProfile,
   NewExptListing,
   NotificationData,
+  PolicyDoc,
   PostFilters,
   PostVotes,
   ProfileFilters,
@@ -745,6 +746,24 @@ export default function useBackend() {
     });
     const posts: Content[] = await Promise.all(promises);
     return posts;
+  }
+
+  /**
+   * Fetches privacy policy from the database.
+   * @param 
+   * @returns An the latest privacy policy & timestamp.
+   */
+  async function fetchPrivacyPolicy(): Promise<PolicyDoc> {
+    console.log('calling fetch...')
+
+    const policyDocRef = doc(ADMIN_COLLECTION, 'privacy-policy');
+    const policyDoc = await getDoc(policyDocRef);
+    if (policyDoc.exists()) {
+      const data = policyDoc.data() as PolicyDoc;
+      return data
+    } else {
+      throw new Error("Policy document not found!");
+    }
   }
 
   /**
@@ -1533,5 +1552,6 @@ export default function useBackend() {
       voteOnPost,
       fetchSinglePost,
       fetchProfiles,
+      fetchPrivacyPolicy
     }
   };
