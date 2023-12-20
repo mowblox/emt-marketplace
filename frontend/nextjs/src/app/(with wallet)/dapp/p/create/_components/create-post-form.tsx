@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import useBackend from "@/lib/hooks/useBackend";
 import { isValidFileType, placeholderImage } from "@/lib/utils";
@@ -78,10 +77,8 @@ const CreatePostForm = () => {
     },
   });
   const imageRef = React.useRef<HTMLInputElement>(null);
-  const [isCreatePostLoading, setIsCreatePostLoading] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-
-  const { toast } = useToast();
 
   function handleTags(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -94,7 +91,7 @@ const CreatePostForm = () => {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsCreatePostLoading(true);
+    setIsFormLoading(true);
 
     const image = imageRef.current?.files![0] as File;
     try {
@@ -108,10 +105,10 @@ const CreatePostForm = () => {
       });
       router.push(POST_PAGE(id));
 
-      setIsCreatePostLoading(false);
+      setIsFormLoading(false);
     } catch (error: any) {
       console.error(error.message);
-      setIsCreatePostLoading(false);
+      setIsFormLoading(false);
     }
   }
 
@@ -277,9 +274,9 @@ const CreatePostForm = () => {
             </Button>
             <Button
               type="submit"
-              isLoading={isCreatePostLoading}
+              isLoading={isFormLoading}
               loadingText="Creating post"
-              disabled={isCreatePostLoading || !form.formState.isValid}
+              disabled={isFormLoading || !form.formState.isValid}
               variant="gradient"
               className="w-full md:w-[160px]">
               Post

@@ -62,6 +62,7 @@ import {
   EXPT_LISTINGS_COLLECTION,
   NOTIFICATIONS_COLLECTION,
   USERS_COLLECTION,
+  ADMIN_COLLECTION,
   exptLevelKeys,
   chain,
 } from "../../../emt.config";
@@ -831,6 +832,51 @@ export default function useBackend() {
   }
 
   /**
+   * Submits a user support request.
+   * @param request - The request data.
+   * @returns A success string or void.
+   * @throws Error if there is an error writing to the database.
+   */
+  async function submitRequest(request: {
+    email: string;
+    description: string;
+  }) {
+    if (!user?.uid) {
+      toast({
+        title: "Login",
+        description: "Please login to submit a request",
+      });
+      throw new Error("User not logged in");
+    }
+    const t = loadingToast("Submitting your request", 1);
+    try {
+      // TODO @od41 error: missing permissions
+      const docRef = doc(ADMIN_COLLECTION); ;
+      await saveRequestToFirestore(docRef);
+      console.log("Document written with ID: ", docRef.id);
+      t("Request submitted successfully", 100);
+      return "successfull";
+    } catch (err: any) {
+      console.log(err);
+      t("Error submitting request", 0, true);
+      throw new Error(err)
+    }
+
+    async function saveRequestToFirestore(docRef: DocumentReference) {
+      try {
+        console.log("writing to database");
+        await setDoc(docRef, {
+          email: request.email,
+          description: request.description,
+          timestamp: serverTimestamp(),
+        });
+      } catch (err: any) {
+        throw new Error("Error writing to database. Details: " + err.message);
+      }
+    }
+  }
+
+  /**
    * wip
    * Fetches posts owned by the current user.
    * @returns An array of user posts.
@@ -1463,6 +1509,7 @@ export default function useBackend() {
       isFetchingBalances,
       fetchPostVotes,
       createPost,
+      submitRequest,
       fetchClaimHistory,
       fetchBookings,
       buyExpt,

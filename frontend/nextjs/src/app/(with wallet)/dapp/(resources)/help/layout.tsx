@@ -8,7 +8,7 @@ type Props = {
 const Layout = ({children}: Props) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-6 col-span-4">
-            <div className="h-full px-4 py-6 lg:px-6 col-span-1 md:col-span-6 md:border-x">
+            <div className="h-full px-4 py-6 lg:px-6 col-span-1 md:col-span-4 md:border-l">
                 <ScrollArea className="h-[90vh] w-full">
                     {children}
                 </ScrollArea>
