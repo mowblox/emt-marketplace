@@ -32,8 +32,9 @@ export function Sidebar({ className }: SidebarProps) {
        
         if (pathname.endsWith(HOME_PAGE) && title === "Home") {
             return pathname.endsWith(path);
-        } 
-        else if (path != HOME_PAGE && title != 'Home'){
+        } else if (pathname.endsWith('/') && title === "Welcome") {
+            return true;
+        } else if (path != HOME_PAGE && title != 'Home' && path != '/' && title != 'Welcome'){
             return path.includes(typeof(substring)==="function" ? substring(uid!) : substring)
         }
         return false;
