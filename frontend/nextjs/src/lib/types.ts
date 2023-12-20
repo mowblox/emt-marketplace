@@ -227,3 +227,5 @@ export type ReviewItem = {
     datePublished: string;
   }
 }
+
+export type PolicyDoc = {body: string, timestamp: Timestamp}

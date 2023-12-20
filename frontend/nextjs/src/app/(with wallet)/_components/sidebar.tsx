@@ -32,8 +32,9 @@ export function Sidebar({ className }: SidebarProps) {
        
         if (pathname.endsWith(HOME_PAGE) && title === "Home") {
             return pathname.endsWith(path);
-        } 
-        else if (path != HOME_PAGE && title != 'Home'){
+        } else if (pathname.endsWith('/') && title === "Welcome") {
+            return true;
+        } else if (path != HOME_PAGE && title != 'Home' && path != '/' && title != 'Welcome'){
             return path.includes(typeof(substring)==="function" ? substring(uid!) : substring)
         }
         return false;
@@ -72,8 +73,8 @@ export function Sidebar({ className }: SidebarProps) {
                         </h2>
                         <div className="space-y-0">
                             {resourcesLinks.map((link, key) => (
-                                <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 text-muted justify-start" asChild>
-                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
+                                <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 justify-start" asChild>
+                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "!text-accent-3 font-semibold" : "text-muted"}`}>
                                         {link.title}
                                     </Link>
                                 </Button>

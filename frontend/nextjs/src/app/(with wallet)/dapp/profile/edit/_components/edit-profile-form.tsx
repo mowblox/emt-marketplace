@@ -28,6 +28,10 @@ import { TAGS } from "@/lib/contants";
 import { PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
 import { Progress } from "@/components/ui/progress";
 import { UserProfile } from "@/lib/types";
+import PageLoading from "@/components/ui/page-loading";
+import NoData from "@/components/ui/no-data";
+
+//TODO: @Jovells FIXME form sometimes doesnt load old values 
 
 const formSchema = z.object({
   displayName: z
@@ -62,10 +66,10 @@ const EditProfileForm = () => {
   console.log('uid', uid)
 
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", uid, "edit"],
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile", uid],
     queryFn: () => (console.log('running queryfn'), fetchProfile(uid)),
-    select: (data) => { setSelectedTags(data?.tags || []); return data }
+    // select: (data) => { setSelectedTags(data?.tags || []); return data }
   });
   console.log('profile on edit', profile)
 
@@ -131,10 +135,10 @@ const EditProfileForm = () => {
     profilePicture && (updates.profilePicture = profilePicture);
     delete updates.photoURL;
     try {
-      const result = await updateProfile(updates);
-      console.log('result', result) 
-      if('updateValidationError' in result){
-          for (const key in result.updateValidationError.validationResult) {
+      const updateResult = await updateProfile(updates);
+      console.log('result', updateResult) 
+      if('updateValidationError' in updateResult){
+          for (const key in updateResult.updateValidationError.validationResult) {
             console.log('key', key)
             //@ts-ignore
             form.setError(key, {
@@ -142,18 +146,16 @@ const EditProfileForm = () => {
               message: key + " taken",
             });
           }
-          throw new Error('Error updating profile' + result)
+          throw new Error('Error updating profile' + updateResult)
       }
       toast({
         title: "Profile updated!",
         variant: "success",
-        description: <div>
-        <Progress value={100} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" /></div>,
       });
       
       setButtonLoading(false)
       queryClient.setQueryData(['profile', uid], (oldData: UserProfile)=>{
-        return {...oldData, ...updates}
+        return {...oldData, ...updateResult}
       })
       router.push(PROFILE_PAGE(uid));
     } catch (err) {
@@ -165,6 +167,20 @@ const EditProfileForm = () => {
       setButtonLoading(false)
     }
   }
+  if (!profile && isLoading) {
+    return (
+      <PageLoading/>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="h-screen">
+        <NoData message="Error Loading Profile" />
+      </div>
+    );
+  }
+  console.log('escaped', profile)
 
   return (
     <div>
@@ -182,7 +198,7 @@ const EditProfileForm = () => {
                         src={
                           imageRef.current?.files?.[0]
                             ? URL.createObjectURL(imageRef.current?.files?.[0])
-                            : user?.photoURL || profilePlaceholderImage
+                            : profile?.photoURL || profilePlaceholderImage
                         }
                         fill
                         placeholder={profilePlaceholderImage}

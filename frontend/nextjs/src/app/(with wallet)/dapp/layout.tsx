@@ -32,7 +32,7 @@ export default async function DappLayout({
         <Navbar />
         <div className="body">
           <div className="border-t">
-            <div className="bg-background">
+            <div className="bg-background container px-0 md:px-6">
               <div className="grid lg:grid-cols-5">
                 <Sidebar className="hidden lg:block min-h-[94vh]" />
                 <div className="col-span-4 lg:col-span-4">

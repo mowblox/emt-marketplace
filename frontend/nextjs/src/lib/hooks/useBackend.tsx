@@ -15,6 +15,7 @@ import {
   ExptListingWithAuthorProfile,
   NewExptListing,
   NotificationData,
+  PolicyDoc,
   PostFilters,
   PostVotes,
   ProfileFilters,
@@ -50,6 +51,7 @@ import {
   updateDoc,
   where,
   documentId,
+  DocumentReference,
 } from "firebase/firestore";
 
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -61,6 +63,7 @@ import {
   EXPT_LISTINGS_COLLECTION,
   NOTIFICATIONS_COLLECTION,
   USERS_COLLECTION,
+  ADMIN_COLLECTION,
   exptLevelKeys,
   chain,
 } from "../../../emt.config";
@@ -76,14 +79,7 @@ import {
 } from "@rainbow-me/rainbowkit";
 import { Progress } from "@/components/ui/progress";
 
-// toast({
-//   title: "Profile updated!",
-//   description: <div>
-//     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
-//   </div>,
-//   duration: Infinity
-// });
-//toast setup
+
 function loadingToast(
   message: string,
   stage?: number | undefined,
@@ -159,6 +155,11 @@ export default function useBackend() {
   const wrongChain = network?.chain?.id !== chain.id;
 
   //queries
+  /**
+   * UseQuery hook for fetching backend data and managing balances.
+   *
+   * @returns An object containing the fetched data and balance-related functions.
+   */
   const { data: exptLevels } = useQuery({
     queryKey: ["exptlevels"],
     queryFn: async () => {
@@ -519,6 +520,13 @@ export default function useBackend() {
       throw new Error("No such document!");
     }
   }
+  /**
+   * Fetches a single listing from the database.
+   * 
+   * @param id - The ID of the listing to fetch.
+   * @returns A promise that resolves to the fetched listing.
+   * @throws An error if the listing does not exist.
+   */
   async function fetchSingleListing(id: string) {
     const docRef = doc(EXPT_LISTINGS_COLLECTION, id);
     const docSnap = await getDoc(docRef);
@@ -532,6 +540,12 @@ export default function useBackend() {
     }
   }
 
+  /**
+   * Fetches the number of followers for a user.
+   * 
+   * @param id - The ID of the user.
+   * @returns The number of followers.
+   */
   async function fetchNumFollowers(id: string) {
     const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
     const querySnapshot = await getCountFromServer(query(userFollowersRef));
@@ -540,6 +554,12 @@ export default function useBackend() {
     return count;
   }
 
+  /**
+   * Fetches the number of followers for a given user ID.
+   * 
+   * @param id - The ID of the user.
+   * @returns The number of followers.
+   */
   async function fetchNumFollowing(id: string) {
     const q = query(
       collectionGroup(firestore, "followers"),
@@ -551,6 +571,11 @@ export default function useBackend() {
     return count;
   }
 
+  /**
+   * Fetches a user document from the database.
+   * @param id - The ID of the user document to fetch.
+   * @returns The fetched user document.
+   */
   async function fetchUserDoc(id: string) {
     console.log("fetching user doc", id);
     const userDocRef = doc(USERS_COLLECTION, id);
@@ -561,6 +586,11 @@ export default function useBackend() {
     return data;
   }
 
+  /**
+   * Fetches the ment value for a given address.
+   * @param address The address to fetch the ment value for.
+   * @returns The ment value for the given address.
+   */
   async function fetchMent(address = user?.uid) {
     console.log("fetching ment", address);
     try {
@@ -573,6 +603,12 @@ export default function useBackend() {
       return 0;
     }
   }
+  /**
+   * Fetches the number of unclaimed ment for the logged-in user.
+   * 
+   * @returns The number of unclaimed ment.
+   * @throws If the user is not logged in.
+   */
   async function fetchUnclaimedMent() {
     if (!user?.uid) {
       throw new Error("User not logged in");
@@ -589,6 +625,12 @@ export default function useBackend() {
     }
   }
 
+  /**
+   * Fetches the unclaimed experience points (expt) for the logged-in user.
+   * 
+   * @returns The number of unclaimed experience points.
+   * @throws {Error} If the user is not logged in or if there is an error fetching the experience points.
+   */
   async function fetchUnclaimedExpt() {
     if (!user?.uid) {
       throw new Error("User not logged in");
@@ -612,6 +654,18 @@ export default function useBackend() {
       }
     }
   }
+
+  /**
+   * Fetches the profile of a user.
+   * 
+   * @param uid - The user ID.
+   * @param exclude - An optional object specifying which parts of the profile to exclude.
+   *                  - followers: Set to true to exclude the number of followers.
+   *                  - following: Set to true to exclude the number of following.
+   *                  - ownedExptIds: Set to true to exclude the owned expt IDs.
+   * @returns A promise that resolves to the user's profile.
+   * @throws If there is an error fetching the profile.
+   */
 
   async function fetchProfile(
     uid: string,
@@ -695,6 +749,24 @@ export default function useBackend() {
   }
 
   /**
+   * Fetches privacy policy from the database.
+   * @param 
+   * @returns An the latest privacy policy & timestamp.
+   */
+  async function fetchPrivacyPolicy(): Promise<PolicyDoc> {
+    console.log('calling fetch...')
+
+    const policyDocRef = doc(ADMIN_COLLECTION, 'privacy-policy');
+    const policyDoc = await getDoc(policyDocRef);
+    if (policyDoc.exists()) {
+      const data = policyDoc.data() as PolicyDoc;
+      return data
+    } else {
+      throw new Error("Policy document not found!");
+    }
+  }
+
+  /**
    * Creates a new post.
    * @param post - The post data.
    * @returns An object containing the ID of the created post as stored in Firestre and the image URL.
@@ -715,52 +787,112 @@ export default function useBackend() {
       });
       throw new Error("User not logged in");
     }
-
     const t = loadingToast("Creating Post", 1);
-    const docRef = doc(CONTENTS_COLLECTION);
-    const id = ethers.encodeBytes32String(docRef.id);
-    console.log("writing to blockchain", post, "pstId", id);
     try {
-      console.log("emtMarketplace", emtMarketplace);
-      const tx = await emtMarketplace.addContent(id);
-      t("Mining transaction", 30);
-      const receipt = await tx.wait();
-
-      console.log("Content added to blockchain. Receipt:", receipt);
+      const docRef = await writePostToBlockchain();
+      t("Almost there...", 50);
+      const imageURL = await uploadPostImage(docRef.id);
+      t("", 80);
+      await savePostToFirestore(imageURL, docRef);
+      console.log("Document written with ID: ", docRef.id);
+      t("Post Created successfully", 100);
+      return { id: docRef.id, imageURL };
     } catch (err: any) {
-      console.log("Error writing to blockchain. Details: " + err.message);
-      throw new Error("Error writing to blockchain. Details: " + err.message);
+      console.log(err);
+      t("Error creating post", 0, true);
+      throw new Error(err)
     }
-    let imageURL = "";
-    t("Almost there...", 50);
-    if (post.image) {
+    async function uploadPostImage(id: string) {
+      if (!post.image) return "";
       try {
         console.log("uploading image");
-        imageURL = await uploadImage(post.image, docRef.id, "contentImages");
+        const imageURL = await uploadImage(post.image, id, "contentImages");
+        return imageURL;
       } catch (err: any) {
         throw new Error("Error uploading image. Details: " + err.message);
       }
     }
-    t("", 80);
-    try {
-      console.log("writing to database");
-      await setDoc(docRef, {
-        title: post.title,
-        body: post.body,
-        owner: user?.uid,
-        imageURL: imageURL,
-        postType: post.postType,
-        questionPostURL: post.questionPostURL,
-        tags: post.tags,
-        timestamp: serverTimestamp(),
-      });
-      t("Post Created successfully", 100);
-    } catch (err: any) {
-      t("Error creating post", 0, true);
-      throw new Error("Error writing to database. Details: " + err.message);
+
+    async function writePostToBlockchain() {
+      const docRef = doc(CONTENTS_COLLECTION);
+      const contentId = ethers.encodeBytes32String(docRef.id);
+      console.log("writing to blockchain", post, "pstId", contentId);
+      try {
+        console.log("emtMarketplace", emtMarketplace);
+        const tx = await emtMarketplace.addContent(contentId);
+        t("Mining transaction", 30);
+        const receipt = await tx.wait();
+
+        console.log("Content added to blockchain. Receipt:", receipt);
+        return docRef;
+      } catch (err: any) {
+        console.log("Error writing to blockchain. Details: " + err.message);
+        throw new Error("Error writing to blockchain. Details: " + err.message);
+      }
     }
-    console.log("Document written with ID: ", docRef.id);
-    return { id: docRef.id, imageURL };
+
+    async function savePostToFirestore(imageURL: string, docRef: DocumentReference) {
+      try {
+        console.log("writing to database");
+        await setDoc(docRef, {
+          title: post.title,
+          body: post.body,
+          owner: user?.uid,
+          imageURL: imageURL,
+          postType: post.postType,
+          questionPostURL: post.questionPostURL,
+          tags: post.tags,
+          timestamp: serverTimestamp(),
+        });
+      } catch (err: any) {
+        throw new Error("Error writing to database. Details: " + err.message);
+      }
+    }
+  }
+
+  /**
+   * Submits a user support request.
+   * @param request - The request data.
+   * @returns A success string or void.
+   * @throws Error if there is an error writing to the database.
+   */
+  async function submitRequest(request: {
+    email: string;
+    description: string;
+  }) {
+    if (!user?.uid) {
+      toast({
+        title: "Login",
+        description: "Please login to submit a request",
+      });
+      throw new Error("User not logged in");
+    }
+    const t = loadingToast("Submitting your request", 1);
+    try {
+      // TODO @od41 error: missing permissions
+      const docRef = doc(ADMIN_COLLECTION); ;
+      await saveRequestToFirestore(docRef);
+      console.log("Document written with ID: ", docRef.id);
+      t("Request submitted successfully", 100);
+      return "successfull";
+    } catch (err: any) {
+      console.log(err);
+      t("Error submitting request", 0, true);
+      throw new Error(err)
+    }
+
+    async function saveRequestToFirestore(docRef: DocumentReference) {
+      try {
+        console.log("writing to database");
+        await setDoc(docRef, {
+          email: request.email,
+          description: request.description,
+          timestamp: serverTimestamp(),
+        });
+      } catch (err: any) {
+        throw new Error("Error writing to database. Details: " + err.message);
+      }
+    }
   }
 
   /**
@@ -848,7 +980,14 @@ export default function useBackend() {
     }
   }
 
-  async function followUser(id: string) {
+  /**
+   * Follows a user by adding the current user's ID to the followers list of the specified user.
+   * 
+   * @param id - The ID of the user to follow.
+   * @returns A boolean indicating whether the user was successfully followed.
+   * @throws An error if the user is not logged in or if there is an error following the user.
+   */
+  async function followUser(id: string): Promise<boolean> {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
@@ -873,7 +1012,14 @@ export default function useBackend() {
     }
   }
 
-  async function unfollowUser(id: string) {
+  /**
+   * Unfollows a user by removing the current user's ID from the followers list of the specified user.
+   * 
+   * @param id - The ID of the user to unfollow.
+   * @returns A boolean indicating whether the user was successfully unfollowed.
+   * @throws An error if there is an error unfollowing the user.
+   */
+  async function unfollowUser(id: string): Promise<boolean> {
     try {
       const userFollowersRef = doc(
         USERS_COLLECTION,
@@ -891,6 +1037,15 @@ export default function useBackend() {
       throw new Error("Error unfollowing user. Message: " + err.message);
     }
   }
+  
+  /**
+   * Lists the expts and performs necessary operations such as uploading cover photo,
+   * saving to Firestore, and listing in the contract.
+   * @param listing - The new expt listing to be created.
+   * @returns The ID of the saved expt listing.
+   * @throws Error if there is an error uploading the cover photo, saving to Firestore,
+   * listing in the contract, or if the user is not logged in.
+   */
   async function listExpts(listing: NewExptListing) {
     async function saveExptListingToFirestore(listing: NewExptListing) {
       const withImage: NewExptListing & { imageURL: string } = {
@@ -952,23 +1107,83 @@ export default function useBackend() {
     }
   }
 
-  async function fetchExptListings(
-    lastDocTimeStamp?: Timestamp,
-    size = 1,
-    filters?: ExptFilters
-  ): Promise<ExptListingWithAuthorProfile[]> {
-    // Split the tokenIds array into chunks of 30 because of firebase array-contains limit
-    if (filters?.mentee) {
-      const ownedExpts = await fetchOwnedExptIds(filters.mentee);
-      filters.tokenIds = ownedExpts;
-    }
-    const tokenIdsChunks = filters?.tokenIds
-      ? chunkArray(filters.tokenIds, 30)
-      : [[]];
 
-    const listingPromises = tokenIdsChunks.map(async (tokenIds) => {
+    /**
+     * Fetches the list of expt listings populated with author profile based on the provided filters.
+     * @param lastDocTimeStamp - The timestamp of the last document.
+     * @param size - The number of listings to fetch.
+     * @param filters - The filters to apply.
+     * @returns A promise that resolves to an array of expt listings with author profile.
+     */
+    async function fetchExptListings(
+      lastDocTimeStamp?: Timestamp,
+      size = 1,
+      filters?: ExptFilters
+    ): Promise<ExptListingWithAuthorProfile[]> {
+      // Split the tokenIds array into chunks of 30 because of firebase array-contains limit
+      if (filters?.mentee) {
+        const ownedExpts = await fetchOwnedExptIds(filters.mentee);
+        filters.tokenIds = ownedExpts;
+      }
+      const tokenIdsChunks = filters?.tokenIds
+        ? chunkArray(filters.tokenIds, 30)
+        : [[]];
+
+      const listingPromises = tokenIdsChunks.map(async (tokenIds) => {
+        let q = query(
+          EXPT_LISTINGS_COLLECTION,
+          orderBy("timestamp", "desc"),
+          limit(size)
+        );
+
+        if (lastDocTimeStamp) {
+          q = query(q, startAfter(lastDocTimeStamp));
+        }
+        if (filters?.tags) {
+          q = query(q, where("tags", "array-contains-any", filters.tags));
+        }
+        if (filters?.author) {
+          q = query(q, where("owner", "==", filters.author));
+        }
+        if (tokenIds.length > 0) {
+          q = query(q, where("tokenIds", "array-contains-any", tokenIds));
+        }
+
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.empty) return [];
+
+        const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
+          const listing = doc.data() as ExptListingWithAuthorProfile;
+          listing.id = doc.id;
+          console.log("listing", listing);
+          listing.authorProfile = await fetchProfile(listing.author);
+          return listing;
+        });
+        return await Promise.all(withAuthorPromises);
+      });
+
+      const listingsArrays = await Promise.all(listingPromises);
+
+      // Flatten the array of arrays into a single array
+      const listings = listingsArrays.flat();
+
+      return listings;
+    }
+
+    /**
+     * Fetches the list of bookings based on the provided filters.
+     * @param lastDocTimeStamp - The timestamp of the last document.
+     * @param size - The number of bookings to fetch.
+     * @param filters - The filters to apply.
+     * @returns A promise that resolves to an array of bookings.
+     */
+    async function fetchBookings(
+      lastDocTimeStamp?: Timestamp,
+      size = 1,
+      filters?: BookingFilters
+    ): Promise<Booking[]> {
       let q = query(
-        EXPT_LISTINGS_COLLECTION,
+        BOOKINGS_COLLECTION,
         orderBy("timestamp", "desc"),
         limit(size)
       );
@@ -979,356 +1194,364 @@ export default function useBackend() {
       if (filters?.tags) {
         q = query(q, where("tags", "array-contains-any", filters.tags));
       }
-      if (filters?.author) {
-        q = query(q, where("owner", "==", filters.author));
+      if (filters?.mentee) {
+        q = query(q, where("mentee", "==", filters.mentee));
       }
-      if (tokenIds.length > 0) {
-        q = query(q, where("tokenIds", "array-contains-any", tokenIds));
+      if (filters?.mentor) {
+        q = query(q, where("mentor", "==", filters.mentor));
+      }
+      if (filters?.isPast) {
+        q = query(q, where("timestamp", "<", serverTimestamp()));
+      }
+      if (filters?.isUpcoming) {
+        q = query(q, where("timestamp", ">", serverTimestamp()));
       }
 
       const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) return [];
 
-      const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
-        const listing = doc.data() as ExptListingWithAuthorProfile;
-        listing.id = doc.id;
-        console.log("listing", listing);
-        listing.authorProfile = await fetchProfile(listing.author);
-        return listing;
+      const bookingPromises = querySnapshot.docs.map(async (doc) => {
+        const booking = doc.data() as Booking;
+        booking.id = doc.id;
+        booking.exptListing = await fetchSingleListing(booking.exptListingId);
+        return booking;
       });
-      return await Promise.all(withAuthorPromises);
-    });
-
-    const listingsArrays = await Promise.all(listingPromises);
-
-    // Flatten the array of arrays into a single array
-    const listings = listingsArrays.flat();
-
-    return listings;
-  }
-  async function fetchBookings(
-    lastDocTimeStamp?: Timestamp,
-    size = 1,
-    filters?: BookingFilters
-  ): Promise<Booking[]> {
-    let q = query(
-      BOOKINGS_COLLECTION,
-      orderBy("timestamp", "desc"),
-      limit(size)
-    );
-
-    if (lastDocTimeStamp) {
-      q = query(q, startAfter(lastDocTimeStamp));
-    }
-    if (filters?.tags) {
-      q = query(q, where("tags", "array-contains-any", filters.tags));
-    }
-    if (filters?.mentee) {
-      q = query(q, where("mentee", "==", filters.mentee));
-    }
-    if (filters?.mentor) {
-      q = query(q, where("mentor", "==", filters.mentor));
-    }
-    if (filters?.isPast) {
-      q = query(q, where("timestamp", "<", serverTimestamp()));
-    }
-    if (filters?.isUpcoming) {
-      q = query(q, where("timestamp", ">", serverTimestamp()));
+      const bookings = await Promise.all(bookingPromises);
+      return bookings;
     }
 
-    const querySnapshot = await getDocs(q);
-
-    const bookingPromises = querySnapshot.docs.map(async (doc) => {
-      const booking = doc.data() as Booking;
-      booking.id = doc.id;
-      booking.exptListing = await fetchSingleListing(booking.exptListingId);
-      return booking;
-    });
-    const bookings = await Promise.all(bookingPromises);
-    return bookings;
-  }
-
-  // Helper function to split an array into chunks
-  function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-    return Array(Math.ceil(array.length / chunkSize))
-      .fill(null)
-      .map((_, index) => index * chunkSize)
-      .map((begin) => array.slice(begin, begin + chunkSize));
-  }
-
-  async function updateUser(updates: Omit<Partial<SignUpData>, "email">) {
-    const updateResult = (await update({ updates })) as unknown as {
-      updateValidationError: {
-        code: string;
-        validationResult: userUpdateValidationResult;
-      };
-    };
-    if (updateResult?.updateValidationError) {
-      // setUser({ ...user!, ...updates });
-      return { updateValidationError: updateResult.updateValidationError };
-    }
-    return updates;
-  }
-
-  /**
-   * Updates the user profile.
-   * @param updates - The profile updates.
-   * @throws Error if there is an error updating the user profile.
-   */
-  async function updateProfile(updates: {
-    displayName?: string;
-    profilePicture?: File;
-    about?: string;
-    username?: string;
-    tags?: string;
-  }) {
-    const _updates: { [key: string]: string | boolean | File } = { ...updates };
-    if (updates.profilePicture) {
-      try {
-        const imageURL = await uploadImage(
-          updates.profilePicture,
-          user?.uid!,
-          "profilePictures"
-        );
-        _updates.photoURL = imageURL;
-        delete _updates.profilePicture;
-      } catch (err: any) {
-        throw new Error("Error uploading image. Details: " + err.message);
-      }
+    // Helper function to split an array into chunks
+    function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+      return Array(Math.ceil(array.length / chunkSize))
+        .fill(null)
+        .map((_, index) => index * chunkSize)
+        .map((begin) => array.slice(begin, begin + chunkSize));
     }
 
-    try {
-      return await updateUser(_updates);
-    } catch (err: any) {
-      throw new Error("Error updating user profile. Details: " + err.message);
-    }
-  }
 
-  async function checkFollowing(id: string) {
-    try {
-      const userFollowersRef = doc(
-        USERS_COLLECTION,
-        id,
-        "followers",
-        user?.uid!
-      );
-      const userFollowersSnap = await getDoc(userFollowersRef);
-      return !!userFollowersSnap.exists();
-    } catch (err: any) {
-      console.log("err", err.message);
-    }
-    return false;
-  }
-
-  async function fetchClaimHistory(uid = user?.uid) {
-    try {
-      const historySnap = await getDocs(
-        query(
-          CLAIM_HISTORY_COLLECTION,
-          where("uid", "==", uid),
-          orderBy("timestamp", "desc")
-        )
-      );
-      const history = historySnap.docs.map((doc) => {
-        const data = doc.data();
-        data.id = doc.id;
-        return data;
-      });
-      return history as ClaimHistoryItem[];
-    } catch (err) {
-      console.log("error fetching claim history. ", err);
-    }
-  }
-
-  async function buyExpt(listing: ExptListing) {
-    if (!user?.uid) {
-      throw new Error("User not logged in");
-    }
-    async function updateListingInFireStore(boughtTokenId: number) {
-      try {
-        updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
-          remainingTokenIds: arrayRemove(boughtTokenId),
-          collectionSize: increment(-1),
-        });
-      } catch (error) {
-        console.log("error Updating Token listing ", error);
-      }
-    }
-    try {
-      console.log("approving stableCoin transfer in contract");
-      const tx = await stableCoin.approve(
-        emtMarketplace.target,
-        listing.price * 10 ** 6
-      );
-      const receipt = await tx.wait();
-      console.log(receipt);
-      console.log("buying expts in contract");
-      let exptToBuyIndex = listing.remainingTokenIds.length - 1;
-
-      //this loop is here because the chosen expt to buy
-      // might have been bought already before this user completes the purchase
-      while (exptToBuyIndex >= 0) {
-        const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
+    /**
+     * Updates the user profile with the provided updates.
+     * Also validates the updates before updating the user.
+     * @param updates - The profile updates.
+     * @throws Error if there is an error updating the user profile.
+     * @returns A promise that resolves to the updated profile.
+     */
+    async function updateProfile(updates: {
+      displayName?: string;
+      profilePicture?: File;
+      about?: string;
+      username?: string;
+      tags?: string;
+    }) {
+      const _updates: { [key: string]: string | boolean | File } = { ...updates };
+      if (updates.profilePicture) {
         try {
-          console.log("tokenToBuyId", tokenToBuyId, listing);
-          const tx = await emtMarketplace.buyExpt(tokenToBuyId);
-          await tx!.wait();
-          console.log("bought expts in contract");
-          await updateListingInFireStore(tokenToBuyId);
-          return true;
+          const imageURL = await uploadImage(
+            updates.profilePicture,
+            user?.uid!,
+            "profilePictures"
+          );
+          _updates.photoURL = imageURL;
+          delete _updates.profilePicture;
         } catch (err: any) {
-          if (err.message.includes("No deposit yet for token id")) {
-            console.log("this expt has probably been bought. Trying the next");
-            exptToBuyIndex = exptToBuyIndex - 1;
-          } else throw new Error(err);
+          throw new Error("Error uploading image. Details: " + err.message);
         }
       }
-    } catch (err: any) {
-      console.log("Error buying expts. Message: " + err.message);
+
+      try {
+        return await sendUserProfileUpdates(_updates);
+      } catch (err: any) {
+        throw new Error("Error updating user profile. Details: " + err.message);
+      }
+          /**
+     * Sends the provided updates to the database.
+     * Validation is done here
+     * @param updates - The updates to apply to the user.
+     * @returns A promise that resolves to the updated user.
+     * @returns A promise that resolves to an object containing the validation error if there is a validation error.
+     */
+    async function sendUserProfileUpdates(updates: Omit<Partial<SignUpData>, "email">) {
+      const updateResult = (await update({ updates })) as unknown as {
+        updateValidationError: {
+          code: string;
+          validationResult: userUpdateValidationResult;
+        };
+      };
+      if (updateResult?.updateValidationError) {
+        // setUser({ ...user!, ...updates });
+        return { updateValidationError: updateResult.updateValidationError };
+      }
+      return updates;
+    }
+
+    }
+
+    /**
+     * Checks if the current user is following the specified user.
+     * @param id - The ID of the user to check.
+     * @returns A promise that resolves to a boolean indicating if the current user is following the specified user.
+     */
+    async function checkFollowing(id: string) {
+      try {
+        const userFollowersRef = doc(
+          USERS_COLLECTION,
+          id,
+          "followers",
+          user?.uid!
+        );
+        const userFollowersSnap = await getDoc(userFollowersRef);
+        return !!userFollowersSnap.exists();
+      } catch (err: any) {
+        console.log("err", err.message);
+      }
       return false;
     }
-  }
 
-  async function fetchOwnedExptIds(uid = user?.uid) {
-    if (!uid) return [];
-    try {
-      console.log("fetching tokens of user");
-      const val = await expertToken.tokensOfOwner(uid);
-      const tokenIds = val.map((id) => Number(id));
-      console.log("tokens of owner", tokenIds);
-      return tokenIds;
-    } catch (err: any) {
-      console.log("error fetching owned expts ids ", err);
-      return [];
-    }
-  }
-
-  async function fetchProfiles(
-    lastdocParam?: any,
-    size = 5,
-    filters?: ProfileFilters
-  ) {
-    let q = query(USERS_COLLECTION, limit(size));
-    if (lastdocParam) {
-      q = query(q, startAfter(lastdocParam));
-    }
-    if (filters?.ment) {
-      console.log("filters.ment", filters);
-      q = query(q, orderBy("ment", filters.ment));
-    }
-    if (filters?.level) {
-      q = query(
-        q,
-        where("ment", ">=", exptLevels![filters.level].requiredMent)
-      );
-    }
-    if (filters?.tags) {
-      q = query(q, where("tags", "array-contains-any", filters.tags));
-    }
-    if (filters?.numFollowers) {
-      //TODO @Jovells update follow function to store count in firestore
-      q = query(q, orderBy("numFollowers", filters.numFollowers));
-    }
-    if (filters?.usernames) {
-      q = query(
-        q,
-        where(
-          "usernameLowercase",
-          "in",
-          filters?.usernames.map((u) => u.toLowerCase())
-        )
-      );
-    }
-    if (filters?.uids) {
-      q = query(q, where(documentId(), "in", filters.uids));
-    }
-    if (filters?.isFollowing) {
-      //TODO @Jovells
-    }
-    if (filters?.isNotFollowing) {
-      //TODO @Jovells
+    /**
+     * Fetches the claim history of the specified user.
+     * @param uid - The ID of the user. Defaults to the current user's ID.
+     * @returns A promise that resolves to an array of claim history items.
+     */
+    async function fetchClaimHistory(uid = user?.uid) {
+      try {
+        const historySnap = await getDocs(
+          query(
+            CLAIM_HISTORY_COLLECTION,
+            where("uid", "==", uid),
+            orderBy("timestamp", "desc")
+          )
+        );
+        const history = historySnap.docs.map((doc) => {
+          const data = doc.data();
+          data.id = doc.id;
+          return data;
+        });
+        return history as ClaimHistoryItem[];
+      } catch (err) {
+        console.log("error fetching claim history. ", err);
+      }
     }
 
-    const querySnapshot = await getDocs(q);
-    const profiles = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
-      data.uid = doc.id;
-      return data;
-    });
-    return profiles;
-  }
+    /**
+     * Buys an expt listing.
+     * @param listing - The expt listing to buy.
+     * @returns A promise that resolves to a boolean indicating if the purchase was successful.
+     * @throws Error if the user is not logged in or there is an error buying the expt.
+     */
+    async function buyExpt(listing: ExptListing) {
+      if (!user?.uid) {
+        throw new Error("User not logged in");
+      }
+      async function updateListingInFireStore(boughtTokenId: number) {
+        try {
+          updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
+            remainingTokenIds: arrayRemove(boughtTokenId),
+            collectionSize: increment(-1),
+          });
+        } catch (error) {
+          console.log("error Updating Token listing ", error);
+        }
+      }
+      try {
+        console.log("approving stableCoin transfer in contract");
+        const tx = await stableCoin.approve(
+          emtMarketplace.target,
+          listing.price * 10 ** 6
+        );
+        const receipt = await tx.wait();
+        console.log(receipt);
+        console.log("buying expts in contract");
+        let exptToBuyIndex = listing.remainingTokenIds.length - 1;
 
-  const profileReady = exptLevels !== undefined;
-  async function fetchMemberVotes(id: string) {
-    if (!user?.uid) throw new Error("User not logged in");
-    console.log("fetchingMemberVotes", id);
-    try {
-      const contentId = ethers.encodeBytes32String(id);
-      const [upvoted, downvoted] = await emtMarketplace.memberVotes(
-        contentId,
-        user.uid
-      );
-      return [upvoted, downvoted];
-    } catch (err: any) {
-      console.log("error fetching member votes", err);
-      throw new Error(err);
+        //this loop is here because the chosen expt to buy
+        // might have been bought already before this user completes the purchase
+        while (exptToBuyIndex >= 0) {
+          const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
+          try {
+            console.log("tokenToBuyId", tokenToBuyId, listing);
+            const tx = await emtMarketplace.buyExpt(tokenToBuyId);
+            await tx!.wait();
+            console.log("bought expts in contract");
+            await updateListingInFireStore(tokenToBuyId);
+            return true;
+          } catch (err: any) {
+            if (err.message.includes("No deposit yet for token id")) {
+              console.log("this expt has probably been bought. Trying the next");
+              exptToBuyIndex = exptToBuyIndex - 1;
+            } else throw new Error(err);
+          }
+        }
+      } catch (err: any) {
+        console.log("Error buying expts. Message: " + err.message);
+        return false;
+      }
     }
-  }
 
-  async function fetchPostVotes(id: string): Promise<PostVotes> {
-    console.log("fetchPostVotes", id);
-    try {
-      const contentId = ethers.encodeBytes32String(id);
-      const [_upvotes, _downvotes, diffrence] =
-        await emtMarketplace.contentVotes(contentId);
-      const [userUpvoted, userDownvoted] = user?.uid
-        ? await fetchMemberVotes(id)
-        : [undefined, undefined];
-      return {
-        upvotes: Number(_upvotes),
-        downvotes: Number(_downvotes),
-        userUpvoted,
-        userDownvoted,
-      };
-    } catch (e: any) {
-      console.log("error fetching post votes", e);
-      return {
-        upvotes: 0,
-        downvotes: 0,
-        userUpvoted: undefined,
-        userDownvoted: undefined,
-      };
+    /**
+     * Fetches the IDs of the expts owned by the specified user.
+     * @param uid - The ID of the user. Defaults to the current user's ID.
+     * @returns A promise that resolves to an array of expt IDs.
+     */
+    async function fetchOwnedExptIds(uid = user?.uid) {
+      if (!uid) return [];
+      try {
+        console.log("fetching tokens of user");
+        const val = await expertToken.tokensOfOwner(uid);
+        const tokenIds = val.map((id) => Number(id));
+        console.log("tokens of owner", tokenIds);
+        return tokenIds;
+      } catch (err: any) {
+        console.log("error fetching owned expts ids ", err);
+        return [];
+      }
     }
-  }
 
-  return {
-    balances,
-    refetchBalances,
-    isFetchingBalances,
-    fetchPostVotes,
-    createPost,
-    fetchClaimHistory,
-    fetchBookings,
-    buyExpt,
-    fetchExptListings,
-    fetchSingleListing,
-    listExpts,
-    profileReady,
-    updateProfile,
-    fetchUnclaimedExpt,
-    fetchUnclaimedMent,
-    claimMent,
-    claimExpt,
-    fetchNotifications,
-    fetchUserPosts,
-    uploadImage,
-    followUser,
-    unfollowUser,
-    fetchPosts,
-    fetchProfile,
-    checkFollowing,
-    voteOnPost,
-    fetchSinglePost,
-    fetchProfiles,
+    /**
+     * Fetches the profiles based on the provided filters.
+     * @param lastdocParam - The last document parameter.
+     * @param size - The number of profiles to fetch.
+     * @param filters - The filters to apply.
+     * @returns A promise that resolves to an array of profiles.
+     */
+    async function fetchProfiles(
+      lastdocParam?: any,
+      size = 5,
+      filters?: ProfileFilters
+    ) {
+      let q = query(USERS_COLLECTION, limit(size));
+      if (lastdocParam) {
+        q = query(q, startAfter(lastdocParam));
+      }
+      if (filters?.ment) {
+        console.log("filters.ment", filters);
+        q = query(q, orderBy("ment", filters.ment));
+      }
+      if (filters?.level) {
+        q = query(
+          q,
+          where("ment", ">=", exptLevels![filters.level].requiredMent)
+        );
+      }
+      if (filters?.tags) {
+        q = query(q, where("tags", "array-contains-any", filters.tags));
+      }
+      if (filters?.numFollowers) {
+        //TODO @Jovells update follow function to store count in firestore
+        q = query(q, orderBy("numFollowers", filters.numFollowers));
+      }
+      if (filters?.usernames) {
+        q = query(
+          q,
+          where(
+            "usernameLowercase",
+            "in",
+            filters?.usernames.map((u) => u.toLowerCase())
+          )
+        );
+      }
+      if (filters?.uids) {
+        q = query(q, where(documentId(), "in", filters.uids));
+      }
+      if (filters?.isFollowing) {
+        //TODO @Jovells
+      }
+      if (filters?.isNotFollowing) {
+        //TODO @Jovells
+      }
+
+      const querySnapshot = await getDocs(q);
+      const profiles = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        data.uid = doc.id;
+        return data;
+      });
+      return profiles;
+    }
+
+    /**
+     * Fetches the member votes for the specified content.
+     * @param id - The ID of the content.
+     * @returns A promise that resolves to an array of member votes.
+     * @throws Error if the user is not logged in or there is an error fetching the member votes.
+     */
+    async function fetchMemberVotes(id: string) {
+      if (!user?.uid) throw new Error("User not logged in");
+      console.log("fetchingMemberVotes", id);
+      try {
+        const contentId = ethers.encodeBytes32String(id);
+        const [upvoted, downvoted] = await emtMarketplace.memberVotes(
+          contentId,
+          user.uid
+        );
+        return [upvoted, downvoted];
+      } catch (err: any) {
+        console.log("error fetching member votes", err);
+        throw new Error(err);
+      }
+    }
+
+    /**
+     * Fetches the votes for the specified post.
+     * @param id - The ID of the post.
+     * @returns A promise that resolves to the post votes.
+     */
+    async function fetchPostVotes(id: string): Promise<PostVotes> {
+      console.log("fetchPostVotes", id);
+      try {
+        const contentId = ethers.encodeBytes32String(id);
+        const [_upvotes, _downvotes, diffrence] =
+          await emtMarketplace.contentVotes(contentId);
+        const [userUpvoted, userDownvoted] = user?.uid
+          ? await fetchMemberVotes(id)
+          : [undefined, undefined];
+        return {
+          upvotes: Number(_upvotes),
+          downvotes: Number(_downvotes),
+          userUpvoted,
+          userDownvoted,
+        };
+      } catch (e: any) {
+        console.log("error fetching post votes", e);
+        return {
+          upvotes: 0,
+          downvotes: 0,
+          userUpvoted: undefined,
+          userDownvoted: undefined,
+        };
+      }
+    }
+
+    const profileReady = exptLevels !== undefined;
+
+    return {
+      balances,
+      refetchBalances,
+      isFetchingBalances,
+      fetchPostVotes,
+      createPost,
+      submitRequest,
+      fetchClaimHistory,
+      fetchBookings,
+      buyExpt,
+      fetchExptListings,
+      fetchSingleListing,
+      listExpts,
+      profileReady,
+      updateProfile,
+      fetchUnclaimedExpt,
+      fetchUnclaimedMent,
+      claimMent,
+      claimExpt,
+      fetchNotifications,
+      fetchUserPosts,
+      uploadImage,
+      followUser,
+      unfollowUser,
+      fetchPosts,
+      fetchProfile,
+      checkFollowing,
+      voteOnPost,
+      fetchSinglePost,
+      fetchProfiles,
+      fetchPrivacyPolicy
+    }
   };
-}

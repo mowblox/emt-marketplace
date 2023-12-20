@@ -10,10 +10,10 @@ export const PROFILE_PAGE = (uid:string) => `/dapp/profile/${uid}`
 export const NOTIFICATIONS_PAGE = "/dapp/notifications"
 export const CREATE_A_POST_PAGE = "/dapp/p/create"
 
-export const WELCOME_PAGE = "/welcome"
-export const FAQ_PAGE = "/faq"
-export const HELP_PAGE = "/help"
-export const PRIVACY_POLICY_PAGE = "/privacy-policy"
+export const WELCOME_PAGE = "/"
+export const FAQ_PAGE = "/dapp/faq"
+export const HELP_PAGE = "/dapp/help"
+export const PRIVACY_POLICY_PAGE = "/dapp/privacy-policy"
 export const ONBOARDING_PAGE = (stage?: | 2 | 3 | 4) =>  "/onboarding" + (stage ? `/${stage}` : "")
 
 export const primaryNavigationLinks = [

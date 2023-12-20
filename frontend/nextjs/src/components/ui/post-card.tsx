@@ -13,7 +13,7 @@ import { HiCheckBadge, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
 import { POST_PAGE } from '@/app/(with wallet)/_components/page-links';
 import { Content, POST_TYPES } from "@/lib/types";
-import Voter from './Voter';
+import Voter from '@/components/ui/voter';
 import { formatDistance } from 'date-fns';
 import { RichTextDisplayContainer } from '@/components/ui/rich-text-display-container';
 import { Badge } from './badge';

@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import useBackend from "@/lib/hooks/useBackend";
 import { isValidFileType, placeholderImage } from "@/lib/utils";
@@ -57,7 +56,6 @@ const formSchema = z.object({
 });
 
 const CreatePostForm = () => {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { createPost } = useBackend();
   const { data, mutateAsync } = useMutation({
     mutationFn: (variables: {
@@ -79,10 +77,8 @@ const CreatePostForm = () => {
     },
   });
   const imageRef = React.useRef<HTMLInputElement>(null);
-  const [isCreatePostLoading, setIsCreatePostLoading] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
-
-  const { toast } = useToast();
 
   function handleTags(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -95,7 +91,7 @@ const CreatePostForm = () => {
   }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsCreatePostLoading(true);
+    setIsFormLoading(true);
 
     const image = imageRef.current?.files![0] as File;
     try {
@@ -109,10 +105,10 @@ const CreatePostForm = () => {
       });
       router.push(POST_PAGE(id));
 
-      setIsCreatePostLoading(false);
+      setIsFormLoading(false);
     } catch (error: any) {
       console.error(error.message);
-      setIsCreatePostLoading(false);
+      setIsFormLoading(false);
     }
   }
 
@@ -176,8 +172,16 @@ const CreatePostForm = () => {
             name="coverPhoto"
             render={({ field }) => (
               <FormItem>
+                <FormLabel aria-required>Cover Photo <span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl className="mb-3">
                   <>
+                  <Input
+                      placeholder="Upload photo"
+                      className="mb-4 hover:cursor-pointer"
+                      type="file"
+                      {...field}
+                      ref={imageRef}
+                    />
                     <div className="w-40 h-20 relative rounded-md">
                       <Image
                         src={
@@ -191,18 +195,9 @@ const CreatePostForm = () => {
                         alt={`Add a cover image`}
                       />
                     </div>
-
-                    <Input
-                      placeholder="Upload photo"
-                      className="mb-4"
-                      type="file"
-                      {...field}
-                      ref={imageRef}
-                    />
                     <div className="mb-4"></div>
                   </>
                 </FormControl>
-                <FormLabel>Cover Photo</FormLabel>
                 <FormMessage />
               </FormItem>
             )}
@@ -213,7 +208,7 @@ const CreatePostForm = () => {
             name="postTitle"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>Title<span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl>
                   <Input placeholder="Your post title" {...field} />
                 </FormControl>
@@ -227,7 +222,7 @@ const CreatePostForm = () => {
             name="postBody"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Body</FormLabel>
+                <FormLabel>Body<span className="text-xs text-muted ml-2">Required</span></FormLabel>
                 <FormControl>
                   <RichTextEditor
                     placeholder="Answer a question or explain a concept"
@@ -279,9 +274,9 @@ const CreatePostForm = () => {
             </Button>
             <Button
               type="submit"
-              isLoading={isCreatePostLoading}
+              isLoading={isFormLoading}
               loadingText="Creating post"
-              disabled={isCreatePostLoading || !form.formState.isValid}
+              disabled={isFormLoading || !form.formState.isValid}
               variant="gradient"
               className="w-full md:w-[160px]">
               Post

@@ -14,7 +14,7 @@ import { useUser } from "@/lib/hooks/user";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import LoadingCircle from "./loading-circle";
 
-export default function Voter({ post }: { post: Content }) {
+export default function VoteCount({ post }: { post: Content }) {
   const { voteOnPost, fetchPostVotes } = useBackend();
   const { user } = useUser();
   const { openConnectModal } = useConnectModal();
@@ -58,53 +58,11 @@ export default function Voter({ post }: { post: Content }) {
       return false;
     }
   });
-
-  async function handleVote(
-    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) {
-    const voteType = e.currentTarget.name as "upvote" | "downvote";
-    const res = await mutateAsync({
-      id: post.metadata.id,
-      voteType,
-      owner: post.author?.uid,
-    });
-    console.log("res", res);
-  }
   return (
-    <div className="flex items-center">
-      <div className="flex items-center">
-        <Button
-        disabled= {isPending}
-          onClick={handleVote}
-          name="upvote"
-          variant={"ghost"}
-          aria-label="Upvote a post"
-          size="icon">
-            {
-votes?.userUpvoted?
-          <HiHandThumbUp className="h-5 w-5 text-foreground" />:
-          <HiOutlineHandThumbUp className="h-5 w-5 text-foreground" />
-            }
-        </Button>
-        <div className="text-sm text-foreground ml-1">
+    <div className="text-sm text-muted mt-3">
           {isPending?
           <LoadingCircle/>:
-          votes ? votes.upvotes - votes.downvotes : 0}
+          votes ? votes.upvotes + votes.downvotes : 0} votes
         </div>
-      </div>
-      <div className="flex items-center ml-2">
-        <Button
-        disabled= {isPending}
-          onClick={handleVote}
-          variant="ghost"
-          aria-label="Downvote a post"
-          name="downvote"
-          size="icon">
-{votes?.downvotes?
-          <HiHandThumbDown className="h-5 w-5 text-foreground" />:
-          <HiOutlineHandThumbDown className="h-5 w-5 text-foreground" />
-            }        </Button>
-      </div>
-    </div>
   );
 }
