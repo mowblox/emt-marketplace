@@ -146,7 +146,7 @@ const CreatePostForm = () => {
           />
 
           {/* Only display the post type if you're answering a question */}
-          {form.watch().postType == POST_TYPE[2] && (
+          {form.watch().postType == POST_TYPE[2] ? (
             <FormField
               control={form.control}
               name="questionPostURL"
@@ -163,7 +163,10 @@ const CreatePostForm = () => {
                 </FormItem>
               )}
             />
-          )}
+          ):(
+          (form.getFieldState('questionPostURL').isDirty&&form.resetField('questionPostURL')), "")
+          }
+
 
           <Separator />
 
@@ -274,7 +277,7 @@ const CreatePostForm = () => {
             </Button>
             <Button
               type="submit"
-              isLoading={isFormLoading}
+              isLoading={isFormLoading} 
               loadingText="Creating post"
               disabled={isFormLoading || !form.formState.isValid}
               variant="gradient"
