@@ -940,6 +940,7 @@ export default function useBackend() {
     let tx: ContractTransactionResponse;
     const isUpvote = voteType === "upvote";
     try {
+      console.log('voting in contract. firebases Id:', id, "contentId:", contentId)
       if (isUpvote) {
         tx = await emtMarketplace.upVoteContent(contentId);
       } else if (voteType === "downvote") {
@@ -958,7 +959,7 @@ export default function useBackend() {
       createNotification({
         type: voteType,
         contentId: id,
-        recipients: [user.uid],
+        recipients: [owner],
       });
       t("Vote SuccessFul", 100);
       return {

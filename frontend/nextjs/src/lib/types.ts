@@ -51,7 +51,7 @@ export interface Content {
   metadata: PostVotes & {
     id: string;
   },
-  author: UserProfile
+  author: Omit<UserProfile, 'uid'>
 }
 
 export interface ExpertTicket {
