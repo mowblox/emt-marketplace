@@ -79,7 +79,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = useMemo(() => async function (options?:{redirect?: boolean }) {
-    console.error('signing in', session?.firebaseToken?.substring(0, 4))
     try {
       setIsLoading(true);
       if (session?.firebaseToken) {
