@@ -16,6 +16,7 @@ export default function UserList({ filters }: { filters?: ProfileFilters }) {
       queryKey={["profiles"]}
       itemKey={(data: UserProfile) => data.uid}
       filters={filters}
+      noDataMessage="No profiles found. Please try later"
       ItemComponent={({ data }: { data: UserProfile }) => (
         <Link
           key={data.uid}

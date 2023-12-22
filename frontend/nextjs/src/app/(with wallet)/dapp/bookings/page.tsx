@@ -33,6 +33,7 @@ const {user} = useUser();
                        fetcher={fetchBookings}
                        filters={{mentor: user?.uid} as BookingFilters}
                        queryKey={["bookings"]}
+                       noDataMessage="No bookings found. Please try later"
                        ItemComponent ={({data}: {data: Booking})=><><div className="opacity-[0.4]">
                             <ExpertHubCard data={data.exptListing!} disableLink={true} />
                         </div>

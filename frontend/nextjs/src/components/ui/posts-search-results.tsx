@@ -15,6 +15,7 @@ export default function PostsSearchResults({ filters }: Props) {
   return (
     <InfiniteScroll
       itemKey={(data: Content) => data.metadata.id}
+      noDataMessage="No posts found. Please try later"
       ItemComponent={(props) => (
         <>
           <PostSearchCard {...props} />

@@ -177,6 +177,7 @@ const ExptBookingsHistory = () => {
       filters={{ mentor: user?.uid } as BookingFilters}
       queryKey={["bookings"]}
       fetcher={fetchBookings}
+      noDataMessage="No data found. Please try later"
       ItemComponent={({ data }: { data: Booking }) => {
         const exptListing = data.exptListing!;
         return (

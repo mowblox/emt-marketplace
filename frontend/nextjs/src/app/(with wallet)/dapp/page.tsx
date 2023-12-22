@@ -68,13 +68,13 @@ export default function RootLayout() {
       <div className="h-full px-0 md:px-2 py-6 col-span-4 lg:col-span-4 md:border-x">
         <ScrollArea className="h-[90vh] w-full px-4 md:px-0">
           <div className="flex flex-col">
-            <Tabs defaultValue="all" className="w-full px-2">
+            <Tabs defaultValue="all-posts" className="w-full px-2">
               <TabsList className="">
-                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="all-posts">All Posts</TabsTrigger>
                 {user && <TabsTrigger value="following">Following</TabsTrigger>}
                 {/* <TabsTrigger value="design">Design</TabsTrigger> */}
               </TabsList>
-              <TabsContent value="all">
+              <TabsContent value="all-posts">
                   <Posts />
               </TabsContent>
               {user && <TabsContent value="following">

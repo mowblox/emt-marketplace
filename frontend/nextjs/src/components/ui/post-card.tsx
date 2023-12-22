@@ -41,9 +41,9 @@ const PostCard = ({ data }: { data: Content }) => {
                         </div>
                         <div className='ml-3'>
                             <div className="flex items-center">
-                                <Button variant="link" className='px-0 py-0 hover:text-accent-3' asChild><Link href={PROFILE_PAGE(author.uid)}>
-                                    <p className='text-md text-foreground'>{author?.displayName}</p>
-                                </Link></Button>
+                                <Link className='px-0 py-0 text-muted hover:text-accent-3' href={PROFILE_PAGE(author.uid)}>
+                                    {author?.displayName}
+                                </Link>
                                 {author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                                 <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                             </div>
