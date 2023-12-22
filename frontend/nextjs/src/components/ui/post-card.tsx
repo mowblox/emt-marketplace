@@ -11,7 +11,7 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiCheckBadge, HiOutlineShare } from "react-icons/hi2";
 import { Button } from '@/components/ui/button';
-import { POST_PAGE } from '@/app/(with wallet)/_components/page-links';
+import { POST_PAGE, PROFILE_PAGE } from '@/app/(with wallet)/_components/page-links';
 import { Content, POST_TYPES } from "@/lib/types";
 import Voter from '@/components/ui/voter';
 import { formatDistance } from 'date-fns';
@@ -22,8 +22,6 @@ import { Badge } from './badge';
 
 const PostCard = ({ data }: { data: Content }) => {
     const { post, author, metadata } = data
-
-    console.log(post.postType, post.postType == POST_TYPES.Question)
 
     return (
         <Card className='border-none p-4 hover:bg-accent-shade'>
@@ -43,7 +41,9 @@ const PostCard = ({ data }: { data: Content }) => {
                         </div>
                         <div className='ml-3'>
                             <div className="flex items-center">
-                                <p className='text-md text-foreground'>{author?.displayName}</p>
+                                <Button variant="link" className='px-0 py-0 hover:text-accent-3' asChild><Link href={PROFILE_PAGE(author.uid)}>
+                                    <p className='text-md text-foreground'>{author?.displayName}</p>
+                                </Link></Button>
                                 {author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                                 <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                             </div>

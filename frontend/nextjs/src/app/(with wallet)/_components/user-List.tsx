@@ -18,7 +18,7 @@ export default function UserList({ filters }: { filters?: ProfileFilters }) {
       filters={filters}
       ItemComponent={({ data }: { data: UserProfile }) => (
         <Link
-        key={data.uid}
+          key={data.uid}
           href={PROFILE_PAGE(data.uid)}
           className="px-3 py-2 rounded-md flex w-full items-center justify-between hover:bg-accent-shade">
           <div className="flex items-center">
