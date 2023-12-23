@@ -7,14 +7,16 @@ import InfiniteScroll from "./infinite-scroller";
 
 type Props = {
   filters?: { owner?: string; tags?: string[]; isFollowing?: true };
+  sizePerFetch?: number;
 };
 
-export default function Posts({ filters }: Props) {
+export default function Posts({ filters, sizePerFetch }: Props) {
   const { fetchPosts } = useBackend();
 
   return (
     <InfiniteScroll
       itemKey={(data: Content) => data.metadata.id}
+      size={sizePerFetch || 5}
       ItemComponent={(props) => (
         <>
           <PostCard {...props} />

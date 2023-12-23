@@ -121,7 +121,7 @@ export default function InfiniteScroll({
         })}
       </div>
 
-      <div ref={ref}>
+      <div className="-mt-1.5" ref={ref}>
         {isFetchingNextPage ? (
           noDataComponent ? (
             noDataComponent
