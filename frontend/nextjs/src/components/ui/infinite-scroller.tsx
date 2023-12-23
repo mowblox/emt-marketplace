@@ -57,9 +57,13 @@ export default function InfiniteScroll({
     error,
   } = useInfiniteQuery({
     queryKey: [...queryKey, size, filters],
-    queryFn: async ({ pageParam, meta }) => {
+    queryFn: async ({ pageParam }) => {
       filters = filters;
       const datas = await fetcher(pageParam, size, filters);
+      if (filters?.isNotFollowing){
+        console.log('datapages', datas)
+      }
+    
       return datas;
     },
     initialPageParam: undefined as any,
@@ -101,6 +105,7 @@ export default function InfiniteScroll({
     return <NoData message={noDataMessage} />;
   }
 
+ 
   return (
     <>
       <div {...props}>
@@ -116,7 +121,7 @@ export default function InfiniteScroll({
         })}
       </div>
 
-      <div ref={ref}>
+      <div className="-mt-1.5" ref={ref}>
         {isFetchingNextPage ? (
           noDataComponent ? (
             noDataComponent

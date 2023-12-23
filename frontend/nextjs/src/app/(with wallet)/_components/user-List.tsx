@@ -7,9 +7,14 @@ import Link from "next/link";
 import { PROFILE_PAGE } from "./page-links";
 import { HiCheckBadge, HiOutlineFire } from "react-icons/hi2";
 import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/lib/hooks/user";
 
-export default function UserList({ filters }: { filters?: ProfileFilters }) {
-  const { fetchProfiles } = useBackend();
+export default function UserList({ filters, max = 5 }: { filters?: ProfileFilters, max?: number }) {
+  const { fetchProfiles} = useBackend();
+  const {user} = useUser();
+  if (filters?.isNotFollowing && !user)
+  return <div className="pl-3">Sign in To get Suggestions</div>
+
   return (
     <InfiniteScroll
       fetcher={fetchProfiles}
@@ -17,6 +22,10 @@ export default function UserList({ filters }: { filters?: ProfileFilters }) {
       itemKey={(data: UserProfile) => data.uid}
       filters={filters}
       noDataMessage="No profiles found. Please try later"
+      getNextPageParam={(lastPage) => {
+        if(max && max<= lastPage.length) return undefined
+        return lastPage[lastPage.length - 1]
+      }}
       ItemComponent={({ data }: { data: UserProfile }) => (
         <Link
           key={data.uid}

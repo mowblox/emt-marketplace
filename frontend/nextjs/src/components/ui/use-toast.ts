@@ -6,6 +6,15 @@ import type {
   ToastProps,
 } from "@/components/ui/toast"
 
+  // INFO:  if you want to create a toast with a progress bar, use the snippet below
+  // toast({
+  //   title: "Profile updated!",
+  //   description: <div>
+  //     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
+  //   </div>,
+  //   duration: Infinity
+  // });
+
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 

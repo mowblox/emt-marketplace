@@ -23,7 +23,7 @@ const ProfileSearchCard = ({ data }: { data: Content }) => {
 
     return (
         <Card className='border-none p-4 hover:bg-accent-shade'>
-            <Link href={PROFILE_PAGE(author.uid)}>
+            <Link href={PROFILE_PAGE(post.owner)}>
 
                 <CardHeader className='px-0 pt-0 pb-0'>
                     <div className="flex items-center justify-between w-full">
