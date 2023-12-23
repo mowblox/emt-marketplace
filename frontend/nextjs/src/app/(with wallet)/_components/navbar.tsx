@@ -98,19 +98,25 @@ export const Navbar = () => {
                         <div className="space-y-2">
                           <div className="w-full">
                             {user ? (
-                              <SignInButton mobile label="Sign Out" style={{width: "100%"}}/>
+                              <PopoverClose className="w-full">
+                                <SignInButton mobile label="Sign Out" style={{width: "100%"}}/>
+                              </PopoverClose>
                             ) : (
-                              <SignInButton mobile label="Sign In" style={{width: "100%"}} />
+                              <PopoverClose className="w-full">
+                                <SignInButton mobile label="Sign In" style={{width: "100%"}} />
+                              </PopoverClose>
                             )}
                           </div>
                           <div className=" py-2">
                             <div className="space-y-1">
                               {primaryNavigationLinks.map((link) => (
-                                link.needsAuth && !user?.uid ? null : <Button
-                                  variant="ghost"
-                                  key={`primary-nav-${link}`}
-                                  className="w-full justify-start px-0"
-                                  asChild>
+                                link.needsAuth && !user?.uid ? null : 
+                                  <Button
+                                    variant="ghost"
+                                    key={`primary-nav-${link}`}
+                                    className="w-full justify-start px-0"
+                                    onClick={() => setMobileMenu(false)}
+                                    asChild>
                                   <Link
                                     href={
                                       typeof link.href === "function"
@@ -133,6 +139,7 @@ export const Navbar = () => {
                                 <Button
                                   variant="link"
                                   key={`resources-nav-${key}`}
+                                  onClick={() => setMobileMenu(false)}
                                   className="w-full text-sm font-normal py-0 h-9 text-muted justify-start px-0"
                                   asChild>
                                   <Link href={link.href}>{link.title}</Link>

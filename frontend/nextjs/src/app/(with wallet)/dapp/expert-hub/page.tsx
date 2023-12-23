@@ -33,6 +33,7 @@ const ExpertHub = () => {
           return lastPage[lastPage.length - 1]?.timestamp;
         }}
         queryKey={["exptListings"]}
+        noDataMessage="No EXPT listings found. Please try later"
       />
     </div>
   );

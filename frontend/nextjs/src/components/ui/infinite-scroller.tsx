@@ -24,6 +24,7 @@ type Props = {
   Separator?: React.ReactNode;
   noDataComponent?: React.ReactNode;
   loadingComonent?: React.ReactNode;
+  noDataMessage?: string;
 } & React.HtmlHTMLAttributes<HTMLDivElement>;
 
 export default function InfiniteScroll({
@@ -39,6 +40,7 @@ export default function InfiniteScroll({
   Separator,
   noDataComponent,
   loadingComonent: loadingComponent,
+  noDataMessage='No data loaded',
   ...props
 }: Props) {
   const { entry, ref } = useIntersection({
@@ -96,7 +98,7 @@ export default function InfiniteScroll({
   }
 
   if (!dataPages?.pages[0] && !isLoading) {
-    return <NoData message={"No " + queryKey} />;
+    return <NoData message={noDataMessage} />;
   }
 
   return (

@@ -15,6 +15,7 @@ export default function ProfileSearchResults({ filters }: Props) {
   return (
     <InfiniteScroll
       itemKey={(data: Content) => data.metadata.id}
+      noDataMessage="No profiles found. Please try later"
       ItemComponent={(props) => (
         <>
           <ProfileSearchCard {...props} />

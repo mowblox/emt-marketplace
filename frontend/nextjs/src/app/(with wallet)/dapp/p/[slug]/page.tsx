@@ -23,6 +23,8 @@ import { toast } from "@/components/ui/use-toast";
 import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-container';
 import { Badge } from '@/components/ui/badge';
 import UserList from '@/app/(with wallet)/_components/user-List';
+import Link from 'next/link';
+import { PROFILE_PAGE } from '@/app/(with wallet)/_components/page-links';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -138,7 +140,9 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                 </div>
                 <div className='ml-3'>
                   <div className="flex items-center">
-                    <p className='text-md text-foreground'>{post.author?.displayName}</p>
+                    <Link className='px-0 py-0 text-muted text-sm hover:text-accent-3' href={PROFILE_PAGE(post.author?.uid)}>
+                      {post.author?.displayName}
+                    </Link>
                     {post.author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                     <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                   </div>

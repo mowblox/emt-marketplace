@@ -495,6 +495,7 @@ export default function useBackend() {
     const userDocRef = doc(USERS_COLLECTION, owner);
     const userDoc = await getDoc(userDocRef);
     const author = userDoc.data() as Content["author"];
+    console.log('usebackend author: ', userDoc.data())
     const votes = await fetchPostVotes(id);
 
     return {
@@ -713,7 +714,7 @@ export default function useBackend() {
    */
   async function fetchPosts(
     lastDocTimeStamp?: Timestamp,
-    size = 1,
+    size = 5,
     filters?: PostFilters
   ): Promise<Content[]> {
     let q = query(
@@ -735,13 +736,12 @@ export default function useBackend() {
       q = query(q, where("owner", "in", filters.isFollowing));
     }
 
-    console.log("postFilters", filters);
-
     const querySnapshot = await getDocs(q);
 
     const promises = querySnapshot.docs.map(async (doc) => {
       const post = doc.data() as Content["post"];
       const { author, metadata } = await fetchPostMetadata(post.owner, doc.id);
+      author.uid = post.owner
       return { post, author, metadata };
     });
     const posts: Content[] = await Promise.all(promises);
@@ -1155,7 +1155,6 @@ export default function useBackend() {
         const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
           const listing = doc.data() as ExptListingWithAuthorProfile;
           listing.id = doc.id;
-          console.log("listing", listing);
           listing.authorProfile = await fetchProfile(listing.author);
           return listing;
         });
@@ -1422,7 +1421,6 @@ export default function useBackend() {
         q = query(q, startAfter(lastdocParam));
       }
       if (filters?.ment) {
-        console.log("filters.ment", filters);
         q = query(q, orderBy("ment", filters.ment));
       }
       if (filters?.level) {

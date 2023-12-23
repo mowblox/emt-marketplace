@@ -28,6 +28,7 @@ export default function Posts({ filters }: Props) {
       filters={filters}
       fetcher={fetchPosts}
       className="flex flex-col gap-y-4"
+      noDataMessage="No posts found. Please try later"
     />
   );
 }

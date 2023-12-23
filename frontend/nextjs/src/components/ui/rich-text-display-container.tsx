@@ -12,8 +12,8 @@ interface RichTextDisplayContainerProps {
     const truncated = isExcerpt ? truncate(richText, 340) : richText
     return (
       <div className="quill">
-        <div className="ql-container ql-snow" style={{background: "none", borderRadius: "0"}}>
-          <div className='text-muted w-full text-sm h-auto ql-editor' style={{height:"100%", padding: 0}} dangerouslySetInnerHTML={{__html: truncated}} ></div>
+        <div className="ql-container ql-snow" style={{background: "none", borderRadius: "0", border: "none"}}>
+          <div className='text-muted w-full text-sm h-auto ql-editor' style={{height:"100%", padding: 0, borderRadius: "0", border: "none"}} dangerouslySetInnerHTML={{__html: truncated}} ></div>
         </div>
       </div>
     )
