@@ -765,7 +765,6 @@ export default function useBackend() {
     const promises = querySnapshot.docs.map(async (doc) => {
       const post = doc.data() as Content["post"];
       const { author, metadata } = await fetchPostMetadata(post.owner, doc.id);
-      author.uid = post.owner
       return { post, author, metadata };
     });
     const posts: Content[] = await Promise.all(promises);

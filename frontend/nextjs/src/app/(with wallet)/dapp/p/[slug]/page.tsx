@@ -24,7 +24,8 @@ import {RichTextDisplayContainer} from '@/components/ui/rich-text-display-contai
 import { Badge } from '@/components/ui/badge';
 import UserList from '@/app/(with wallet)/_components/user-List';
 import Link from 'next/link';
-import { PROFILE_PAGE } from '@/app/(with wallet)/_components/page-links';
+import { POST_PAGE, PROFILE_PAGE } from '@/app/(with wallet)/_components/page-links';
+import ShareButton from '@/components/ui/share-button';
 
 
 const Post = ({ params }: { params: { slug: string } }) => {
@@ -140,7 +141,7 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                 </div>
                 <div className='ml-3'>
                   <div className="flex items-center">
-                    <Link className='px-0 py-0 text-muted text-sm hover:text-accent-3' href={PROFILE_PAGE(post.author?.uid)}>
+                    <Link className='px-0 py-0 text-muted text-sm hover:text-accent-3' href={PROFILE_PAGE(post.post.owner)}>
                       {post.author?.displayName}
                     </Link>
                     {post.author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
@@ -200,9 +201,7 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
 
               <Voter post={post} />
 
-              <Button variant="ghost" aria-label='Upvote a post' size="icon">
-                <HiOutlineShare className="h-5 w-5 text-foreground" />
-              </Button>
+              <ShareButton title={post.post.title} path={POST_PAGE(post.metadata.id)} />
             </CardFooter>
           </Card>
         </ScrollArea>

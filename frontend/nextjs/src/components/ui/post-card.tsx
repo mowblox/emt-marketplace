@@ -1,3 +1,4 @@
+'use client';
 import React from 'react'
 import {
     Card,
@@ -17,6 +18,7 @@ import Voter from '@/components/ui/voter';
 import { formatDistance } from 'date-fns';
 import { RichTextDisplayContainer } from '@/components/ui/rich-text-display-container';
 import { Badge } from './badge';
+import ShareButton from './share-button';
 
 
 
@@ -41,7 +43,7 @@ const PostCard = ({ data }: { data: Content }) => {
                         </div>
                         <div className='ml-3'>
                             <div className="flex items-center">
-                                <Link className='px-0 py-0 text-muted hover:text-accent-3' href={PROFILE_PAGE(author.uid)}>
+                                <Link className='px-0 py-0 text-muted hover:text-accent-3' href={PROFILE_PAGE(post.owner)}>
                                     {author?.displayName}
                                 </Link>
                                 {author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
@@ -92,9 +94,7 @@ const PostCard = ({ data }: { data: Content }) => {
             <CardFooter className='pb-0 px-0 flex justify-between'>
                 <Voter post={data} />
 
-                <Button variant="ghost" aria-label='Share post' size="icon">
-                    <HiOutlineShare className="h-5 w-5 text-foreground" />
-                </Button>
+                        <ShareButton title={post.title} path={POST_PAGE(metadata.id)}></ShareButton>
             </CardFooter>
         </Card>
     )
