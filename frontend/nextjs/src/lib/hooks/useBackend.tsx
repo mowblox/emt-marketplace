@@ -706,6 +706,29 @@ export default function useBackend() {
   }
 
   /**
+   * Retrieves the IDs of the users that a user is following.
+   * @param uid - The user ID. If not provided, the current user's ID will be used.
+   * @returns A promise that resolves to an array of followings IDs.
+   */
+  async function getUserFollowingsIds(uid = user?.uid, size=10) {
+    try {
+      const q = query(
+        collectionGroup(firestore, "followers"),
+        where("uid", "==", uid),
+        limit(size)
+      );
+      console.log("isfollowing");
+      const snap = await getDocs(q);
+      console.log(snap)
+      const uids = snap.docs.map((d) => d.ref.path.split("/")[1]);
+      return uids;
+    } catch (e) {
+      console.log("error fetching uids of followings", e);
+      return [];
+    }
+  }
+
+  /**
    * Fetches posts from the database.
    * @param lastDocTimeStamp - The timestamp of the last document.
    * @param size - The number of posts to fetch.
@@ -732,7 +755,9 @@ export default function useBackend() {
       q = query(q, where("owner", "==", filters.owner));
     }
     if (filters?.isFollowing) {
-      q = query(q, where("owner", "in", filters.isFollowing));
+      const uidsOfFollowings = await getUserFollowingsIds();
+      console.log('pppp, fetching posts following', uidsOfFollowings)
+        q = query(q, where('owner', "in", uidsOfFollowings));
     }
 
     const querySnapshot = await getDocs(q);
@@ -1010,7 +1035,7 @@ export default function useBackend() {
       //TODO: @Jovells enforce this at rules level and remove this check to avoid extra roundrtip to db
       if (await checkFollowing(id)) return false;
 
-      await setDoc(userFollowersRef, { timestamp: serverTimestamp() });
+      await setDoc(userFollowersRef, { timestamp: serverTimestamp(), uid: user.uid });
 
       createNotification({ type: "follow", recipients: [id] });
 
@@ -1305,7 +1330,7 @@ export default function useBackend() {
         user?.uid!
       );
       const userFollowersSnap = await getDoc(userFollowersRef);
-      return !!userFollowersSnap.exists();
+      return !!userFollowersSnap.data()?.uid
     } catch (err: any) {
       console.log("error checking following", err.message, id, user);
     }
@@ -1466,24 +1491,21 @@ export default function useBackend() {
     }
     if (filters?.isNotFollowing) {
       q= query(q, orderBy(documentId()), startAfter(lastdoc?.uid || " "))
-      console.trace('1. fetching profiles not following')
+      console.trace('1. fetching profiles not following', size)
 
       const profiles = await doFetch();
-      console.log('1.5', profiles)
       const profilesNotFollowing: UserProfile[] = [];
       if(profiles.length === 0) return []
       for (let profile of profiles) {
         const isFollowing = await checkFollowing(profile.uid);
-        console.log('2. ppp', profile.uid, isFollowing)
-        if (!isFollowing) {
+        if (profile.uid !== user?.uid && !isFollowing ) {
           profilesNotFollowing.push(profile)
         }
       }
-      console.log('3. profilesNotFollowing', profilesNotFollowing, 'last', lastdoc?.username)
       if (profilesNotFollowing.length < size) {
         const moreProfiles = await fetchProfiles(
-          profilesNotFollowing[
-            profilesNotFollowing.length - 1
+          profiles[
+            profiles.length - 1
           ],
           size - profilesNotFollowing.length,
           filters
@@ -1504,21 +1526,6 @@ export default function useBackend() {
         return data as UserProfile;
       });
       return profiles;
-    }
-    async function getUserFollowingsIds(uid = user?.uid) {
-      try {
-        const q = query(
-          collectionGroup(firestore, "followers"),
-          where("uid", "==", uid)
-        );
-        console.log("isfollowing");
-        const snap = await getDocs(q);
-        const uids = snap.docs.map((d) => d.ref.path.split("/")[1]);
-        return uids;
-      } catch (e) {
-        console.log("error fetching uids of followings", e);
-        return [];
-      }
     }
   }
 
