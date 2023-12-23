@@ -18,6 +18,8 @@
 
 .ql-container.ql-snow {
     border: none;
+    border-width: 0;
+    border: 0;
     background-color: hsl(var(--accent-shade));
     border-radius: calc(var(--radius) - 2px);
     margin-top: 0.5rem;
@@ -55,6 +57,7 @@
 
 .ql-editor.ql-blank::before {
     color: hsl(var(--text-muted));
+    color: rgba(171, 171, 171, 1);
     font-style: normal;
 }
 

@@ -65,8 +65,8 @@ const WelcomePage = () => {
       </header>
 
       <div className=" h-screen w-full container">
-        <div className="bg-[url('/img/sky-bg.png')] bg-scroll fixed -z-50 h-screen w-full"></div>
-        <section className="grid grid-cols-1 md:grid-cols-9 md:h-[80%] gap-4 relative "
+        <div className="bg-[url('/img/sky-bg.png')] bg-scroll fixed -z-50 h-screen w-full top-0 left-0"></div>
+        <section className="grid grid-cols-1 md:grid-cols-9 md:h-[80%] 2xl:h-auto 2xl:my-80 gap-4 relative "
         >
           <div className="mt-24 md:mt-0 md:col-span-3 md:col-start-2 w-full relative h-[346px] md:h-full">
             <Image src={String(welcomePhoto.default.src)} fill className="object-contain" alt="Onboarding photo" />
@@ -81,7 +81,7 @@ const WelcomePage = () => {
               Embark on a journey of growth and learning with MEMM! Whether you're eager to share your expertise or seeking guidance to navigate your professional journey, MEMM! is your gateway to a community of mentors and learners.
             </p>
           </div>
-          <svg xmlns="http://www.w3.org/2000/svg" className="absolute -bottom-[30px] right-[250px] hidden md:block" width="99" height="155" viewBox="0 0 99 155" fill="none">
+          <svg xmlns="http://www.w3.org/2000/svg" className="absolute -bottom-[30px] right-[250px] hidden md:block 2xl:-bottom-[200px] 2xl:right-[350px]" width="99" height="155" viewBox="0 0 99 155" fill="none">
             <path d="M11.2 148.495C18.4784 145.82 25.4518 143.224 32.4299 140.656C33.819 140.138 34.7998 139.774 36.6482 139.411C38.0181 139.127 40.9361 138.588 40.9288 140.122C40.7907 141.388 40.5313 142.269 38.2032 143.405C32.1766 146.307 25.767 148.29 19.4183 150.291C13.811 152.054 9.5083 153.314 4.45521 154.581C2.09524 155.172 0.943237 154.148 0.862556 151.906C0.790866 149.894 0.681736 147.83 0.989887 145.842C2.06173 138.669 3.31638 131.552 4.50545 124.388C4.64763 123.497 4.70508 122.793 5.02572 121.757C5.42643 120.506 5.64841 119.573 6.91444 119.711C8.11953 119.83 8.34182 121.528 8.28408 122.405C7.96234 129.744 7.0461 144.872 7.18075 145.689C10.478 142.716 13.5918 140.034 16.5606 137.173C37.1401 117.154 56.1179 95.8372 69.7985 70.2768C80.6282 50.044 88.8754 28.8784 93.8511 6.45977C94.1535 5.13773 94.573 3.82526 95.0019 2.5691C95.5582 0.858222 96.1504 0.0666142 97.0552 0.293228C98.6955 0.947849 98.6137 2.20462 98.6355 3.21297C98.7072 5.22505 98.352 7.27859 98.0157 9.27122C93.2394 35.8782 82.6842 60.2291 68.8811 83.2943C54.7159 106.969 35.8489 126.503 15.254 144.501C14.1316 145.409 11.5668 147.914 11.2 148.495Z" fill="url(#paint0_linear_565_8899)" />
             <defs>
               <linearGradient id="paint0_linear_565_8899" x1="120.569" y1="135.449" x2="-29.4791" y2="20.2222" gradientUnits="userSpaceOnUse">
