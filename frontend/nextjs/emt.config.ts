@@ -45,11 +45,11 @@ import {chain, envChains} from './contracts'
 
 
   export const USERS_COLLECTION = collection(firestore, 'users');
+  export const ADMIN_COLLECTION = collection(firestore, 'admin');
   export const NOTIFICATIONS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'notifications') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'notifications');
   export const CLAIM_HISTORY_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'claimHistory') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id , 'claimHistory');
   export const CONTENTS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'contents') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'contents');
   export const EXPT_LISTINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'exptListings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'exptListings');
   export const BOOKINGS_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'bookings') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'bookings');
-  export const ADMIN_COLLECTION = process.env.NODE_ENV === "production"? collection(firestore, 'admin') : collection(firestore, 'dev', String(process.env.NEXT_PUBLIC_DEV!) + chain.id, 'admin');
  
 export const exptLevelKeys = [1, 2, 3]

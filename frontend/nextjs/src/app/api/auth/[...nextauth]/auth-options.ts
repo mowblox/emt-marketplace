@@ -97,8 +97,8 @@ async function validateUpdates(
   console.log("validateUpdates function", data);
   const validations = {} as userUpdateValidationResult;
 
-  //totally prevent updating of email
   //TODO: @Jovells IMPLEMENT UPDATE EMAIL FLOW
+  //this line totally prevents updating of email
   data.email && (validations.email = false);
 
   //prevent updating of username to existing username

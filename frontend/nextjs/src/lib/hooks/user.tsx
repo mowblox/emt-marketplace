@@ -36,7 +36,7 @@ export function useUser(): UserContext {
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const { data: session, status, update }: { data: UserSession | null} & ReturnType<typeof useSession>  = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const signUpDataRef = useRef<SignUpData>({});
   const signUpData = signUpDataRef.current;
 
@@ -79,7 +79,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signIn = useMemo(() => async function (options?:{redirect?: boolean }) {
-    console.error('signing in', session?.firebaseToken?.substring(0, 4))
     try {
       setIsLoading(true);
       if (session?.firebaseToken) {
@@ -105,6 +104,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [session?.firebaseToken])
 
   useLayoutEffect(()=>{
+    if(isLoading){
+      return
+    }
     if (PROTECTED_ROUTES.some( route=> pathname.startsWith(route)) && !user ){
       router.push(HOME_PAGE)
     }
@@ -131,6 +133,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     //logged in to next auth
     if (session?.firebaseToken) {
       signIn({redirect: false})
+
+    }
+    else{
+      setIsLoading(false)
     }
   }, [session?.firebaseToken, user?.uid])
 

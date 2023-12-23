@@ -63,10 +63,11 @@ export default function Voter({ post }: { post: Content }) {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) {
     const voteType = e.currentTarget.name as "upvote" | "downvote";
+    console.log('voting', voteType, post )
     const res = await mutateAsync({
       id: post.metadata.id,
       voteType,
-      owner: post.author?.uid,
+      owner: post.post.owner,
     });
     console.log("res", res);
   }

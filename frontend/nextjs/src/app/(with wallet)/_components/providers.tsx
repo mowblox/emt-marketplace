@@ -30,7 +30,7 @@ export default function DappProviders({
 }: {
   children: React.ReactNode
 }) {
-  // TODO: @Jovells persist Signupdata lo loaclstorage
+  // TODO: @Jovells persist Signupdata lo localstorage
 
   return (
       <QueryClientProvider client={queryClient}> 

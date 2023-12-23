@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,7 +31,6 @@ import { UserProfile } from "@/lib/types";
 import PageLoading from "@/components/ui/page-loading";
 import NoData from "@/components/ui/no-data";
 
-//TODO: @Jovells FIXME form sometimes doesnt load old values 
 
 const formSchema = z.object({
   displayName: z
@@ -89,16 +88,7 @@ const EditProfileForm = () => {
   const [selectedTags, setSelectedTags] = useState(profile?.tags || []);
   const [isButtonLoading, setButtonLoading] = useState(false)
 
-  const { toast } = useToast();
-  
-  // TODO INFO: @jovells if you want to create a toast with a progress bar, use the snippet below
-  // toast({
-  //   title: "Profile updated!",
-  //   description: <div>
-  //     <Progress value={43} className="h-2 mt-2 w-full text-accent-4 bg-accent-shade" />
-  //   </div>,
-  //   duration: Infinity
-  // });
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setButtonLoading(true)
