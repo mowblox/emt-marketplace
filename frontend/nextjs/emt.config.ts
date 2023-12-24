@@ -29,9 +29,10 @@ import { HOME_PAGE } from "@/app/(with wallet)/_components/page-links";
    const oldMobileGetUri = old.mobile!.getUri;
     old.mobile!.getUri = async () => {
       if(window?.ethereum){
+        alert('eth')
         return  oldMobileGetUri as any
       }
-      return 'metamask.app.link/dapp/'+location.host+HOME_PAGE
+      return 'https://metamask.app.link/dapp/'+location.origin+HOME_PAGE
     }
     return old
   }
