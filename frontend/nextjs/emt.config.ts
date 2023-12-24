@@ -1,23 +1,18 @@
 
-import {getDefaultWallets} from "@rainbow-me/rainbowkit";
-import { LucideImport } from "lucide-react";
+import {connectorsForWallets} from "@rainbow-me/rainbowkit";
+import {
+  injectedWallet,
+  metaMaskWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
   import { configureChains, createConfig } from 'wagmi';
-  import {
-  hardhat,
-  } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
-
-import { Chain } from 'wagmi'
 import { collection } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { JsonRpcProvider, ethers } from "ethers6";
-import { EMTMarketplace as EMTMarketplaceType } from "../../blockchain/typechain-types/contracts/EMTMarketplace";
-import { ExpertToken as ExpertTokenType } from "../../blockchain/typechain-types/contracts/ExpertToken";
-import { MentorToken as MentorTokenType } from "../../blockchain/typechain-types/contracts/MentorToken";
-import { StableCoin as StableCoinType } from "../../blockchain/typechain-types/contracts/StableCoin";
 
 import {chain, envChains} from './contracts'
+import { HOME_PAGE } from "@/app/(with wallet)/_components/page-links";
 
  const { chains, publicClient } = configureChains(
   envChains,
@@ -25,13 +20,32 @@ import {chain, envChains} from './contracts'
       publicProvider()
     ]
   );
+
+  const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string
+
+  const customMetamaskWallet = metaMaskWallet({ projectId, chains })
+  customMetamaskWallet.createConnector = () => { 
+    const old = metaMaskWallet({ projectId, chains }).createConnector()
+   const oldMobileGetUri = old.mobile!.getUri;
+    old.mobile!.getUri = async () => {
+      if(window?.ethereum){
+        return  oldMobileGetUri as any
+      }
+      return 'metamask.app.link/dapp/'+location.host+HOME_PAGE
+    }
+    return old
+  }
   
- const { connectors } = getDefaultWallets({
-    appName: 'My RainbowKit App',
-    //todo: @od41 add walletconnect project id in Vercel
-    projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID as string,
-    chains
-  });
+ const  connectors  = connectorsForWallets([
+  {
+    groupName: 'Recommended',
+    wallets: [
+      injectedWallet({ chains }),
+      customMetamaskWallet,
+      walletConnectWallet({ projectId, chains }),
+    ],
+  },
+]);
   
  const wagmiConfig = createConfig({
     autoConnect: true,
