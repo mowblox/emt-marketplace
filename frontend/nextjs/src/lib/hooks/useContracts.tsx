@@ -11,7 +11,7 @@ import {
   useAccountModal,
   useChainModal,
 } from "@rainbow-me/rainbowkit";
-import { WagmiConfigProps, useAccount, useNetwork } from "wagmi";
+import { WagmiConfigProps, useAccount, useNetwork, useSwitchNetwork } from "wagmi";
 import PageLoading from "@/components/ui/page-loading";
 import { chain } from "../../../contracts";
 import {
@@ -21,6 +21,7 @@ import {
   stableCoin as _stableCoin,
   expertToken as _expertToken,
 } from "@/../../contracts";
+import { toast } from "@/components/ui/use-toast";
 
 /**
  * The context interface that defines the contract context object.
@@ -78,6 +79,8 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
   const { openChainModal } = useChainModal();
   const network = useNetwork()
   const account = useAccount();
+  const [wrongNetwork, setWrongNetwork] = useState(false);
+
 
   const [contracts, setContracts] = useState<ContractContext>({
     emtMarketplace: _emtMarketPlace,
@@ -142,6 +145,26 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
 
     fetchContracts();
   }, [ethereum, chain.id, account.address, network?.chain?.id]);
+
+  useEffect(() => {
+    if (network?.chain?.id !== chain.id) {
+      toast({
+        title: "Wrong Network",
+        description: "Please change to the topos network",
+        variant: "destructive",
+      })
+      setWrongNetwork(true);
+    } else {
+      if (wrongNetwork) {
+        toast({
+          title: "Network Changed",
+          description: "You have successfully changed to the topos network",
+          variant: "success",
+        })
+        setWrongNetwork(false);
+      }
+    }
+  }, [network?.chain?.id]);
 
   if (!contracts) {
     return (
