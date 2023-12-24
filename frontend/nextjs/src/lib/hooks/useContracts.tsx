@@ -147,18 +147,18 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
   }, [ethereum, chain.id, account.address, network?.chain?.id]);
 
   useEffect(() => {
-    if (network?.chain?.id !== chain.id) {
+    if (network.chain && network.chain.id !== chain.id) {
       toast({
         title: "Wrong Network",
-        description: "Please change to the topos network",
+        description: "Please change to the Topos network",
         variant: "destructive",
       })
       setWrongNetwork(true);
     } else {
-      if (wrongNetwork) {
+      if (network.chain && wrongNetwork) {
         toast({
           title: "Network Changed",
-          description: "You have successfully changed to the topos network",
+          description: "You have successfully changed to the Topos network",
           variant: "success",
         })
         setWrongNetwork(false);
