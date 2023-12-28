@@ -1182,8 +1182,10 @@ export default function useBackend() {
     const t = loadingToast("Listing Expts", 1);
     try {
       t("seeking approval to transfer expts", 10);
-      await expertToken.setApprovalForAll(emtMarketplace.target, true);
-      t("listing expts in contract", 30);
+      const approvalTxn = await expertToken.setApprovalForAll(emtMarketplace.target, true);
+      t("mining transaction", 20);
+      await approvalTxn!.wait();
+      t("listing expts in contract", 40);
       const tx = await emtMarketplace.offerExpts(
         listing.tokenIds,
         stableCoin.target,
@@ -1530,6 +1532,7 @@ export default function useBackend() {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
+    const t = loadingToast("Buying Expts", 1);
     async function updateListingInFireStore(boughtTokenId: number) {
       try {
         updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
@@ -1541,34 +1544,45 @@ export default function useBackend() {
       }
     }
     try {
+      t("seeking approval to transfer stablecoin", 10);
       console.log("approving stableCoin transfer in contract");
       const tx = await stableCoin.approve(
         emtMarketplace.target,
         listing.price * 10 ** 6
       );
+      t("mining transaction", 20);
       const receipt = await tx.wait();
       console.log(receipt);
       console.log("buying expts in contract");
+      t("buying expts in contract", 40);
       let exptToBuyIndex = listing.remainingTokenIds.length - 1;
 
       //this loop is here because the chosen expt to buy
       // might have been bought already before this user completes the purchase
       while (exptToBuyIndex >= 0) {
         const tokenToBuyId = listing.remainingTokenIds[exptToBuyIndex];
+        let loadingPercent = 40 + ((listing.remainingTokenIds.length - exptToBuyIndex) / listing.remainingTokenIds.length) * 30;
         try {
           console.log("tokenToBuyId", tokenToBuyId, listing);
           const tx = await emtMarketplace.buyExpt(tokenToBuyId);
           await tx!.wait();
-          console.log("bought expts in contract");
+          console.log("bought expt in contract");
+          t("Finalising Purchase", 80);
           await updateListingInFireStore(tokenToBuyId);
+          t("Expt bought successfully", 100);
           return true;
         } catch (err: any) {
           if (err.message.includes("No deposit yet for token id")) {
             console.log("this expt has probably been bought. Trying the next");
             exptToBuyIndex = exptToBuyIndex - 1;
-          } else throw new Error(err);
+            t("buying expts in contract", loadingPercent);
+          } else {
+            t("Error buying expts", 0, true);
+            throw new Error(err);}
         }
+        t("this listing has been sold out", undefined, true);
       }
+
     } catch (err: any) {
       console.log("Error buying expts. Message: " + err.message);
       return false;
