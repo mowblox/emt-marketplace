@@ -29,9 +29,6 @@ const ExpertHub = () => {
         fetcher={fetchExptListings}
         size={3}
         ItemComponent={ExpertHubCard}
-        getNextPageParam={(lastPage) => {
-          return lastPage[lastPage.length - 1]?.timestamp;
-        }}
         queryKey={["exptListings"]}
         noDataMessage="No EXPT listings found. Please try later"
       />

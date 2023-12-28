@@ -109,6 +109,7 @@ export type ExptFilters = {
   tags?: string[],
   author?: string,
   mentee?: string,
+  mentor?: string,
   tokenIds?: number[],
 }
 export type Coin = {
@@ -136,6 +137,7 @@ export type ClaimHistoryItem ={
   timestamp: Timestamp,
   amount: number,
   level?: number,
+  tokenIds?: number[],
   uid: string,
 }
 
@@ -166,7 +168,7 @@ export type Booking ={
   message?: string;
   mentor: string;
   mentee: string;
-  sessionTimestamp: string;
+  sessionTimestamp: Timestamp;
   sessionCount: number;
   exptListing?: ExptListingWithAuthorProfile;
   exptListingId: string;

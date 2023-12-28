@@ -25,7 +25,7 @@ import { toast } from "@/components/ui/use-toast"
 
 import { Textarea } from '@/components/ui/textarea'
 import { cn, isValidFileType } from "@/lib/utils"
-import { NewExptListing, UserProfile } from '@/lib/types';
+import { ClaimHistoryItem, NewExptListing, UserProfile } from '@/lib/types';
 import { Input } from '@/components/ui/input'
 import {
     Select,
@@ -48,20 +48,6 @@ const PLACEHOLDER_COVER_PHOTO = require('@/assets/default-photo.png')
 const SESSION_COUNT = ["1", "2", "3", "4", "5"] as const;
 const SESSION_DURATIONS = ["15", "30"] as const;
 
-const FormSchema = z.object({
-    coverImage: z
-        .custom<File>((v) => v instanceof File, {
-            message: 'Only images allowed e.g JPG, JPEG or PNG are allowed.',
-        }),
-    collectionSize: z.coerce.number(), // the tokenIds that are meant to be minted
-    collectionName: z.string(),
-    price: z.coerce.number().gte(1, {
-        message: "Price is required",
-    }).positive(),
-    sessionCount: z.enum(SESSION_COUNT),
-    sessionDuration: z.enum(SESSION_DURATIONS),
-    description: z.string().optional()
-});
 
 // Component
 
@@ -69,6 +55,22 @@ const ClaimExptCard = ({profile}: {profile: UserProfile}) => {
     const {user}= useUser()
     const {listExpts} = useBackend();
     const router = useRouter();
+    const FormSchema = z.object({
+        coverImage: z
+            .custom<File>((v) => v instanceof File, {
+                message: 'Only images allowed e.g JPG, JPEG or PNG are allowed.',
+            }),
+        //TODO: @od41 Error meesage doesn't show up in form
+        collectionSize: z.coerce.number().max(profile.ownedExptIds?.length || 0, "Number exceeds owned expts"), // the tokenIds that are meant to be minted
+        collectionName: z.string(),
+        price: z.coerce.number().gte(1, {
+            message: "Price is required",
+        }).positive(),
+        sessionCount: z.enum(SESSION_COUNT),
+        sessionDuration: z.enum(SESSION_DURATIONS),
+        description: z.string().optional()
+    });
+    
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -86,7 +88,7 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         setIsListExptLoading(true)
-        const {coverImage, collectionName, collectionSize, price, description, sessionCount, sessionDuration} = data
+        const {coverImage, collectionName,  collectionSize, price, description, sessionCount, sessionDuration} = data
         const listing: NewExptListing = {
             collectionName: collectionName,
             collectionSize: collectionSize,
@@ -97,7 +99,7 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
             sessionDuration: Number(sessionDuration),
             timestamp: serverTimestamp(),
             coverImage: coverImage,
-            tokenIds: profile.ownedExptIds!
+            tokenIds: profile.ownedExptIds?.slice(0, collectionSize) || [],
         }
           
         const res = await listExpts(listing)
@@ -128,23 +130,23 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
 
     const {mutateAsync: handleClaimExpt} = useMutation({
         mutationFn: claimExpt,
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.setQueryData(["unclaimedExpt", uid], ()=>{
               return 0;
-            })
-            toast({
-              title: 'Claimed',
-              description: 'You have claimed your Expt',
-              variant: 'success',
-              loadProgress: 100,
-            })
+            });
+            queryClient.setQueryData(['claimHistory', user?.uid], (oldData: ClaimHistoryItem[])=>{
+                return [
+                  {
+                  ...data?.claimHistoryItem
+                }, ...oldData]
+              })
+            
           },
           onMutate:()=>{
             toast({
               title: 'Claiming..',
               description: 'Mining Transaction',
-              duration: Infinity,
-              loadProgress: 10,
+              duration: 100,
             })
       
           },
@@ -182,7 +184,7 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                                         collectionSize: form.watch().collectionSize,
                                         price: form.watch().price,
                                         paymentCurrency: "USDT",
-                                        tokenIds: [1, 2, 3, 4, 5],
+                                        tokenIds: profile.ownedExptIds || [],
                                         remainingTokenIds: [],
                                         imageURL: coverPhotoPreview ? coverPhotoPreview : String(PLACEHOLDER_COVER_PHOTO.default.src),
                                         description: form.watch().description!,
@@ -254,9 +256,9 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                                                 name="collectionSize"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel>Collection Size</FormLabel>
+                                                        <FormLabel>Collection Size (Expts Owned : {profile.ownedExptIds?.length})</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="Number of EXPT to list" type="number" min={1} {...field} />
+                                                            <Input placeholder="Number of EXPT to list" type="number" min={1} max={profile.ownedExptIds?.length} {...field} />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
