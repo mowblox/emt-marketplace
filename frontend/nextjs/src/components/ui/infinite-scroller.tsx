@@ -71,7 +71,7 @@ export default function InfiniteScroll({
       getNextPageParam ||
       ((lastPage, allPages) => {
         if (max && allPages.length >= max) return undefined;
-        return lastPage[lastPage.length - 1]?.timestamp;
+        return lastPage[lastPage.length - 1]
       }),
     select: (data) => {
       return {

@@ -65,9 +65,6 @@ const FormSchema = z.object({
 // Component
 
 const SetAvailabilityStatus = ({ profile }: any) => {
-    const { user } = useUser()
-    const { listExpts } = useBackend();
-    const router = useRouter();
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -77,7 +74,6 @@ const SetAvailabilityStatus = ({ profile }: any) => {
     })
 
     const [isListExptLoading, setIsListExptLoading] = useState(false)
-    const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
 
     async function onSubmit(data: z.infer<typeof FormSchema>) {
         setIsListExptLoading(true)
@@ -92,47 +88,6 @@ const SetAvailabilityStatus = ({ profile }: any) => {
         setIsListExptLoading(false)
         form.reset()
     }
-
-    const { claimExpt, profileReady, fetchUnclaimedExpt } = useBackend();
-    const { uid } = useParams();
-    const queryClient = useQueryClient();
-
-
-    const { data: unclaimedExpt } = useQuery({
-        queryKey: ["unclaimedExpt", uid],
-        queryFn: () => fetchUnclaimedExpt(),
-        enabled: profileReady
-    });
-
-    const { mutateAsync: handleClaimExpt } = useMutation({
-        mutationFn: claimExpt,
-        onSuccess: () => {
-            queryClient.setQueryData(["unclaimedExpt", uid], () => {
-                return 0;
-            })
-            toast({
-                title: 'Claimed',
-                description: 'You have claimed your Expt',
-                variant: 'success',
-                loadProgress: 100,
-            })
-        },
-        onMutate: () => {
-            toast({
-                title: 'Claiming..',
-                description: 'Mining Transaction',
-                duration: Infinity,
-                loadProgress: 10,
-            })
-
-        },
-        onError: (e: any) => {
-            // Handle error state here
-            console.error("oops!", e.message)
-        },
-
-    })
-
     return (
         <div className="mb-6 flex p-4 flex-col gap-6 md:gap-0 md:flex-row items-center justify-between bg-accent-shade rounded-md">
             <div className="flex p-4 items-center justify-between bg-accent-shade rounded-md">
