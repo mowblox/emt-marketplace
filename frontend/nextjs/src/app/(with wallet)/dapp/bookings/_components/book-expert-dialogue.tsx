@@ -16,21 +16,11 @@ import useBackend from '@/lib/hooks/useBackend'
 import { BookingCalendarForm } from './book-expert'
 import { ExptListing, ExptListingWithAuthorProfile } from '@/lib/types'
 
-export default function BookExpertDialogue({data}: {data: ExptListingWithAuthorProfile}){
-    const {fetchProfile} = useBackend()
-        
-    const {data: author, isLoading}= useQuery({
-        queryKey: ["author", data.author],
-        queryFn: ()=>fetchProfile(data.author)
-
-      });
-
-      if(!author && isLoading) return <DataLoading/>
-      if(!author) return <NoData message='No bookings'/>
-
+export default function BookExpertDialogue({data}: {data: {listing: ExptListingWithAuthorProfile, id: string, remainingSessions: number}}){
+   const {listing, id, remainingSessions} = data;
 return <Dialog >
                             <DialogTrigger>
-                                <ExpertHubCard data={data} type="modal" />
+                                <ExpertHubCard data={listing} type="modal" />
                             </DialogTrigger>
 
                             <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>
@@ -38,22 +28,26 @@ return <Dialog >
                                     <ScrollArea className="h-[90vh]">
                                         <div className="border-r pr-6 py-6">
                                             <DialogHeader className='mb-6'>
-                                                <DialogTitle>Book a Session with {author.displayName}</DialogTitle>
+                                                <DialogTitle>Book a Session with {listing.authorProfile.displayName}</DialogTitle>
                                             </DialogHeader>
-                                            <ExpertHubCard data={data} disableLink={true} />
+                                            <ExpertHubCard data={listing} disableLink={true} />
+                                            <div className="my-5">
+                                                <div className="text-sm mb-2">Token Id</div>
+                                                <div className="text-xs text-muted">{id}</div>
+                                            </div>
                                             <div className="my-5">
                                                 <div className="text-sm mb-2">Session Duration</div>
-                                                <div className="text-xs text-muted">{data.sessionCount} session(s) x {data.sessionDuration} minutes</div>
+                                                <div className="text-xs text-muted">{listing.sessionDuration} session(s) x {listing.sessionCount} minutes</div>
                                             </div>
 
                                             <div className="">
                                                 <div className="text-sm mb-2">Description</div>
-                                                <div className="text-xs text-muted">{data.description}</div>
+                                                <div className="text-xs text-muted">{listing.description}</div>
                                             </div>
                                         </div>
                                     </ScrollArea>
                                     <ScrollArea className='h-[90vh] p-6'>
-                                        <BookingCalendarForm />
+                                        <BookingCalendarForm remainingSessions={remainingSessions} exptTokenId={id} exptListing={listing}/>
                                     </ScrollArea>
                                 </div>
                             </DialogContent>

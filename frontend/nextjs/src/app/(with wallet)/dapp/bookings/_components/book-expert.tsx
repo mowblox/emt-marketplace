@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ExpertTicket, ExptListing } from "@/lib/types";
+import { Booking, ExpertTicket, ExptListing } from "@/lib/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon } from "@radix-ui/react-icons";
@@ -28,27 +28,46 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Globe2Icon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import DataLoading from "@/components/ui/data-loading";
 import NoData from "@/components/ui/no-data";
 import BookExpertDialogue from "./book-expert-dialogue";
 import useBackend from "@/lib/hooks/useBackend";
 import InfiniteScroll from "@/components/ui/infinite-scroller";
 import { useUser } from "@/lib/hooks/user";
+import { Timestamp } from "firebase/firestore";
+import { Input } from "@/components/ui/input";
 
-const FormSchema = z.object({
-  availableDate: z.date({
-    required_error: "A date is required.",
-  }),
-  message: z.string().optional(),
-});
 
-export function BookingCalendarForm() {
+export function BookingCalendarForm({exptListing, exptTokenId, remainingSessions}:{exptListing: ExptListing, exptTokenId: string, remainingSessions: number}) {
+  const { bookExpert } = useBackend();
+  const queryClient = useQueryClient();
+  const FormSchema = z.object({
+    sessionTimestamp: z.date({
+      required_error: "A date is required.",
+    }),
+    message: z.string().optional(),
+    sessionCount: z.coerce.number().max(remainingSessions, {
+      message: `You can only book ${exptListing.sessionCount} sessions`,
+    })
+  });
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   });
 
   const currentTimezone = "UTC Time (10:00)";
+
+  const { data, mutateAsync} = useMutation({
+    mutationFn: bookExpert,
+    onSuccess: (data) => {
+      queryClient.setQueryData(['bookings'], (oldData: Booking[])=>{
+        return [
+          ...oldData,
+          data
+        ]
+      })
+    },
+  })
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     toast({
@@ -59,6 +78,9 @@ export function BookingCalendarForm() {
         // {/* </pre> */}
       ),
     });
+
+    mutateAsync({...data, exptListingId: exptListing.id, sessionTimestamp: Timestamp.fromDate(data.sessionTimestamp), mentor: exptListing.author, exptTokenId})
+
   }
 
   return (
@@ -66,7 +88,7 @@ export function BookingCalendarForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="availableDate"
+          name="sessionTimestamp"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Select Date &amp; Time</FormLabel>
@@ -131,6 +153,24 @@ export function BookingCalendarForm() {
             </FormItem>
           )}
         />
+        <FormField
+          control={form.control}
+          name="sessionCount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Number of Sessions  ({remainingSessions} remaining)</FormLabel>
+              <FormControl>
+                <Input
+                type="number"
+                max={remainingSessions}
+                  placeholder="select number of sessions"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage className="text-xs text-muted font-normal" />
+            </FormItem>
+          )}
+        />
 
         <div className="">
           <div className="text-sm mb-2">Time Zone</div>
@@ -155,18 +195,18 @@ export function BookingCalendarForm() {
 
 
 const BookExpert = () => {
-  const { fetchExptListings } = useBackend();
+  const { fetchExpts } = useBackend();
   const {user} = useUser();
 
   return (
     <InfiniteScroll
       ItemComponent={BookExpertDialogue}
       getNextPageParam={(lastPage) => {
-        return lastPage[lastPage.length - 1]?.timestamp;
+        return lastPage[lastPage.length - 1];
       }}
-      queryKey={["ownedExpt"]}
-      filters={{mentee: user?.uid, key: 'djsj'}}
-      fetcher={fetchExptListings}
+      queryKey={["menteeExpts"]}
+      filters={{mentee: user?.uid}}
+      fetcher={fetchExpts}
       className="w-full flex flex-wrap gap-4 flex-grow"
     />
   );

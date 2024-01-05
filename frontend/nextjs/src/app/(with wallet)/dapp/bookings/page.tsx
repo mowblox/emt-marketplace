@@ -2,7 +2,7 @@
 'use client';
 import React from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Booking, BookingFilters, Content, ExpertTicket, ExptListing, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
+import { Booking, BookingFilters, Content, ExpertTicket, ExptFilters, ExptListing, ReviewItem as ReviewItemProps, UserProfile } from '@/lib/types';
 import ExpertHubCard from '@/components/ui/expert-hub-card';
 import SessionReviewForm from './_components/session-review-form';
 import BookExpert from './_components/book-expert';
@@ -31,7 +31,7 @@ const {user} = useUser();
                 <TabsContent value="history" className='pt-2'>
                     <InfiniteScroll className="grid grid-cols-[1fr] md:grid-cols-[280px_1fr] gap-8 mt-4"
                        fetcher={fetchBookings}
-                       filters={{mentor: user?.uid} as BookingFilters}
+                       filters={{mentee: user?.uid} as ExptFilters}
                        queryKey={["bookings"]}
                        noDataMessage="No bookings found. Please try later"
                        ItemComponent ={({data}: {data: Booking})=><><div className="opacity-[0.4]">

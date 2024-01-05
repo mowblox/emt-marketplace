@@ -34,8 +34,8 @@ const Notifications = () => {
             <InfiniteScroll
                 queryKey={['notifications', user]}
                 noDataMessage="No notifications found. Please try later"
-                fetcher={(lastDocTimeStamp: Timestamp | undefined) => {
-                    return fetchNotifications(lastDocTimeStamp);
+                fetcher={(lastDoc) => {
+                    return fetchNotifications(lastDoc?.timestamp);
                 }}
                 className='space-y-5'
                 enabled={!!user}
