@@ -74,6 +74,7 @@ export const Navbar = () => {
                     <SignInButton label="Sign in" />
                   </div>
                   <div className="block lg:hidden">
+                    {/* TODO @od41 change the hamburger menut to an avatar badge and show an indicator when signed in */}
                     <Popover open={mobileMenu}>
                       <PopoverTrigger asChild>
                           {mobileMenu ? <Button
