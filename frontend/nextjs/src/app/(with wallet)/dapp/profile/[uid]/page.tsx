@@ -138,10 +138,10 @@ const Profile = () => {
             <Button
               variant="ghost"
               onClick={toggleFollowing}
-              className="text-xs hover:bg-transparent text-muted hover:text-accent-3">
-              {isFollowingUser ? <div><HiUser className="" /> Following</div> : <div>
+              className="text-xs hover:bg-transparent text-muted hover:text-accent-3 gap-2">
+              {isFollowingUser ? <><HiUser className="" /> Following</> : <>
               <HiOutlineUserPlus /> Follow
-              </div> } 
+              </> } 
             </Button>
           )}
         </div>
