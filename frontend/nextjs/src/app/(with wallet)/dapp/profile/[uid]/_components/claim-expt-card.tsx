@@ -60,7 +60,7 @@ const ClaimExptCard = ({profile}: {profile: UserProfile}) => {
             .custom<File>((v) => v instanceof File, {
                 message: 'Only images allowed e.g JPG, JPEG or PNG are allowed.',
             }),
-        //TODO: @od41 Error meesage doesn't show up in form
+        //TODO: @od41 Error message doesn't show up in form
         collectionSize: z.coerce.number().max(profile.ownedExptIds?.length || 0, "Number exceeds owned expts"), // the tokenIds that are meant to be minted
         collectionName: z.string(),
         price: z.coerce.number().gte(1, {
