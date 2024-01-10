@@ -150,7 +150,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
     if (network.chain && network.chain.id !== chain.id) {
       toast({
         title: "Wrong Network",
-        description: "Please change to the Topos network",
+        description: `Please change to the ${chain.name} network`,
         variant: "destructive",
       })
       setWrongNetwork(true);

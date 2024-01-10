@@ -590,11 +590,16 @@ export default function useBackend() {
    * @returns The number of followers.
    */
   async function fetchNumFollowers(id: string) {
-    const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
-    const querySnapshot = await getCountFromServer(query(userFollowersRef));
-    const count = querySnapshot.data().count;
-    console.log("fetchNumFollowers", count);
-    return count;
+    try {
+      const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
+      const querySnapshot = await getCountFromServer(query(userFollowersRef));
+      const count = querySnapshot.data().count;
+      console.log("fetchNumFollowers", count);
+      return count;
+    } catch (err) {
+      console.log("Error fetching num followers", err);
+      throw new Error('Error fetching num followers'+ err);
+    }
   }
 
   /**
@@ -604,14 +609,19 @@ export default function useBackend() {
    * @returns The number of followers.
    */
   async function fetchNumFollowing(id: string) {
-    const q = query(
-      collectionGroup(firestore, "followers"),
-      where("uid", "==", id)
-    );
-    const querySnapshot = await getCountFromServer(q);
-    const count = querySnapshot.data().count;
-    console.log("fetchNumFollowing", count);
-    return count;
+    try {
+      const q = query(
+        collectionGroup(firestore, "followers"),
+        where("uid", "==", id)
+      );
+      const querySnapshot = await getCountFromServer(q);
+      const count = querySnapshot.data().count;
+      console.log("fetchNumFollowing", count);
+      return count;
+    } catch (err) {
+      console.log("Error fetching num following", err);
+      throw new Error('Error fetching num following'+ err);
+    }
   }
 
   /**
