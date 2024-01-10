@@ -121,13 +121,13 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
         //@ts-ignore
         window.signer = _signer;
         //@ts-ignore
-        window.stableCoin = stableCoin;
+        window.stableCoin = stableCoin.connect(_signer);
         //@ts-ignore
-        window.emtMarketplace = emtMarketplace;
+        window.emtMarketplace = emtMarketplace.connect(_signer);
         //@ts-ignore
-        window.expertToken = expertToken;
+        window.expertToken = expertToken.connect(_signer);
         //@ts-ignore
-        window.mentorToken = mentorToken;
+        window.mentorToken = mentorToken.connect(_signer);
         
         setContracts({
           emtMarketplace: emtMarketplace.connect(_signer),
@@ -158,7 +158,7 @@ export function ContractProvider({ children }: { children: React.ReactNode }) {
       if (network.chain && wrongNetwork) {
         toast({
           title: "Network Changed",
-          description: "You have successfully changed to the Topos network",
+          description: `You have successfully changed to the ${chain.name} network. Please reload the Page`,
           variant: "success",
         })
         setWrongNetwork(false);

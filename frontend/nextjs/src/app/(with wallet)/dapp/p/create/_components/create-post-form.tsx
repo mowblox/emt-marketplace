@@ -169,7 +169,7 @@ const CreatePostForm = () => {
 
 
           <Separator />
-
+          {/* TODO: @od41 error message doesnt show when image file type is wrong */}
           <FormField
             control={form.control}
             name="coverPhoto"
