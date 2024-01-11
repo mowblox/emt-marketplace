@@ -68,7 +68,7 @@ const WelcomePage = () => {
         <div className="bg-[url('/img/sky-bg.png')] bg-scroll fixed -z-50 h-screen w-full top-0 left-0"></div>
         <section className="grid grid-cols-1 md:grid-cols-9 md:h-[80%] 2xl:h-auto 2xl:my-80 gap-4 relative "
         >
-          <div className="mt-24 md:mt-0 md:col-span-3 md:col-start-2 w-full relative h-[346px] md:h-full">
+          <div className="mt-24 md:mt-0 md:col-span-3 md:col-start-2 w-full relative h-[346px] md:h-full lg:h-[540px]">
             <Image src={String(welcomePhoto.default.src)} fill className="object-contain" alt="Onboarding photo" />
           </div>
           <div className="md:col-span-3 md:col-start-6 flex flex-col gap-6 justify-start md:justify-center items-center">
