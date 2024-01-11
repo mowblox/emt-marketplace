@@ -100,7 +100,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
         <div className="w-full mt-4">
           <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-7 justify-between gap-4">
             <div className="col-span-1 md:col-span-3 lg:col-span-5 border-3">
-              <div className="flex items-end gap-10">
+              <div className="flex items-center gap-4">
                 <h3 className="text-2xl">
                   {listing.authorProfile.displayName}
                 </h3>
@@ -142,7 +142,9 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
                   </div>
                 </TabsContent>
                 <TabsContent value="reviews" className='pt-2'>
-                  {dummyReviews.map((review, key) => (<ReviewItem key={`review-${key}`} review={review} />))}
+                  {/* TODO: connect reviews to backend */}
+                  {/* {dummyReviews.map((review, key) => (<ReviewItem key={`review-${key}`} review={review} />))} */}
+                  <NoData message='No reviews found.'/>
                 </TabsContent>
               </Tabs>
             </div>
@@ -153,7 +155,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
           </div>
         </div>
 
-        <div className="w-full mt-24">
+        {/* <div className="w-full mt-24">
           <h3 className="text-lg mb-4">
             Similar Expert Profiles
           </h3>
@@ -163,7 +165,7 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
               return <ExpertHubCard key={`expertsss-${key}`} data={expert} />
             })}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   )

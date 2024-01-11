@@ -20,16 +20,20 @@ import {
   primaryNavigationLinks,
   resourcesLinks,
   HOME_PAGE,
+  CREATE_A_POST_PAGE,
 } from "./page-links";
 import { SignInButton } from "./signInButton";
 import { useUser } from "@/lib/hooks/user";
 import { Separator } from "@/components/ui/separator";
+import { useConnectModal } from "@rainbow-me/rainbowkit"
+
 
 export const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const { user } = useUser();
   const [mobileMenu, setMobileMenu] = useState(false)
-  
+  const { openConnectModal } = useConnectModal();
+
 
   return (
     <>
@@ -37,7 +41,7 @@ export const Navbar = () => {
         <div className=" flex-col md:flex">
           <div className="container flex items-center justify-between py-4 md:h-16">
             <Link href={HOME_PAGE}>
-            <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
+              <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
             </Link>
             <div className="ml-auto flex items-center space-x-2 sm:justify-end">
               <div className="hidden md:block">
@@ -77,57 +81,58 @@ export const Navbar = () => {
                     {/* TODO @od41 change the hamburger menut to an avatar badge and show an indicator when signed in */}
                     <Popover open={mobileMenu}>
                       <PopoverTrigger asChild>
-                          {mobileMenu ? <Button
+                        {mobileMenu ? <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="close-mobile-menu"
+                          onClick={() => setMobileMenu(false)}
+                          className="" >
+                          <X className="h-5 w-6" />
+                        </Button>
+                          : <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="close-mobile-menu"
-                            onClick={() => setMobileMenu(false)}
-                            className="" >
-                            <X className="h-5 w-6" />
+                            aria-label="mobile-menu"
+                            onClick={() => setMobileMenu(true)}
+                            className="">
+                            <HiBars3 className="h-6 w-6" />
                           </Button>
-                            : <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="mobile-menu"
-                              onClick={() => setMobileMenu(true)}
-                              className="">
-                              <HiBars3 className="h-6 w-6" />
-                            </Button>
-                          }
+                        }
                       </PopoverTrigger>
                       <PopoverContent onInteractOutside={() => setMobileMenu(false)} sideOffset={12} alignOffset={0} align="end" className="w-[80vw] md:w-[240px] bg-accent-shade right-[calc(50%-160px)] top-12">
                         <div className="space-y-2">
                           <div className="w-full">
                             {user ? (
+                              <>
                               <PopoverClose className="w-full">
-                                <SignInButton mobile label="Sign Out" style={{width: "100%"}}/>
+                                <SignInButton mobile label="Sign Out" style={{ width: "100%" }} />
                               </PopoverClose>
+                                  <Button onClick={user ? undefined : (e) => { e.stopPropagation(); openConnectModal?.() }} variant="gradient" className="w-full mt-4" asChild>
+                                    <Link href={user ? CREATE_A_POST_PAGE : ''}>Create a Post</Link>
+                                  </Button>
+                              </>
                             ) : (
                               <PopoverClose className="w-full">
-                                <SignInButton mobile label="Sign In" style={{width: "100%"}} />
+                                <SignInButton mobile label="Sign In" style={{ width: "100%" }} />
                               </PopoverClose>
                             )}
                           </div>
-                          <div className=" py-2">
+                          <div className="py-2">
                             <div className="space-y-1">
                               {primaryNavigationLinks.map((link) => (
-                                link.needsAuth && !user?.uid ? null : 
+                                link.needsAuth && !user?.uid ? null :
                                   <Button
                                     variant="ghost"
                                     key={`primary-nav-${link}`}
                                     className="w-full justify-start px-0"
                                     onClick={() => setMobileMenu(false)}
                                     asChild>
-                                  <Link
-                                    href={
-                                      typeof link.href === "function"
-                                        ? link.href(user?.uid!)
-                                        : link.href
-                                    }>
-                                    <link.icon className="mr-2 h-4 w-4 text-accent-2" />
-                                    {link.title}
-                                  </Link>
-                                </Button>
+                                    <Link
+                                      href={link.href}>
+                                      <link.icon className="mr-2 h-4 w-4 text-accent-2" />
+                                      {link.title}
+                                    </Link>
+                                  </Button>
                               ))}
                             </div>
                           </div>

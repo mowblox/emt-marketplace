@@ -28,14 +28,13 @@ export function Sidebar({ className }: SidebarProps) {
       }
     }, [pathname])
 
-    const isPageActive = (path: string, substring: any, uid: any, title: string): boolean => {
-       
+    const isPageActive = (path: string, substring: any, title: string): boolean => {
         if (pathname.endsWith(HOME_PAGE) && title === "Home") {
             return pathname.endsWith(path);
         } else if (pathname.endsWith('/') && title === "Welcome") {
             return true;
         } else if (path != HOME_PAGE && title != 'Home' && path != '/' && title != 'Welcome'){
-            return path.includes(typeof(substring)==="function" ? substring(uid!) : substring)
+            return path.includes(substring)
         }
         return false;
     }
@@ -55,8 +54,8 @@ export function Sidebar({ className }: SidebarProps) {
                         {primaryNavigationLinks.map((link, key)=> (
                             link.needsAuth && !user?.uid ? null :
                             <Button variant="ghost" key={`primary-nav-${key}`} className="w-full justify-start font-normal" asChild>
-                                <Link href={typeof(link.href)==="function" ? link.href(user?.uid!) : link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
-                                    <link.icon className={`mr-2 h-4 w-4  ${isPageActive(pathname, link.href, user?.uid, link.title) ? "text-accent-3": "text-accent-2"}`} />
+                                <Link href={link.href} className={`${ isPageActive(pathname, link.href, link.title) ? "text-accent-3 font-semibold": "text-muted"}`}>
+                                    <link.icon className={`mr-2 h-4 w-4  ${isPageActive(pathname, link.href, link.title) ? "text-accent-3": "text-accent-2"}`} />
                                     {link.title}
                                 </Link>
                             </Button>
@@ -74,7 +73,7 @@ export function Sidebar({ className }: SidebarProps) {
                         <div className="space-y-0">
                             {resourcesLinks.map((link, key) => (
                                 <Button variant="link" key={`primary-nav-${key}`} className="w-full text-sm font-normal py-0 h-9 justify-start" asChild>
-                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, user?.uid, link.title) ? "!text-accent-3 font-semibold" : "text-muted"}`}>
+                                    <Link href={link.href} className={`${ isPageActive(pathname, link.href, link.title) ? "!text-accent-3 font-semibold" : "text-muted"}`}>
                                         {link.title}
                                     </Link>
                                 </Button>

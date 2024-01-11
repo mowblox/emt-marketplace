@@ -76,7 +76,7 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
     return (
         <Link
             href={EXPERT_TICKET_PAGE(id)}
-            className='w-full md:w-auto'
+            className='w-full md:w-auto md:max-w-[320px] lg:max-w-[360px]'
             style={{
                 pointerEvents: (disableLink) ? "none" : "auto",
             }} >

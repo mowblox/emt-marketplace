@@ -41,7 +41,7 @@ import { useUser } from '@/lib/hooks/user'
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links'
 import { serverTimestamp } from 'firebase/firestore'
 const PLACEHOLDER_COVER_PHOTO = require('@/assets/default-photo.png')
-
+import { MAX_MINT_WITHIN_GAS_LIMIT } from '@/lib/contants'
 
 // Form Schema
 
@@ -60,8 +60,7 @@ const ClaimExptCard = ({profile}: {profile: UserProfile}) => {
             .custom<File>((v) => v instanceof File, {
                 message: 'Only images allowed e.g JPG, JPEG or PNG are allowed.',
             }),
-        //TODO: @od41 Error message doesn't show up in form
-        collectionSize: z.coerce.number().max(profile.ownedExptIds?.length || 0, "Number exceeds owned expts"), // the tokenIds that are meant to be minted
+        collectionSize: z.coerce.number().max(MAX_MINT_WITHIN_GAS_LIMIT, `You can only list ${MAX_MINT_WITHIN_GAS_LIMIT} at a time`), // the tokenIds that are meant to be minted
         collectionName: z.string(),
         price: z.coerce.number().gte(1, {
             message: "Price is required",
@@ -73,6 +72,7 @@ const ClaimExptCard = ({profile}: {profile: UserProfile}) => {
     
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
+        mode: 'onBlur',
         defaultValues: {
             collectionName: "",
             collectionSize: 1,
@@ -165,7 +165,7 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                 <div className="ml-1 flex items-center text-muted">Unclaimed EXPT: <span className="ml-1 text-foreground">{unclaimedExpt}</span></div>
             </div>
             <div className="flex items-center gap-4 w-full md:w-auto">
-                <Button size="sm" onClick={()=>handleClaimExpt()} className="w-full md:w-auto px-5">Claim EXPT</Button>
+                <Button size="sm" onClick={()=>handleClaimExpt()} className="w-full md:w-auto px-5">Claim all EXPT</Button>
                 <Dialog>
                     <DialogTrigger>
                         <Button size="sm" variant="gradient" className="w-full md:w-auto px-5">List EXPT</Button>
@@ -258,7 +258,14 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                                                     <FormItem>
                                                         <FormLabel>Collection Size (Expts Owned : {profile.ownedExptIds?.length})</FormLabel>
                                                         <FormControl>
-                                                            <Input placeholder="Number of EXPT to list" type="number" min={1} max={profile.ownedExptIds?.length} {...field} />
+                                                            <Input 
+                                                                placeholder="Number of EXPT to list" 
+                                                                type="number" 
+                                                                min={1} 
+                                                                max={MAX_MINT_WITHIN_GAS_LIMIT}
+                                                                // max={profile.ownedExptIds?.length} 
+                                                                {...field}
+                                                            />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>

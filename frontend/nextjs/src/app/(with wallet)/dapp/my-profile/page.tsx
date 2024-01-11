@@ -1,53 +1,62 @@
 "use client";
+import MyWallet from './_components/my-wallet';
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   HiCheckBadge,
+  HiOutlineCog6Tooth,
   HiOutlineFire,
   HiOutlineUserPlus,
   HiUser,
 } from "react-icons/hi2";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/lib/hooks/user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Posts from "@/components/ui/posts";
 import useBackend from "@/lib/hooks/useBackend";
 import { toast } from "@/components/ui/use-toast";
 import { profilePlaceholderImage } from "@/lib/utils";
+import { PROFILE_EDIT_PAGE } from "@/app/(with wallet)/_components/page-links";
 import DataLoading from "@/components/ui/data-loading";
+import ExptBookingsHistory from "./_components/expt-bookings-history";
+import SetAvailabilityStatus from './_components/set-availability-status';
 import NoData from '@/components/ui/no-data';
 
 const Profile = () => {
-  const { uid } = useParams();
+  // const { uid } = useParams();
   const { user } = useUser();
   const { fetchProfile, followUser, fetchUnclaimedMent, claimMent, unfollowUser, checkFollowing } = useBackend();
   const router = useRouter();
 
-  const isCurrentUserProfile = user?.uid === uid 
+  const isCurrentUserProfile = true
   
   //fetch profile
   const { data: profile} = useQuery({
-    queryKey: ["profile", uid],
-    queryFn: () => fetchProfile(uid as string),
+    queryKey: ["profile", user?.uid],
+    queryFn: () => fetchProfile(user?.uid as string),
     throwOnError: (error)=>{ console.log(error); return false}
   });
 
+  console.log('profile on page, uid', profile, user?.uid)
+
   //check if following
   const {data: isFollowingUser, } = useQuery({
-    queryKey: ["isFollowing", uid],
-    queryFn: (v) => checkFollowing(uid as string),
+    queryKey: ["isFollowing", user?.uid],
+    queryFn: (v) => checkFollowing(user?.uid as string),
     enabled: !isCurrentUserProfile && !!user?.uid,
   })
   
+  console.log('user', user?.uid, 'isCurrentUserProfile', isCurrentUserProfile, 'isFollowingUser', isFollowingUser,)
   const queryClient = useQueryClient();
 
   //follow/unfollow user
   const {mutateAsync} = useMutation( {
     mutationFn: ()=>  isFollowingUser? unfollowUser(profile?.uid!) :followUser(profile?.uid!),
     onSuccess: () => {
-      queryClient.setQueryData(["isFollowing", uid], (OldfollowStatus : boolean)=>{
+      queryClient.setQueryData(["isFollowing", user?.uid], (OldfollowStatus : boolean)=>{
         return !OldfollowStatus;
       })
     },
@@ -70,9 +79,9 @@ const Profile = () => {
 
   //fetch followers
   const { data: followers, isLoading } = useQuery({
-    queryKey: ["followers", uid],
-    queryFn: () => fetchProfile(uid as string),
-    enabled: !!uid,
+    queryKey: ["followers", user?.uid],
+    queryFn: () => fetchProfile(user?.uid as string),
+    enabled: !!user?.uid,
   })
 
   
@@ -115,6 +124,17 @@ const Profile = () => {
               <Badge>{profile.skill || profile.tags?.[0]}</Badge>
             </div>
           </div>
+          {isCurrentUserProfile ? (
+            <Button
+              variant="ghost"
+              onClick={() =>
+                router.push(PROFILE_EDIT_PAGE)
+              }
+              className="text-xs hover:bg-transparent text-muted hover:text-accent-3">
+              <HiOutlineCog6Tooth className="w-4 h-4 mr-1 " />
+              Edit Profile
+            </Button>
+          ) : (
             <Button
               variant="ghost"
               onClick={toggleFollowing}
@@ -123,6 +143,7 @@ const Profile = () => {
               <HiOutlineUserPlus /> Follow
               </> } 
             </Button>
+          )}
         </div>
 
         <div className="text-foreground text-sm">{profile.about}</div>
@@ -131,6 +152,8 @@ const Profile = () => {
           <div className="flex justify-start gap-4 items-center w-full py-5">
             <div className="flex items-center text-sm text-accent-3">
               <HiOutlineFire className="w-4 h-4 ml-1" />
+              {/* TODO: @jovells after refactoring, this shows as NaN sometimes.  */}
+              {/* it doesn't show NaN when you navigate from another page, but when you refresh */}
               <div className="ml-1">{profile.ment} MENT</div>
             </div>
 
@@ -146,10 +169,45 @@ const Profile = () => {
       </div>
 
       <div className="flex flex-col">
+        {isCurrentUserProfile ? (
+          <Tabs defaultValue="my-posts" className="w-full">
+            <TabsList>
+              <TabsTrigger value="my-posts">My Posts</TabsTrigger>
+              <TabsTrigger value="wallet">My Wallet</TabsTrigger>
+              <TabsTrigger value="status">
+                Status
+              </TabsTrigger>
+              {/* <TabsTrigger value="history">
+                Booking History
+              </TabsTrigger> */}
+            </TabsList>
+            <TabsContent value="my-posts">
+              <h4 className="text-md text-foreground font-bold mb-5">
+                Posts
+              </h4>
+              <Posts filters={{ owner: profile.uid }} />
+            </TabsContent>
+            <TabsContent value="wallet">
+             <MyWallet profile={profile}/>
+            </TabsContent>
+            <TabsContent value="status">
+              <div className="flex flex-col gap-y-4 mt-5">
+                  <SetAvailabilityStatus />
+              </div>
+            </TabsContent>
+
+            {/* <TabsContent value="history">
+              <div className="flex flex-col gap-y-4 mt-5">
+                <ExptBookingsHistory/>
+              </div>
+            </TabsContent> */}
+          </Tabs>
+        ) : (
           <div>
             <h3>Posts</h3>
             <Posts filters={{ owner: profile.uid }} />
           </div>
+        )}
       </div>
     </div>
   );
