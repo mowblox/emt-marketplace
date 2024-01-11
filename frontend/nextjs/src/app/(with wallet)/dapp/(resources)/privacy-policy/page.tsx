@@ -52,17 +52,17 @@ const PrivacyPolicyPage = () => {
 
       <RichTextDisplayContainer richText={post!.body} />
 
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <h4 className='text-md font-semibold tracking-wider '>Contact Us</h4>
         <p className="text-muted text-sm">
           If you have other questions about this Privacy Policy, please contact us at:
         </p>
 
-      </div>
+      </div> */}
 
       <div className="mt-8">
-          <h4 className="text-sm font-semibold text-accent-3">MEMM!</h4>
-        <p className="text-muted text-sm">
+          {/* <h4 className="text-sm font-semibold text-accent-3">MEMM!</h4> */}
+        {/* <p className="text-muted text-sm">
           Banana street, East Legon <br />
           Accra, Ghana
         </p>
@@ -74,7 +74,7 @@ const PrivacyPolicyPage = () => {
           </Link>
           </Button>
           .
-        </p>
+        </p> */}
 
       </div>
 

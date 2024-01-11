@@ -1063,7 +1063,7 @@ export default function useBackend() {
         contentId: id,
         recipients: [owner],
       });
-      t("Vote SuccessFul", 100);
+      t("Vote Successful", 100);
       return {
         upvotes: Number(_upvotes),
         downvotes: Number(_downvotes),

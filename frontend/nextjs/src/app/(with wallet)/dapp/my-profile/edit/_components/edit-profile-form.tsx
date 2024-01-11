@@ -25,8 +25,7 @@ import { useUser } from "@/lib/hooks/user";
 import { isValidFileType, profilePlaceholderImage } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TAGS } from "@/lib/contants";
-import { PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
-import { Progress } from "@/components/ui/progress";
+import { MY_PROFILE_PAGE, PROFILE_PAGE } from "@/app/(with wallet)/_components/page-links";
 import { UserProfile } from "@/lib/types";
 import PageLoading from "@/components/ui/page-loading";
 import NoData from "@/components/ui/no-data";
@@ -314,7 +313,7 @@ const EditProfileForm = () => {
 
           <div className="flex justify-end w-full">
             {/* FIX: @jovells when i click cancel it shows "profile update" before routing to the profile page, why is that? */}
-            <Button onClick={(e) => {e.preventDefault(); router.push(PROFILE_PAGE(uid)); }} variant="outline" className="w-[160px] mr-3">
+            <Button onClick={(e) => {e.preventDefault(); router.push(MY_PROFILE_PAGE); }} variant="outline" className="w-[160px] mr-3">
               Cancel
             </Button>
             <Button type="submit" isLoading={isButtonLoading} loadingText='Updating profile' variant="default" className="w-[160px] ">

@@ -41,33 +41,33 @@ export const Navbar = () => {
         <div className=" flex-col md:flex">
           <div className="container flex items-center justify-between py-4 md:h-16">
             <Link href={HOME_PAGE}>
-              <h2 className="text-lg font-semibold text-accent-3">MEMM!</h2>
+              <h2 className="text-xl pl-4 font-semibold text-accent-3">MEMM!</h2>
             </Link>
             <div className="ml-auto flex items-center space-x-2 sm:justify-end">
               <div className="hidden md:block">
-                <Search className="w-[240px]" />
+                {/* <Search className="w-[240px]" /> */}
               </div>
-              {showSearch && <Search />}
+              {/* {showSearch && <Search />} */}
               {showSearch ? (
                 <>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     aria-label="search"
                     size="icon"
                     onClick={() => setShowSearch(false)}>
                     <X className="h-4 w-4" />
-                  </Button>
-                </>
+                  </Button> */}
+                </> 
               ) : (
                 <>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     aria-label="search"
                     className="block md:hidden"
                     size="icon"
                     onClick={() => setShowSearch(true)}>
                     <HiMagnifyingGlass className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                   {/* <Button
                     variant="ghost"
                     aria-label="create a post"

@@ -115,14 +115,14 @@ const Profile = () => {
               <Badge>{profile.skill || profile.tags?.[0]}</Badge>
             </div>
           </div>
-            <Button
+            {!isCurrentUserProfile && <Button
               variant="ghost"
               onClick={toggleFollowing}
               className="text-xs hover:bg-transparent text-muted hover:text-accent-3 gap-2">
               {isFollowingUser ? <><HiUser className="" /> Following</> : <>
               <HiOutlineUserPlus /> Follow
               </> } 
-            </Button>
+            </Button>}
         </div>
 
         <div className="text-foreground text-sm">{profile.about}</div>
