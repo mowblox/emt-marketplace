@@ -7,6 +7,7 @@ import {
   HiCheckBadge,
   HiOutlineCog6Tooth,
   HiOutlineFire,
+  HiOutlineTicket,
   HiOutlineUserPlus,
   HiUser,
 } from "react-icons/hi2";
@@ -28,7 +29,7 @@ import NoData from '@/components/ui/no-data';
 const Profile = () => {
   // const { uid } = useParams();
   const { user } = useUser();
-  const { fetchProfile, followUser, fetchUnclaimedMent, claimMent, unfollowUser, checkFollowing } = useBackend();
+  const { fetchProfile, followUser, balances, fetchUnclaimedMent, claimMent, unfollowUser, checkFollowing } = useBackend();
   const router = useRouter();
 
   const isCurrentUserProfile = true
@@ -155,6 +156,12 @@ const Profile = () => {
               {/* TODO: @jovells after refactoring, this shows as NaN sometimes.  */}
               {/* it doesn't show NaN when you navigate from another page, but when you refresh */}
               <div className="ml-1">{profile.ment} MENT</div>
+            </div>
+            <div className="flex items-center text-sm text-accent-3">
+              <HiOutlineTicket className="w-4 h-4 ml-1" />
+              {/* TODO: @jovells after refactoring, this shows as NaN sometimes.  */}
+              {/* it doesn't show NaN when you navigate from another page, but when you refresh */}
+              <div className="ml-1">{profile.ownedExptIds?.length} EXPTS </div>
             </div>
 
             <div className="flex items-center text-sm text-muted">

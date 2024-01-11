@@ -199,10 +199,11 @@ export default function useBackend() {
             token.address!
           ) as typeof stableCoin;
           const balance = Number(await contract.balanceOf(currentUserId));
+          const decimals = token.name === "USDT" ? await stableCoin.decimals(): 0
           return {
             [token.name]:
               token.name === "USDT"
-                ? parseFloat(ethers.formatUnits(balance, 6)).toFixed(2)
+                ? parseFloat(ethers.formatUnits(balance, decimals)).toFixed(2)
                 : balance,
           };
         },
@@ -344,10 +345,11 @@ export default function useBackend() {
 
   async function fetchMentAndLevel(uid = user?.uid): Promise<[number, number]> {
     console.log("fetchMentAndLevel", uid);
-    let ment = balances.MENT;
-    if (uid !== user?.uid) {
-      ment = await fetchMent(uid);
-    }
+    let ment : number  
+  
+      ment = uid? await fetchMent(uid) : 0;
+
+
     console.log("ment2222: ", ment);
     let userlevel = 0;
     exptLevels
@@ -1206,10 +1208,14 @@ export default function useBackend() {
       t("mining transaction", 20);
       await approvalTxn!.wait();
       t("listing expts in contract", 40);
+      const decimals = await stableCoin.decimals();
+      console.log(
+        "list expts in contract",
+      )
       const tx = await emtMarketplace.offerExpts(
         listing.tokenIds,
         stableCoin.target,
-        listing.price
+        listing.price * 10 ** Number(decimals) 
       );
       t("mining transaction", 50);
       await tx!.wait();
