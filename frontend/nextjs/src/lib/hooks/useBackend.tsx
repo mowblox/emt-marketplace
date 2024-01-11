@@ -64,7 +64,7 @@ import {
   NOTIFICATIONS_COLLECTION,
   USERS_COLLECTION,
   ADMIN_COLLECTION,
-  exptLevelKeys,
+  EXPT_LEVEL_KEYS,
   chain,
 } from "../../../emt.config";
 import { firestore, storage } from "../firebase";
@@ -162,7 +162,7 @@ export default function useBackend() {
   const { data: exptLevels } = useQuery({
     queryKey: ["exptlevels"],
     queryFn: async () => {
-      const levelsPromises = exptLevelKeys.map(async (key) => {
+      const levelsPromises = EXPT_LEVEL_KEYS.map(async (key) => {
         const l = await emtMarketplace.exptLevels(key);
         return { requiredMent: Number(l[0]), receivableExpt: Number(l[1]) };
       });
@@ -307,10 +307,13 @@ export default function useBackend() {
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
+    const t = loadingToast("Claiming ments", 1);
     try {
       const tx = await emtMarketplace.claimMent();
+      t("mining transaction", 50);
       const receipt = await tx!.wait();
       console.log("claimed ment");
+      t("almost there", 80);
       const tokenIds = getTokenIdsClaimed(receipt!);
       const historyItem: Omit<ClaimHistoryItem, "id" | "timestamp"> = {
         type: "ment",
@@ -321,6 +324,7 @@ export default function useBackend() {
       const claimHistoryItem =
         await saveClaimHistoryItemToFirestore(historyItem);
       const newMent = await updateUserMentInFirestore();
+      t("Ment claimed", 100);
       return {
         mentClaimed: tokenIds.length,
         tokenIds,
@@ -329,6 +333,11 @@ export default function useBackend() {
       };
     } catch (err: any) {
       console.log(err);
+      if (err.message.includes("No MENT to claim")) {
+        t("No ment to claim", undefined, true);
+      }else{
+        t("Error claiming ment", undefined, true);
+      }
       throw new Error("Error claiming ment. Message: " + err.message);
     }
   }
@@ -380,9 +389,9 @@ export default function useBackend() {
       });
       throw new Error("User not logged in");
     }
-    for (const i of exptLevelKeys) {
-      const level = i + 1;
-      const t = loadingToast("Claiming expt", 1);
+    const t = loadingToast("Claiming expt", 1);
+    for (const i of EXPT_LEVEL_KEYS) {
+      const level = i ;
       try {
         const tx = await emtMarketplace.claimExpt(level);
         t("mining transaction", 50);
@@ -416,6 +425,8 @@ export default function useBackend() {
         }
       }
     }
+    t("No Expts To Claim", undefined, true);
+    throw new Error("Error claiming expt. Message: " + "Level not found");
   }
 
   async function fetchVotesAndUsernames(notifications: BuiltNotification[]) {
@@ -590,11 +601,16 @@ export default function useBackend() {
    * @returns The number of followers.
    */
   async function fetchNumFollowers(id: string) {
-    const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
-    const querySnapshot = await getCountFromServer(query(userFollowersRef));
-    const count = querySnapshot.data().count;
-    console.log("fetchNumFollowers", count);
-    return count;
+    try {
+      const userFollowersRef = collection(USERS_COLLECTION, id, "followers");
+      const querySnapshot = await getCountFromServer(query(userFollowersRef));
+      const count = querySnapshot.data().count;
+      console.log("fetchNumFollowers", count);
+      return count;
+    } catch (err) {
+      console.log("Error fetching num followers", err);
+      throw new Error('Error fetching num followers'+ err);
+    }
   }
 
   /**
@@ -604,14 +620,19 @@ export default function useBackend() {
    * @returns The number of followers.
    */
   async function fetchNumFollowing(id: string) {
-    const q = query(
-      collectionGroup(firestore, "followers"),
-      where("uid", "==", id)
-    );
-    const querySnapshot = await getCountFromServer(q);
-    const count = querySnapshot.data().count;
-    console.log("fetchNumFollowing", count);
-    return count;
+    try {
+      const q = query(
+        collectionGroup(firestore, "followers"),
+        where("uid", "==", id)
+      );
+      const querySnapshot = await getCountFromServer(q);
+      const count = querySnapshot.data().count;
+      console.log("fetchNumFollowing", count);
+      return count;
+    } catch (err) {
+      console.log("Error fetching num following", err);
+      throw new Error('Error fetching num following'+ err);
+    }
   }
 
   /**
@@ -681,7 +702,7 @@ export default function useBackend() {
     try {
       console.log("fetching unclaimed expt");
       let unclaimedExpt = 0;
-      for (let i = 0; i < exptLevelKeys.length; i++) {
+      for (let i = 0; i < EXPT_LEVEL_KEYS.length; i++) {
         try {
           const val = await emtMarketplace.unclaimedExpt(user.uid, i + 1);
           unclaimedExpt += Number(val);
@@ -946,7 +967,6 @@ export default function useBackend() {
     }
     const t = loadingToast("Submitting your request", 1);
     try {
-      // TODO @od41 error: missing permissions
       const docRef = doc(ADMIN_COLLECTION);
       await saveRequestToFirestore(docRef);
       console.log("Document written with ID: ", docRef.id);
@@ -1043,7 +1063,7 @@ export default function useBackend() {
         contentId: id,
         recipients: [owner],
       });
-      t("Vote SuccessFul", 100);
+      t("Vote Successful", 100);
       return {
         upvotes: Number(_upvotes),
         downvotes: Number(_downvotes),

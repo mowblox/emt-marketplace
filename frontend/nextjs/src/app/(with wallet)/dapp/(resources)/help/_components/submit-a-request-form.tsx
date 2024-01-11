@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,12 +17,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import RichTextEditor from "@/components/ui/rich-text-editor";
 import useBackend from "@/lib/hooks/useBackend";
-import { isValidFileType, placeholderImage } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   HOME_PAGE,
-  POST_PAGE,
 } from "@/app/(with wallet)/_components/page-links";
 
 
@@ -49,6 +46,7 @@ const SubmitARequestForm = () => {
       email: "",
       description: "",
     },
+    mode: 'onBlur',
   });
   const [isFormLoading, setIsFormLoading] = useState(false);
 
@@ -61,10 +59,20 @@ const SubmitARequestForm = () => {
         email: values.email,
         description: values.description,
       });
-      router.push(POST_PAGE(''));
+      toast({
+        title: "Success",
+        description: "Your enquiry has been submitted successfully",
+      });
+      router.push(HOME_PAGE);
+
       setIsFormLoading(false);
     } catch (error: any) {
       console.error(error.message);
+      toast({
+        variant:"destructive",
+        title: "Something went wrong",
+        description: "Please try again later",
+      });
       setIsFormLoading(false);
     }
   }
@@ -106,7 +114,8 @@ const SubmitARequestForm = () => {
 
           <div className="flex justify-end w-full gap-4">
             <Button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 router.push(HOME_PAGE);
               }}
               variant="outline"

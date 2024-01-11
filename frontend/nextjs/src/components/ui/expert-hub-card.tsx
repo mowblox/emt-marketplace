@@ -10,7 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link';
 import { HiOutlineFire } from "react-icons/hi2";
 import { EXPERT_TICKET_PAGE } from '@/app/(with wallet)/_components/page-links';
-import {  ExptListingWithAuthorProfile } from "@/lib/types";
+import { ExptListingWithAuthorProfile } from "@/lib/types";
 import { Badge } from './badge';
 
 
@@ -43,7 +43,7 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
                     <div className="flex justify-between w-full">
                         <div className="">
                             <p className='text-md text-foreground'>{authorProfile.displayName}</p>
-                            <p className='text-sm text-muted'>{authorProfile.username}</p>
+                            <p className='text-sm text-muted'>@{authorProfile.username}</p>
                         </div>
 
                         <div className="flex h-[16px] mt-1   items-center text-accent-3">
@@ -52,10 +52,11 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
                         </div>
                     </div>
                 </div>
-                <div className="flex gap-2 flex-wrap mt-3 capitalize">
-                    {authorProfile.tags?.map((tag, key) => (
-                        <Badge key={`${tag}-${key}`}>{tag}</Badge>
-                    ))}
+                <div className="flex gap-2 overflow-hidden mt-3 capitalize">
+                    {authorProfile.tags?.map((tag, key) => {
+                        if(key>2) return;
+                        return <Badge key={`${tag}-${key}`}>{tag}</Badge>
+                    })}
                 </div>
             </div>
 

@@ -7,7 +7,7 @@ type Props = {
 const OnboardingLayout = async ({children}: Props) => {
 
   return (
-    <div className="bg-[url('/img/sky-bg.png')] h-screen w-full">
+    <div className="bg-[url('/img/sky-bg.png')] min-h-screen w-full">
       {children}
     </div>
   )

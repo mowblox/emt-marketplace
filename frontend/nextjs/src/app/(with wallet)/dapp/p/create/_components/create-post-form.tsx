@@ -75,6 +75,7 @@ const CreatePostForm = () => {
       postBody: "",
       postType: POST_TYPE[0],
     },
+    mode: 'onBlur',
   });
   const imageRef = React.useRef<HTMLInputElement>(null);
   const [isFormLoading, setIsFormLoading] = useState(false);
@@ -118,7 +119,7 @@ const CreatePostForm = () => {
     <div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
+          {/* <FormField
             control={form.control}
             name="postType"
             render={({ field }) => (
@@ -143,10 +144,10 @@ const CreatePostForm = () => {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          /> */}
 
           {/* Only display the post type if you're answering a question */}
-          {form.watch().postType == POST_TYPE[2] ? (
+          {/* {form.watch().postType == POST_TYPE[2] ? (
             <FormField
               control={form.control}
               name="questionPostURL"
@@ -165,11 +166,10 @@ const CreatePostForm = () => {
             />
           ):(
           (form.getFieldState('questionPostURL').isDirty&&form.resetField('questionPostURL')), "")
-          }
+          } */}
 
 
           <Separator />
-
           <FormField
             control={form.control}
             name="coverPhoto"
@@ -268,7 +268,8 @@ const CreatePostForm = () => {
           />
           <div className="flex justify-end w-full gap-4">
             <Button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 router.push(HOME_PAGE);
               }}
               variant="outline"

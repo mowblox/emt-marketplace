@@ -105,7 +105,6 @@ export type ProfileFilters = {
 }
 
 export type ExptFilters = {
-  //TODO: @Jovells refine this
   tags?: string[],
   author?: string,
   mentee?: string,

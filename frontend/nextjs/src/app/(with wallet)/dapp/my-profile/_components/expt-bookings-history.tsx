@@ -41,7 +41,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Globe2Icon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import SessionReviewForm from "../../../bookings/_components/session-review-form";
+import SessionReviewForm from "../../bookings/_components/session-review-form";
 import InfiniteScroll from "@/components/ui/infinite-scroller";
 import useBackend from "@/lib/hooks/useBackend";
 import { useUser } from "@/lib/hooks/user";

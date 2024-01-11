@@ -2,11 +2,12 @@ import {HiOutlineHome, HiOutlineUser, HiOutlineUsers, HiOutlineCalendarDays, HiO
 
 export const POST_PAGE = (permalink:string) => `/dapp/p/${permalink}`
 export const EXPERT_TICKET_PAGE = (permalink:string) => `/dapp/expert-hub/${permalink}`
-export const PROFILE_EDIT_PAGE = `/dapp/profile/edit`
+export const PROFILE_EDIT_PAGE = `/dapp/my-profile/edit`
 export const HOME_PAGE = "/dapp"
 export const EXPERT_HUB_PAGE = "/dapp/expert-hub"
 export const BOOKINGS_PAGE = "/dapp/bookings"
 export const PROFILE_PAGE = (uid:string) => `/dapp/profile/${uid}`
+export const MY_PROFILE_PAGE = `/dapp/my-profile`
 export const NOTIFICATIONS_PAGE = "/dapp/notifications"
 export const CREATE_A_POST_PAGE = "/dapp/p/create"
 
@@ -42,7 +43,7 @@ export const primaryNavigationLinks = [
         title: "My Profile",
         icon: HiOutlineUser,
         isActive: false,
-        href: PROFILE_PAGE,
+        href: MY_PROFILE_PAGE,
         needsAuth: true
     },
     {
@@ -81,6 +82,7 @@ export const hasBackButtonList = [
 export const PROTECTED_ROUTES = [
     BOOKINGS_PAGE,
     PROFILE_EDIT_PAGE,
+    MY_PROFILE_PAGE,
     CREATE_A_POST_PAGE,
     NOTIFICATIONS_PAGE
 ]

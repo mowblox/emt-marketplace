@@ -88,7 +88,7 @@ const { mutateAsync: handleClaimMent}=useMutation({
                       <div className="ml-1 flex items-center text-muted">Unclaimed MENT: <span className="ml-1 text-foreground">{unclaimedMent}</span></div>
                     </div>
                   </div>
-                  <Button onClick={() => handleClaimMent()} size="sm">Claim MENT</Button>
+                  <Button onClick={() => handleClaimMent()} size="sm">Claim all MENT</Button>
                 </div>
 
                 <ClaimExptCard profile={profile} />

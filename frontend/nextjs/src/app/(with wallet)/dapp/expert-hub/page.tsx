@@ -14,7 +14,7 @@ const ExpertHub = () => {
 
   return (
     <div className="col-span-4">
-      <div className="flex justify-between items-center w-full mb-12">
+      {/* <div className="flex justify-between items-center w-full mb-12">
         <Search
           className="w-auto lg:w-2/3"
           placeholder="Search by name or expert category"
@@ -23,9 +23,9 @@ const ExpertHub = () => {
           <HiMiniAdjustmentsVertical className="mr-1" />
           Filter
         </Button>
-      </div>
+      </div> */}
       <InfiniteScroll
-        className="w-full flex flex-wrap gap-4 flex-grow"
+        className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 flex-grow"
         fetcher={fetchExptListings}
         size={3}
         ItemComponent={ExpertHubCard}

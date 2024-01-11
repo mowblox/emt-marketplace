@@ -115,4 +115,4 @@ export const BOOKINGS_COLLECTION =
         "bookings"
       );
 
-export const exptLevelKeys = [1, 2, 3];
+export const EXPT_LEVEL_KEYS = [1, 2, 3];
