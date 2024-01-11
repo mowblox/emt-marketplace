@@ -1231,6 +1231,44 @@ export default function useBackend() {
     }
   }
 
+
+  async function delistExpts(listing: ExptListingWithAuthorProfile) {
+    async function delistInFirebase(remainingTokenIds: number[]){
+      try {
+          await updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
+            remainingTokenIds: [],
+            collectionSize: increment(remainingTokenIds.length * -1),
+            tokenIds: arrayRemove(...remainingTokenIds),
+          });
+        console.log("deleted expt listing from firestore");
+        return docRef.id;
+      } catch (err: any) {
+        console.log(`Error deleting expt listing from firestore. Message: ` + err);
+        throw new Error(
+          "Error deleting expt listing from firestore. Message: " + err.message
+        );
+      }
+    } 
+    const docRef = doc(EXPT_LISTINGS_COLLECTION, listing.id);
+    const t = loadingToast("Delisting Expts", 1);
+    try {
+      const remainingTokenIds =  (await getDoc(docRef)).data()?.remainingTokenIds || [];
+      //TODO: @mickeymond Allow delisting multiple expts
+      t("Delisting Expt", 10);
+      const tx = await emtMarketplace.withdrawExpt(remainingTokenIds);
+      t("mining transaction", 20);
+      await tx.wait();
+      t("Amost Done", 70);
+      await delistInFirebase(remainingTokenIds);
+      t("Expts delisted successfully", 100);
+      return true
+    } catch (err) {
+      console.log( 'error delisting', err);
+      t("Error delisting expts", 0, true);
+      return false
+    }
+  }
+
   /**
    * Fetches the list of expt listings populated with author profile based on the provided filters.
    * @param lastDocTimeStamp - The timestamp of the last document.
@@ -1856,6 +1894,7 @@ export default function useBackend() {
     fetchExptListings,
     fetchSingleListing,
     listExpts,
+    delistExpts,
     profileReady,
     updateProfile,
     fetchUnclaimedExpt,
