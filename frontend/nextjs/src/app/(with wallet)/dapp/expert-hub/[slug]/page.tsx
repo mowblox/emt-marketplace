@@ -18,13 +18,15 @@ import { ReviewItem } from './_components/review-item';
 import NoData from '@/components/ui/no-data';
 import { useRouter } from 'next/navigation';
 import { BOOKINGS_PAGE } from '@/app/(with wallet)/_components/page-links';
+import { useUser } from '@/lib/hooks/user';
 
 
 
 const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   const queryClient = useQueryClient();
-  const { fetchSingleListing, buyExpt } = useBackend();
+  const { fetchSingleListing, buyExpt, delistExpts } = useBackend();
   const router = useRouter();
+  const { user } = useUser();
 
   const cachedListings = queryClient.getQueryData(["exptListings"]) as { pages: ExptListingWithAuthorProfile[][] } | undefined
 
@@ -41,9 +43,11 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   async function handleBuyExpt() {
     const successful = await buyExpt(listing!);
     if(successful){
-      // router.push(BOOKINGS_PAGE)
+      router.push(BOOKINGS_PAGE)
     }
   }
+
+
 
   const { isLoading } = useQuery({
     queryKey: ["", params.slug],
@@ -54,6 +58,14 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
     },
     enabled: !listing,
   });
+
+  async function handleDelistExpt(){
+    console.log('deslist not implemented yet');
+    const successful = await delistExpts(listing!);
+    if(successful){
+      router.back()
+    }
+  }
 
   if (isLoading && !listing) {
     return <DataLoading />
@@ -150,7 +162,11 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
             </div>
             <div className="order-first md:order-last col-span-1 md:col-span-2 lg:col-span-2  border-3">
               <ExpertHubCard data={listing} disableLink={true} />
+              {
+                user?.uid === listing.authorProfile.uid ?
+                <Button onClick={handleDelistExpt} className='w-full mt-5'>Delist Collection</Button>:
               <Button onClick={handleBuyExpt} className='w-full mt-5'>Buy EXPT</Button>
+              }
             </div>
           </div>
         </div>

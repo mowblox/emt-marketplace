@@ -110,6 +110,8 @@ interface PostTemplateProps {
 }
 
 const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: PostTemplateProps) => {
+  const { user } = useUser();
+  
   if (!post && isLoading) {
     return (<div className="h-screen">
       <DataLoading />
@@ -147,7 +149,7 @@ const PostTemplate = ({ post, isLoading, isFollowingUser, toggleFollowing }: Pos
                     {post.author?.isExpert === true && <HiCheckBadge className="w-4 h-4 ml-1 text-accent-3" />}
                     <div className='ml-2 text-[11px] text-muted'>{formatDistance(post.post.timestamp.toDate(), new Date(), { addSuffix: true })}</div>
                   </div>
-                  {toggleFollowing && <Button
+                  {toggleFollowing && user?.uid !== post.post.owner && <Button
                     variant="ghost"
                     onClick={toggleFollowing}
                     className="text-xs px-0 py-0 rounded-sm h-auto hover:bg-transparent hover:text-accent-3 text-muted">
