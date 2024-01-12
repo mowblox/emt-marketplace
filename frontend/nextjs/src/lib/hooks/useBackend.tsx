@@ -1093,6 +1093,8 @@ export default function useBackend() {
    * @throws An error if the user is not logged in or if there is an error following the user.
    */
   async function followUser(id: string): Promise<boolean> {
+    if(user?.uid === id) throw new Error("Cannot follow yourself");
+
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
@@ -1128,6 +1130,7 @@ export default function useBackend() {
    * @throws An error if there is an error unfollowing the user.
    */
   async function unfollowUser(id: string): Promise<boolean> {
+    if(user?.uid === id) throw new Error("Cannot unfollow yourself");
     try {
       const userFollowersRef = doc(
         USERS_COLLECTION,
