@@ -199,10 +199,11 @@ export default function useBackend() {
             token.address!
           ) as typeof stableCoin;
           const balance = Number(await contract.balanceOf(currentUserId));
+          const decimals = token.name === "USDT" ? await stableCoin.decimals(): 0
           return {
             [token.name]:
               token.name === "USDT"
-                ? parseFloat(ethers.formatUnits(balance, 6)).toFixed(2)
+                ? parseFloat(ethers.formatUnits(balance, decimals)).toFixed(2)
                 : balance,
           };
         },
@@ -344,10 +345,11 @@ export default function useBackend() {
 
   async function fetchMentAndLevel(uid = user?.uid): Promise<[number, number]> {
     console.log("fetchMentAndLevel", uid);
-    let ment = balances.MENT;
-    if (uid !== user?.uid) {
-      ment = await fetchMent(uid);
-    }
+    let ment : number  
+  
+      ment = uid? await fetchMent(uid) : 0;
+
+
     console.log("ment2222: ", ment);
     let userlevel = 0;
     exptLevels
@@ -1091,6 +1093,8 @@ export default function useBackend() {
    * @throws An error if the user is not logged in or if there is an error following the user.
    */
   async function followUser(id: string): Promise<boolean> {
+    if(user?.uid === id) throw new Error("Cannot follow yourself");
+
     if (!user?.uid) {
       throw new Error("User not logged in");
     }
@@ -1126,6 +1130,7 @@ export default function useBackend() {
    * @throws An error if there is an error unfollowing the user.
    */
   async function unfollowUser(id: string): Promise<boolean> {
+    if(user?.uid === id) throw new Error("Cannot unfollow yourself");
     try {
       const userFollowersRef = doc(
         USERS_COLLECTION,
@@ -1206,10 +1211,14 @@ export default function useBackend() {
       t("mining transaction", 20);
       await approvalTxn!.wait();
       t("listing expts in contract", 40);
+      const decimals = await stableCoin.decimals();
+      console.log(
+        "list expts in contract",
+      )
       const tx = await emtMarketplace.offerExpts(
         listing.tokenIds,
         stableCoin.target,
-        listing.price
+        listing.price * 10 ** Number(decimals) 
       );
       t("mining transaction", 50);
       await tx!.wait();
@@ -1222,6 +1231,44 @@ export default function useBackend() {
       console.log(err);
       t("Error listing expts", 0, true);
       throw new Error("Error listing expts. Message: " + err.message);
+    }
+  }
+
+
+  async function delistExpts(listing: ExptListingWithAuthorProfile) {
+    async function delistInFirebase(remainingTokenIds: number[]){
+      try {
+          await updateDoc(doc(EXPT_LISTINGS_COLLECTION, listing.id), {
+            remainingTokenIds: [],
+            collectionSize: increment(remainingTokenIds.length * -1),
+            tokenIds: arrayRemove(...remainingTokenIds),
+          });
+        console.log("deleted expt listing from firestore");
+        return docRef.id;
+      } catch (err: any) {
+        console.log(`Error deleting expt listing from firestore. Message: ` + err);
+        throw new Error(
+          "Error deleting expt listing from firestore. Message: " + err.message
+        );
+      }
+    } 
+    const docRef = doc(EXPT_LISTINGS_COLLECTION, listing.id);
+    const t = loadingToast("Delisting Expts", 1);
+    try {
+      const remainingTokenIds =  (await getDoc(docRef)).data()?.remainingTokenIds || [];
+      //TODO: @mickeymond Allow delisting multiple expts
+      t("Delisting Expt", 10);
+      const tx = await emtMarketplace.withdrawExpt(remainingTokenIds);
+      t("mining transaction", 20);
+      await tx.wait();
+      t("Amost Done", 70);
+      await delistInFirebase(remainingTokenIds);
+      t("Expts delisted successfully", 100);
+      return true
+    } catch (err) {
+      console.log( 'error delisting', err);
+      t("Error delisting expts", 0, true);
+      return false
     }
   }
 
@@ -1850,6 +1897,7 @@ export default function useBackend() {
     fetchExptListings,
     fetchSingleListing,
     listExpts,
+    delistExpts,
     profileReady,
     updateProfile,
     fetchUnclaimedExpt,

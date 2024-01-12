@@ -101,8 +101,14 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
             coverImage: coverImage,
             tokenIds: profile.ownedExptIds?.slice(0, collectionSize) || [],
         }
-          
+        console.log('listing', listing)
         const res = await listExpts(listing)
+        queryClient.setQueryData(["profile", user?.uid], (oldData: UserProfile, )=>{
+            return {
+              ...oldData,
+              ownedExptIds: oldData.ownedExptIds?.filter((el)=>!listing.tokenIds?.includes(el))
+            } satisfies UserProfile
+          })
         router.push(EXPERT_TICKET_PAGE(res))
 
         toast({
@@ -139,6 +145,12 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
                   {
                   ...data?.claimHistoryItem
                 }, ...oldData]
+              })
+              queryClient.setQueryData(["profile", user?.uid], (oldData: UserProfile, )=>{
+                return {
+                  ...oldData,
+                  ownedExptIds: oldData.ownedExptIds?.concat(data.claimHistoryItem.tokenIds!)
+                } satisfies UserProfile
               })
             
           },
