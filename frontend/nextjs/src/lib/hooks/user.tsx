@@ -110,7 +110,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (PROTECTED_ROUTES.some( route=> pathname.startsWith(route)) && !user ){
       router.push(HOME_PAGE)
     }
-  },[pathname, user])
+  },[pathname, user, isLoading])
 
 
   useEffect(() => {
@@ -133,7 +133,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     //logged in to next auth
     if (session?.firebaseToken) {
       signIn({redirect: false})
-
     }
     else{
       setIsLoading(false)
