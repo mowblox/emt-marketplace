@@ -23,7 +23,7 @@ type Props = {
   max?: number;
   Separator?: React.ReactNode;
   noDataComponent?: React.ReactNode;
-  loadingComonent?: React.ReactNode;
+  loadingComponent?: React.ReactNode;
   noDataMessage?: string;
 } & React.HtmlHTMLAttributes<HTMLDivElement>;
 
@@ -39,7 +39,7 @@ export default function InfiniteScroll({
   enabled,
   Separator,
   noDataComponent,
-  loadingComonent: loadingComponent,
+  loadingComponent,
   noDataMessage='No data loaded',
   ...props
 }: Props) {

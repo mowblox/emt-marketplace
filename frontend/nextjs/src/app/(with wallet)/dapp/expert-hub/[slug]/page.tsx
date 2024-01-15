@@ -19,6 +19,7 @@ import NoData from '@/components/ui/no-data';
 import { useRouter } from 'next/navigation';
 import { BOOKINGS_PAGE } from '@/app/(with wallet)/_components/page-links';
 import { useUser } from '@/lib/hooks/user';
+import { useConnectModal } from '@rainbow-me/rainbowkit';
 
 
 
@@ -27,37 +28,62 @@ const ExpertDetails = ({ params }: { params: { slug: string } }) => {
   const { fetchSingleListing, buyExpt, delistExpts } = useBackend();
   const router = useRouter();
   const { user } = useUser();
+  const {openConnectModal} = useConnectModal()
 
-  const cachedListings = queryClient.getQueryData(["exptListings"]) as { pages: ExptListingWithAuthorProfile[][] } | undefined
 
-  let listing: ExptListingWithAuthorProfile | undefined;
 
-  if (cachedListings) {
-    cachedListings.pages.find((page: ExptListingWithAuthorProfile[]) => {
-      listing = page.find((item) => { item.id === params.slug })
-    })
-  }
+  const { isLoading, data: listing } = useQuery({
+    queryKey: ["singleExptListing", params.slug],
+    queryFn: async () => {
+      const cachedListings = queryClient.getQueriesData({queryKey: ["exptListings"]}) as [queryKey: any, data: {pages: ExptListingWithAuthorProfile[][]} | undefined][]
+    
+      console.log('cachedexpts', cachedListings);
+      let listing: ExptListingWithAuthorProfile 
+    
+      if (cachedListings[0]) {
+        cachedListings[0][1]?.pages.some((page: ExptListingWithAuthorProfile[]) => {
+          const found = page.find((item) => item.id === params.slug )
+          if (found) {
+            listing = found
+            return true
+          }
+        })
+        return listing! || await fetchSingleListing(params.slug)
+      }
+      else return await fetchSingleListing(params.slug)},
+  });
 
 
  
   async function handleBuyExpt() {
-    const successful = await buyExpt(listing!);
-    if(successful){
+    if(!user){
+     return  openConnectModal?.()
+    }
+    const tokenBoughtId = await buyExpt(listing!);
+    if(tokenBoughtId){
+      queryClient.invalidateQueries({queryKey: ['singleExptListing', params.slug]})
+      queryClient.setQueriesData({queryKey:['exptListings']}, (oldData: any) => {
+          console.log('oldData', oldData);
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: ExptListingWithAuthorProfile[]) => {
+              return page.map((item) => {
+                if(item.id === listing?.id){
+                  item.remainingTokenIds = item.remainingTokenIds.filter((tokenId) => tokenId !== tokenBoughtId)
+                }
+                return item
+              
+              })
+            })
+          }
+      })
       router.push(BOOKINGS_PAGE)
     }
   }
 
 
 
-  const { isLoading } = useQuery({
-    queryKey: ["", params.slug],
-    queryFn: () => fetchSingleListing(params.slug),
-    select(data) {
-      listing = data
-      return data
-    },
-    enabled: !listing,
-  });
+
 
   async function handleDelistExpt(){
     console.log('deslist not implemented yet');
