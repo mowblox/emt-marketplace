@@ -29,16 +29,17 @@ import NoData from '@/components/ui/no-data';
 const Profile = () => {
   // const { uid } = useParams();
   const { user } = useUser();
-  const { fetchProfile, followUser, balances, fetchUnclaimedMent, claimMent, unfollowUser, checkFollowing } = useBackend();
+  const { fetchProfile, followUser,  unfollowUser, checkFollowing } = useBackend();
   const router = useRouter();
 
   const isCurrentUserProfile = true
   
   //fetch profile
-  const { data: profile} = useQuery({
+  const { data: profile, isLoading, error} = useQuery({
     queryKey: ["profile", user?.uid],
     queryFn: () => fetchProfile(user?.uid as string),
-    throwOnError: (error)=>{ console.log(error); return false}
+    throwOnError: (error)=>{ console.log(error); return false},
+    enabled: !!user?.uid
   });
 
   console.log('profile on page, uid', profile, user?.uid)
@@ -79,7 +80,7 @@ const Profile = () => {
   
 
   //fetch followers
-  const { data: followers, isLoading } = useQuery({
+  const { data: followers } = useQuery({
     queryKey: ["followers", user?.uid],
     queryFn: () => fetchProfile(user?.uid as string),
     enabled: !!user?.uid,
@@ -87,16 +88,18 @@ const Profile = () => {
 
   
 
-  if (!profile && isLoading) {
-    return (<div className="h-screen">
-        <DataLoading />
-      </div>)
-  }
 
-  if(!profile){
+
+  if(!profile && error){
     return <div className="h-screen">
       <NoData message="Error Loading Profile"/>
     </div>
+  }
+
+  if (!profile) {
+    return (<div className="h-screen">
+        <DataLoading />
+      </div>)
   }
 
 
@@ -161,7 +164,7 @@ const Profile = () => {
               <HiOutlineTicket className="w-4 h-4 ml-1" />
               {/* TODO: @jovells after refactoring, this shows as NaN sometimes.  */}
               {/* it doesn't show NaN when you navigate from another page, but when you refresh */}
-              <div className="ml-1">{profile.ownedExptIds?.length} EXPTS </div>
+              <div className="ml-1">{profile.ownedExptIds?.length} EXPT </div>
             </div>
 
             <div className="flex items-center text-sm text-muted">
