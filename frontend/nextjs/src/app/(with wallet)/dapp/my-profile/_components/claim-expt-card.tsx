@@ -25,7 +25,7 @@ import { toast } from "@/components/ui/use-toast"
 
 import { Textarea } from '@/components/ui/textarea'
 import { cn, isValidFileType } from "@/lib/utils"
-import { ClaimHistoryItem, NewExptListing, UserProfile } from '@/lib/types';
+import { ClaimHistoryItem, ExptListingWithAuthorProfile, NewExptListing, UserProfile } from '@/lib/types';
 import { Input } from '@/components/ui/input'
 import {
     Select,
@@ -102,14 +102,15 @@ const [coverPhotoPreview, setCoverPhotoPreview] = useState<string | null>(null);
             tokenIds: profile.ownedExptIds?.slice(0, collectionSize) || [],
         }
         console.log('listing', listing)
-        const res = await listExpts(listing)
+        const finalListing = await listExpts(listing)
         queryClient.setQueryData(["profile", user?.uid], (oldData: UserProfile, )=>{
             return {
               ...oldData,
               ownedExptIds: oldData.ownedExptIds?.filter((el)=>!listing.tokenIds?.includes(el))
             } satisfies UserProfile
           })
-        router.push(EXPERT_TICKET_PAGE(res))
+        router.push(EXPERT_TICKET_PAGE(finalListing.id))
+        queryClient.invalidateQueries({queryKey: ['exptListings']})
 
         toast({
             title: "You submitted the following values:",
