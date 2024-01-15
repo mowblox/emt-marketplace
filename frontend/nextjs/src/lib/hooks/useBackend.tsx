@@ -1189,7 +1189,8 @@ export default function useBackend() {
       try {
         await setDoc(docRef, fullListing);
         console.log("saved expt listing to firestore");
-        return docRef.id;
+        
+        return {fullListing, id: docRef.id}
       } catch (err: any) {
         console.log(`Error saving expt listing to firestore. Message: ` + err);
         throw new Error(
@@ -1224,9 +1225,10 @@ export default function useBackend() {
       await tx!.wait();
       console.log("listed expts in contract");
       t("Finalising Listing", 70);
-      const id = await saveExptListingToFirestore(listing);
+      const {id, fullListing} = await saveExptListingToFirestore(listing);
       t("Expts listed successfully", 100);
-      return id;
+      const finalListing: ExptListingWithAuthorProfile = {...fullListing, id, authorProfile: user as UserProfile}  
+      return finalListing;
     } catch (err: any) {
       console.log(err);
       t("Error listing expts", 0, true);
@@ -1281,9 +1283,10 @@ export default function useBackend() {
    */
   async function fetchExptListings(
     lastDoc?: ExptListingWithAuthorProfile,
-    size = 1,
+    size = 5,
     filters?: ExptFilters
   ): Promise<ExptListingWithAuthorProfile[]> {
+    size = size < 3 ? 3 : size;
     //fetch expts that the user bought from another
     try {
 
@@ -1306,7 +1309,7 @@ export default function useBackend() {
         // which requires us to order by the author field and start after the last doc's author
         // this is because firebase does not allow inequality operators on multiple fields
         // https://firebase.google.com/docs/firestore/query-data/order-limit-data#limitations
-        // so we check if the mentee filter is NOT present and if so we order by and starty after the timestamp
+        // so we check if the mentee filter is NOT present and if so we order by and start after the timestamp
         let q = query(
           EXPT_LISTINGS_COLLECTION,
           limit(size)
@@ -1319,7 +1322,7 @@ export default function useBackend() {
         }
         // fetch expts that the user listed
         if (filters?.mentor) {
-          q = query(q, where("author", "==", filters.mentor));
+          q = query(q, orderBy("author"), where("author", "==", filters.mentor), startAfter(lastDoc?.author || ''));
         }
         if (filters?.tags) {
           q = query(q, where("tags", "array-contains-any", filters.tags));
@@ -1333,6 +1336,12 @@ export default function useBackend() {
         console.log('query', )
   
         const querySnapshot = await getDocs(q);
+        if (filters?.mentee)
+          {console.log('tokenIds cvv', tokenIds)
+          console.log(querySnapshot, 'cvv')
+        console.log('last cvv', lastDoc)
+        }
+        
         if (querySnapshot.empty) return [];
   
         const withAuthorPromises = querySnapshot.docs.map(async (doc) => {
@@ -1340,7 +1349,7 @@ export default function useBackend() {
           listing.id = doc.id;
           listing.authorProfile = await fetchProfile(listing.author);
           listing.tokensOfCurrentUser = listing.tokenIds.filter(
-            (tokenId) => filters?.tokenIds?.includes(tokenId)
+            (listingTokenId) => filters?.tokenIds?.includes(listingTokenId)
           );
           return listing;
         });
@@ -1361,20 +1370,23 @@ export default function useBackend() {
 
   async function fetchExpts(
     lastDoc?: { id: string; listing: ExptListingWithAuthorProfile },
-    size = 1,
+    size = 3,
     filters?: ExptFilters
   ) {
     try {
       const listings = await fetchExptListings(lastDoc?.listing, size, filters);
-      const exptsPromises = listings.map((listing) => listing.tokensOfCurrentUser!.map( async (tokenId) => {
-        const remainingSessions = await getRemainingSessions(listing, tokenId);
-          return {
-            id: tokenId,
-            listing,
-            remainingSessions,
-          }
-        }
-      )
+      
+      const exptsPromises = listings.map((listing) => {
+        return listing.tokensOfCurrentUser?.map(async (tokenId) => {
+          const remainingSessions = await getRemainingSessions(listing, tokenId);
+            return {
+              id: tokenId,
+              listing,
+              remainingSessions,
+            }
+
+        });
+      }
       ).flat()
     return await Promise.all(exptsPromises);
     } catch (err: any) {
@@ -1383,13 +1395,16 @@ export default function useBackend() {
     }
 
   async function getRemainingSessions(listing: ExptListingWithAuthorProfile, tokenId: number) {
-    const q = query(BOOKINGS_COLLECTION, where('exptTokenId', '==', tokenId))
-    const bookings = (await getDocs(q)).docs.map(d=> d.data()) as Booking[];
-    const bookedSessions = bookings.reduce((acc, booking) => {
-      return acc + booking.sessionCount;
-    }, 0)
+
+      const q = query(BOOKINGS_COLLECTION, where('exptTokenId', '==', tokenId))
+      const bookings = (await getDocs(q)).docs.map(d=> d.data()) as Booking[];
+      const bookedSessions = bookings.reduce((acc, booking) => {
+        return acc + booking.sessionCount;
+      }, 0)
+  
 
     return listing.sessionCount - bookedSessions;
+
   }
 }
 
@@ -1403,13 +1418,13 @@ export default function useBackend() {
    */
   async function fetchBookings(
     lastDoc? : Booking,
-    size = 1,
+    size = 2,
     filters?: BookingFilters
   ): Promise<Booking[]> {
     let q = query(
       BOOKINGS_COLLECTION,
       orderBy("timestamp", "desc"),
-      limit(size)
+      limit(size<2 ? 2: size)
     );
 
     if (lastDoc) {
@@ -1620,8 +1635,8 @@ export default function useBackend() {
       t("mining transaction", 20);
       const receipt = await tx.wait();
       console.log(receipt);
-      console.log("buying expts in contract");
-      t("buying expts in contract", 40);
+      console.log("buying expt in contract");
+      t("buying expt in contract", 40);
       let exptToBuyIndex = listing.remainingTokenIds.length - 1;
 
       //this loop is here because the chosen expt to buy
@@ -1637,8 +1652,9 @@ export default function useBackend() {
           t("Finalising Purchase", 80);
           await updateListingInFireStore(tokenToBuyId);
           t("Expt bought successfully", 100);
-          return true;
+          return tokenToBuyId;
         } catch (err: any) {
+          console.log("Error. Details: "+ tokenToBuyId + err.message);
           if (err.message.includes("No deposit yet for token id")) {
             console.log("this expt has probably been bought. Trying the next");
             exptToBuyIndex = exptToBuyIndex - 1;
@@ -1647,8 +1663,9 @@ export default function useBackend() {
             t("Error buying expts", 0, true);
             throw new Error(err);}
         }
-        t("this listing has been sold out", undefined, true);
       }
+      //if we get here it means all the expts have been bought
+      t("this listing has been sold out", undefined, true);
 
     } catch (err: any) {
       console.log("Error buying expts. Message: " + err.message);

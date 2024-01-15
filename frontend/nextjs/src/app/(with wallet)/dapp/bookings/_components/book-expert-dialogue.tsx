@@ -20,7 +20,7 @@ export default function BookExpertDialogue({data}: {data: {listing: ExptListingW
    const {listing, id, remainingSessions} = data;
 return <Dialog >
                             <DialogTrigger>
-                                <ExpertHubCard data={listing} type="modal" />
+                                <ExpertHubCard tokenId={id} data={listing} type="modal" />
                             </DialogTrigger>
 
                             <DialogContent className='w-full py-0 max-h-[90vh] overflow-hidden'>

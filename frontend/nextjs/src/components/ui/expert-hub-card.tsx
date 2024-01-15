@@ -18,11 +18,12 @@ type Props = {
     data: ExptListingWithAuthorProfile,
     disableLink?: boolean;
     type?: "link" | "modal";
+    tokenId?: number | string;
 }
 
 
-const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
-    const { price, imageURL, collectionName, id, authorProfile } = data
+const ExpertHubCard = ({ data, tokenId, disableLink = false, type = "link" }: Props) => {
+    const { price, imageURL, remainingTokenIds, collectionName, id, authorProfile } = data
 
     const CardTemplate = () => (<Card className='border border-stroke/[.1] p-4 bg-glass backdrop-blur-md min-w-[230px] hover:bg-accent-shade'>
 
@@ -42,14 +43,21 @@ const ExpertHubCard = ({ data, disableLink = false, type = "link" }: Props) => {
                 <div className="flex items-center justify-between w-full">
                     <div className="flex justify-between w-full">
                         <div className="">
-                            <p className='text-md text-foreground'>{authorProfile.displayName}</p>
+                            <p className='text-md  text-foreground'>{authorProfile.displayName}</p>
                             <p className='text-sm text-muted'>@{authorProfile.username}</p>
                         </div>
 
-                        <div className="flex h-[16px] mt-1   items-center text-accent-3">
+                            <div >
+                        <div className="flex   justify-end items-center text-accent-3">
                             <p className='text-md text-muted font-semibold'>L{authorProfile.level}</p>
                             <HiOutlineFire className="w-4 h-4 ml-1" />
                         </div>
+                            {tokenId?
+                                <p className='text-sm text-muted'>Token Id: {tokenId}</p>
+                                :
+                                <p className='text-sm text-muted'>{remainingTokenIds.length} token(s)</p>
+                                }
+                            </div>
                     </div>
                 </div>
                 <div className="flex gap-2 overflow-hidden mt-3 capitalize">
